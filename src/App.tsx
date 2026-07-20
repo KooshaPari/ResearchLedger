@@ -45,6 +45,9 @@ export function App() {
 
 function VaultStatusPanel() {
   const [status, setStatus] = useState<VaultStatus | null>(null);
+  const [vaultPath, setVaultPath] = useState("");
+  const [token, setToken] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     invoke<VaultStatus>("get_vault_status").then(setStatus).catch(() => setStatus(null));
@@ -57,7 +60,19 @@ function VaultStatusPanel() {
       <p className="muted">
         {status ? `Local index: ${status.documentCount} documents` : "Choose a local Markdown vault to begin importing and indexing research."}
       </p>
-      <button className="button primary" type="button">Select local vault</button>
+      <div className="import-form">
+        <input aria-label="Vault path" placeholder="/Users/you/ResearchVault" value={vaultPath} onChange={(event) => setVaultPath(event.target.value)} />
+        <input aria-label="GitHub token" type="password" placeholder="GitHub token (never stored)" value={token} onChange={(event) => setToken(event.target.value)} />
+        <button className="button primary" type="button" onClick={async () => {
+          setMessage("Importing starred repositories…");
+          try {
+            const result = await invoke<{ created: number; updated: number; unchanged: number; failed: number }>("import_github", { vaultPath, token });
+            setToken("");
+            setMessage(`Imported ${result.created + result.updated} repositories; ${result.unchanged} unchanged.`);
+          } catch (error) { setMessage(String(error)); }
+        }}>Import GitHub stars</button>
+        {message && <p className="import-message" role="status">{message}</p>}
+      </div>
     </>
   );
 }

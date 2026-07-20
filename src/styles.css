@@ -28,3 +28,6 @@ h3 { font-size: 26px; letter-spacing: -.035em; margin-bottom: 10px; }
 .button.primary { color: #111318; background: #b5f0c8; }
 .button.secondary { color: #edf1f7; background: #252b38; border: 1px solid #3a4353; }
 .button:hover { filter: brightness(1.08); }
+.import-form { display: grid; gap: 10px; max-width: 480px; }
+.import-form input { width: 100%; border: 1px solid #3a4353; border-radius: 8px; padding: 11px 12px; color: #edf1f7; background: #161a22; }
+.import-message { margin: 0; color: #9ca7b8; font-size: 13px; }
