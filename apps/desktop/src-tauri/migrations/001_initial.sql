@@ -1,0 +1,62 @@
+PRAGMA journal_mode = WAL;
+
+CREATE TABLE IF NOT EXISTS schema_version (
+  version INTEGER PRIMARY KEY,
+  applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS documents (
+  id TEXT PRIMARY KEY,
+  canonical_path TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  source_kind TEXT NOT NULL,
+  source_uri TEXT,
+  content_hash TEXT NOT NULL,
+  captured_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS document_versions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  document_id TEXT NOT NULL REFERENCES documents(id),
+  content_hash TEXT NOT NULL,
+  raw_content TEXT NOT NULL,
+  captured_at TEXT NOT NULL,
+  UNIQUE(document_id, content_hash)
+);
+
+CREATE TABLE IF NOT EXISTS chunks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  document_id TEXT NOT NULL REFERENCES documents(id),
+  ordinal INTEGER NOT NULL,
+  heading_path TEXT,
+  text TEXT NOT NULL,
+  UNIQUE(document_id, ordinal)
+);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS chunk_fts USING fts5(
+  text,
+  heading_path,
+  content='chunks',
+  content_rowid='id'
+);
+
+CREATE TABLE IF NOT EXISTS provenance (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  document_id TEXT NOT NULL REFERENCES documents(id),
+  source_uri TEXT,
+  locator TEXT,
+  quote TEXT,
+  captured_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS import_jobs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_kind TEXT NOT NULL,
+  status TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  finished_at TEXT,
+  error TEXT
+);
+
+INSERT OR IGNORE INTO schema_version(version) VALUES (1);
