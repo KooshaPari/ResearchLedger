@@ -1,4 +1,5 @@
 use serde::Serialize;
+mod github;
 mod storage;
 
 mod commands {
