@@ -1,0 +1,30 @@
+:root {
+  color: #edf1f7;
+  background: #111318;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 960px; min-height: 100vh; }
+button { font: inherit; }
+.shell { display: flex; min-height: 100vh; background: radial-gradient(circle at 72% 18%, #222a3a 0, #111318 38%); }
+.sidebar { width: 248px; padding: 32px 20px 22px; border-right: 1px solid #2a2e38; display: flex; flex-direction: column; }
+.eyebrow { margin: 0 0 10px; color: #8994a8; font-size: 11px; font-weight: 700; letter-spacing: .14em; }
+h1, h2, h3, p { margin-top: 0; }
+h1 { font-size: 22px; letter-spacing: -.03em; margin-bottom: 52px; }
+h2 { font-size: 32px; letter-spacing: -.045em; margin-bottom: 0; }
+h3 { font-size: 26px; letter-spacing: -.035em; margin-bottom: 10px; }
+.nav-item { display: block; width: 100%; border: 0; border-radius: 8px; padding: 11px 12px; margin-bottom: 5px; color: #aab3c2; background: transparent; text-align: left; cursor: pointer; }
+.nav-item.active, .nav-item:hover { color: #fff; background: #252b38; }
+.sidebar-footer { margin-top: auto; color: #778196; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #8be0a6; box-shadow: 0 0 12px #8be0a6; }
+.content { flex: 1; padding: 54px 72px; max-width: 1120px; }
+.topbar { display: flex; align-items: end; justify-content: space-between; margin-bottom: 64px; }
+.hero-card { display: flex; gap: 28px; align-items: center; max-width: 720px; padding: 38px; border: 1px solid #303746; border-radius: 16px; background: rgba(26, 31, 42, .75); box-shadow: 0 24px 80px rgba(0, 0, 0, .22); }
+.hero-mark { display: grid; place-items: center; flex: 0 0 72px; height: 72px; border-radius: 18px; color: #151922; background: #b5f0c8; font-weight: 800; letter-spacing: -.05em; }
+.muted { max-width: 480px; color: #9ca7b8; line-height: 1.6; }
+.button { border: 0; border-radius: 8px; padding: 11px 16px; cursor: pointer; font-weight: 700; }
+.button.primary { color: #111318; background: #b5f0c8; }
+.button.secondary { color: #edf1f7; background: #252b38; border: 1px solid #3a4353; }
+.button:hover { filter: brightness(1.08); }

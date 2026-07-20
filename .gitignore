@@ -1,0 +1,13 @@
+node_modules/
+dist/
+target/
+.tauri/
+*.db
+*.db-shm
+*.db-wal
+.researchledger/
+vault/
+browser-profiles/
+.env
+.env.*
+!.env.example
