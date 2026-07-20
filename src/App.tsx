@@ -1,3 +1,12 @@
+import { invoke } from "@tauri-apps/api/core";
+import { useEffect, useState } from "react";
+
+type VaultStatus = {
+  selected: boolean;
+  path: string | null;
+  documentCount: number;
+};
+
 export function App() {
   return (
     <main className="shell">
@@ -26,15 +35,29 @@ export function App() {
         <section className="hero-card" aria-label="Vault setup">
           <div className="hero-mark">RL</div>
           <div>
-            <p className="eyebrow">NO VAULT SELECTED</p>
-            <h3>Your sources stay yours.</h3>
-            <p className="muted">
-              Choose a local Markdown vault to begin importing and indexing research.
-            </p>
-            <button className="button primary" type="button">Select local vault</button>
+            <VaultStatusPanel />
           </div>
         </section>
       </section>
     </main>
+  );
+}
+
+function VaultStatusPanel() {
+  const [status, setStatus] = useState<VaultStatus | null>(null);
+
+  useEffect(() => {
+    invoke<VaultStatus>("get_vault_status").then(setStatus).catch(() => setStatus(null));
+  }, []);
+
+  return (
+    <>
+      <p className="eyebrow">{status?.selected ? "VAULT READY" : "NO VAULT SELECTED"}</p>
+      <h3>Your sources stay yours.</h3>
+      <p className="muted">
+        {status ? `Local index: ${status.documentCount} documents` : "Choose a local Markdown vault to begin importing and indexing research."}
+      </p>
+      <button className="button primary" type="button">Select local vault</button>
+    </>
   );
 }
