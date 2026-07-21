@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
@@ -10,5 +10,13 @@ describe("ResearchLedger shell", () => {
     expect(screen.getByRole("heading", { name: "ResearchLedger" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Choose local vault" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Import LinkedIn HTML" })).toBeInTheDocument();
+  });
+
+  it("switches accessible primary workspaces", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("tab", { name: "Library" }));
+    expect(screen.getByRole("tab", { name: "Library" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Library");
+    expect(screen.queryByRole("button", { name: "Import GitHub stars" })).not.toBeInTheDocument();
   });
 });

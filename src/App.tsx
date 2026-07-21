@@ -7,8 +7,16 @@ type VaultStatus = {
   path: string | null;
   documentCount: number;
 };
+type PrimaryView = "inbox" | "library" | "collections" | "graph";
+const views: Array<{ id: PrimaryView; label: string }> = [
+  { id: "inbox", label: "Inbox" },
+  { id: "library", label: "Library" },
+  { id: "collections", label: "Collections" },
+  { id: "graph", label: "Graph" },
+];
 
 export function App() {
+  const [activeView, setActiveView] = useState<PrimaryView>("inbox");
   const [vaultPath, setVaultPath] = useState(() =>
     typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.vaultPath") ?? "",
   );
@@ -26,11 +34,12 @@ export function App() {
       <aside className="sidebar">
         <p className="eyebrow">LOCAL RESEARCH SYSTEM</p>
         <h1>ResearchLedger</h1>
-        <nav aria-label="Primary navigation">
-          <button className="nav-item active">Inbox</button>
-          <button className="nav-item">Library</button>
-          <button className="nav-item">Collections</button>
-          <button className="nav-item">Graph</button>
+        <nav aria-label="Primary navigation" role="tablist" onKeyDown={(event) => {
+          const index = views.findIndex((view) => view.id === activeView);
+          const next = event.key === "ArrowRight" ? (index + 1) % views.length : event.key === "ArrowLeft" ? (index + views.length - 1) % views.length : event.key === "Home" ? 0 : event.key === "End" ? views.length - 1 : -1;
+          if (next >= 0) { event.preventDefault(); setActiveView(views[next].id); document.getElementById(`tab-${views[next].id}`)?.focus(); }
+        }}>
+          {views.map((view) => <button key={view.id} id={`tab-${view.id}`} className={`nav-item${activeView === view.id ? " active" : ""}`} role="tab" aria-selected={activeView === view.id} aria-controls={`panel-${view.id}`} tabIndex={activeView === view.id ? 0 : -1} type="button" onClick={() => setActiveView(view.id)}>{view.label}</button>)}
         </nav>
         <div className="sidebar-footer">
           <span className="status-dot" />
@@ -45,12 +54,16 @@ export function App() {
           </div>
           <button className="button secondary" type="button" onClick={() => void chooseVault()}>Select vault</button>
         </header>
+        <section id={`panel-${activeView}`} role="tabpanel" aria-labelledby={`tab-${activeView}`} className="view-panel">
+        {activeView === "inbox" ? <>
         <SearchPanel vaultPath={vaultPath} />
         <section className="hero-card" aria-label="Vault setup">
           <div className="hero-mark">RL</div>
           <div>
             <VaultStatusPanel vaultPath={vaultPath} setVaultPath={setVaultPath} chooseVault={chooseVault} />
           </div>
+        </section>
+        </> : <section className="empty-view"><p className="eyebrow">{activeView.toUpperCase()}</p><h2>{views.find((view) => view.id === activeView)?.label}</h2><p className="muted">This workspace is connected to the same local vault and will surface enriched research as it is indexed.</p></section>}
         </section>
       </section>
     </main>

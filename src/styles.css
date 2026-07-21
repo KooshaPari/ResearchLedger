@@ -20,6 +20,8 @@ h3 { font-size: 26px; letter-spacing: -.035em; margin-bottom: 10px; }
 .sidebar-footer { margin-top: auto; color: #778196; font-size: 12px; display: flex; align-items: center; gap: 8px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #8be0a6; box-shadow: 0 0 12px #8be0a6; }
 .content { flex: 1; padding: 54px 72px; max-width: 1120px; }
+.view-panel { display: grid; gap: 18px; }
+.empty-view { min-height: 420px; display: grid; align-content: center; padding: 42px; border: 1px solid #303746; border-radius: 22px; background: rgba(26, 31, 42, .75); }
 .topbar { display: flex; align-items: end; justify-content: space-between; margin-bottom: 64px; }
 .hero-card { display: flex; gap: 28px; align-items: center; max-width: 720px; padding: 38px; border: 1px solid #303746; border-radius: 16px; background: rgba(26, 31, 42, .75); box-shadow: 0 24px 80px rgba(0, 0, 0, .22); }
 .hero-mark { display: grid; place-items: center; flex: 0 0 72px; height: 72px; border-radius: 18px; color: #151922; background: #b5f0c8; font-weight: 800; letter-spacing: -.05em; }
