@@ -126,6 +126,16 @@ pub fn upsert_document(
         "INSERT INTO chunk_fts(rowid, text, heading_path) VALUES(?1, ?2, NULL)",
         params![rowid, document.content],
     )?;
+    tx.execute(
+        "DELETE FROM document_links WHERE source_document_id = ?1",
+        params![document.id],
+    )?;
+    for url in crate::enrichment::extract_urls(&document.content) {
+        tx.execute(
+            "INSERT OR IGNORE INTO document_links (source_document_id, target_url, discovered_at) VALUES (?1, ?2, ?3)",
+            params![document.id, crate::enrichment::canonical_url(&url), document.captured_at],
+        )?;
+    }
     write_markdown_atomic(root, &document.relative_path, &document.content)
         .map_err(|_| rusqlite::Error::InvalidPath(root.to_path_buf()))?;
     tx.commit()?;

@@ -1,4 +1,5 @@
 use serde::Serialize;
+mod enrichment;
 mod github;
 mod linkedin;
 mod rag;

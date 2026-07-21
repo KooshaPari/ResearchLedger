@@ -60,3 +60,13 @@ CREATE TABLE IF NOT EXISTS import_jobs (
 );
 
 INSERT OR IGNORE INTO schema_version(version) VALUES (1);
+
+CREATE TABLE IF NOT EXISTS document_links (
+  source_document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  target_url TEXT NOT NULL,
+  relation TEXT NOT NULL DEFAULT 'mentioned',
+  discovered_at TEXT NOT NULL,
+  PRIMARY KEY (source_document_id, target_url)
+);
+
+CREATE INDEX IF NOT EXISTS idx_document_links_target ON document_links(target_url);
