@@ -18,12 +18,24 @@ mod commands {
     }
 
     #[tauri::command]
-    pub fn get_vault_status() -> VaultStatus {
-        VaultStatus {
-            selected: false,
-            path: None,
-            document_count: 0,
-        }
+    pub fn get_vault_status(vault_path: Option<String>) -> Result<VaultStatus, String> {
+        let Some(path) = vault_path.filter(|value| !value.trim().is_empty()) else {
+            return Ok(VaultStatus {
+                selected: false,
+                path: None,
+                document_count: 0,
+            });
+        };
+        let root = std::path::PathBuf::from(&path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let document_count =
+            storage::document_count(&connection).map_err(|error| error.to_string())?;
+        Ok(VaultStatus {
+            selected: true,
+            path: Some(path),
+            document_count,
+        })
     }
 
     #[tauri::command]
@@ -168,6 +180,7 @@ pub struct VaultStatus {
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             commands::get_vault_status,
             commands::import_github,

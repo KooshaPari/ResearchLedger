@@ -1,11 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
+
+vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
 
 describe("ResearchLedger shell", () => {
   it("shows the local-first vault setup", () => {
     render(<App />);
     expect(screen.getByRole("heading", { name: "ResearchLedger" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Use local vault path" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Choose local vault" })).toBeInTheDocument();
   });
 });

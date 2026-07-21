@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 
 type VaultStatus = {
@@ -16,6 +17,10 @@ export function App() {
       localStorage.setItem("researchledger.vaultPath", vaultPath);
     }
   }, [vaultPath]);
+  const chooseVault = async () => {
+    const selected = await open({ directory: true, multiple: false, title: "Choose ResearchLedger vault" });
+    if (typeof selected === "string") setVaultPath(selected);
+  };
   return (
     <main className="shell">
       <aside className="sidebar">
@@ -38,13 +43,13 @@ export function App() {
             <p className="eyebrow">INBOX</p>
             <h2>Build your research corpus</h2>
           </div>
-          <button className="button secondary" type="button" onClick={() => document.querySelector<HTMLInputElement>('input[aria-label="Vault path"]')?.focus()}>Select vault</button>
+          <button className="button secondary" type="button" onClick={() => void chooseVault()}>Select vault</button>
         </header>
         <SearchPanel vaultPath={vaultPath} />
         <section className="hero-card" aria-label="Vault setup">
           <div className="hero-mark">RL</div>
           <div>
-            <VaultStatusPanel vaultPath={vaultPath} setVaultPath={setVaultPath} />
+            <VaultStatusPanel vaultPath={vaultPath} setVaultPath={setVaultPath} chooseVault={chooseVault} />
           </div>
         </section>
       </section>
@@ -68,15 +73,16 @@ function SearchPanel({ vaultPath }: { vaultPath: string }) {
   );
 }
 
-function VaultStatusPanel({ vaultPath, setVaultPath }: { vaultPath: string; setVaultPath: (path: string) => void }) {
+function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath: string; setVaultPath: (path: string) => void; chooseVault: () => Promise<void> }) {
   const [status, setStatus] = useState<VaultStatus | null>(null);
   const [token, setToken] = useState("");
   const [exportPath, setExportPath] = useState("");
   const [message, setMessage] = useState("");
 
+
   useEffect(() => {
-    invoke<VaultStatus>("get_vault_status").then(setStatus).catch(() => setStatus(null));
-  }, []);
+    invoke<VaultStatus>("get_vault_status", { vaultPath: vaultPath || null }).then(setStatus).catch(() => setStatus(null));
+  }, [vaultPath]);
 
   return (
     <>
@@ -86,7 +92,7 @@ function VaultStatusPanel({ vaultPath, setVaultPath }: { vaultPath: string; setV
         {status ? `Local index: ${status.documentCount} documents` : "Choose a local Markdown vault to begin importing and indexing research."}
       </p>
       <div className="import-form">
-        <button className="button secondary" type="button" onClick={() => document.querySelector<HTMLInputElement>('input[aria-label="Vault path"]')?.focus()}>Use local vault path</button>
+        <button className="button secondary" type="button" onClick={() => void chooseVault()}>Choose local vault</button>
         <input aria-label="Vault path" placeholder="/Users/you/ResearchVault" value={vaultPath} onChange={(event) => setVaultPath(event.target.value)} />
         <input aria-label="GitHub token" type="password" placeholder="GitHub token (never stored)" value={token} onChange={(event) => setToken(event.target.value)} />
         <button className="button primary" type="button" onClick={async () => {
