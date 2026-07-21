@@ -80,3 +80,11 @@ CREATE TABLE IF NOT EXISTS enrichment_jobs (
   updated_at TEXT NOT NULL,
   error TEXT
 );
+
+CREATE TABLE IF NOT EXISTS chunk_embeddings (
+  chunk_id INTEGER PRIMARY KEY REFERENCES chunks(id) ON DELETE CASCADE,
+  model TEXT NOT NULL,
+  dimensions INTEGER NOT NULL,
+  vector_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);

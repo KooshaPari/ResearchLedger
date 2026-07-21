@@ -1,5 +1,6 @@
 use serde::Serialize;
 mod distill;
+mod embeddings;
 mod enrichment;
 mod github;
 mod linkedin;
@@ -7,7 +8,10 @@ mod rag;
 mod storage;
 
 mod commands {
-    use super::{distill, github, github::GithubClient, linkedin, rag, storage, VaultStatus};
+    use super::{
+        distill, embeddings::OllamaEmbedder, github, github::GithubClient, linkedin, rag, storage,
+        VaultStatus,
+    };
     use serde::Serialize;
     use tauri::Manager;
 
@@ -343,6 +347,36 @@ mod commands {
         }
         Ok(summary)
     }
+
+    #[tauri::command]
+    pub async fn embed_document(
+        vault_path: String,
+        document_id: String,
+        model: Option<String>,
+    ) -> Result<usize, String> {
+        let root = std::path::PathBuf::from(&vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let document = storage::load_document(&connection, &root, &document_id)
+            .map_err(|error| error.to_string())?
+            .ok_or_else(|| "source document not found".to_string())?;
+        let model = model.unwrap_or_else(|| "embeddinggemma".into());
+        let vectors = OllamaEmbedder::new(model.clone())
+            .embed_batch(&[document.content])
+            .await?;
+        let Some(vector) = vectors.into_iter().next() else {
+            return Err("embedding service returned no vector".into());
+        };
+        let chunk_id: i64 = connection
+            .query_row(
+                "SELECT id FROM chunks WHERE document_id=?1 ORDER BY ordinal LIMIT 1",
+                rusqlite::params![document_id],
+                |row| row.get(0),
+            )
+            .map_err(|error| error.to_string())?;
+        connection.execute("INSERT INTO chunk_embeddings (chunk_id, model, dimensions, vector_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT(chunk_id) DO UPDATE SET model=excluded.model, dimensions=excluded.dimensions, vector_json=excluded.vector_json, created_at=excluded.created_at", rusqlite::params![chunk_id, model, vector.len(), serde_json::to_string(&vector).map_err(|error| error.to_string())?, chrono::Utc::now().to_rfc3339()]).map_err(|error| error.to_string())?;
+        Ok(vector.len())
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -368,7 +402,8 @@ pub fn run() {
             commands::export_obsidian,
             commands::retrieve_context,
             commands::distill_document,
-            commands::process_pending_enrichment
+            commands::process_pending_enrichment,
+            commands::embed_document
         ])
         .run(tauri::generate_context!())
         .expect("error while running ResearchLedger");
