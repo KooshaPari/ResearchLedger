@@ -32,6 +32,7 @@ export function App() {
           </div>
           <button className="button secondary" type="button">Select vault</button>
         </header>
+        <SearchPanel />
         <section className="hero-card" aria-label="Vault setup">
           <div className="hero-mark">RL</div>
           <div>
@@ -40,6 +41,23 @@ export function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function SearchPanel() {
+  const [vaultPath, setVaultPath] = useState("");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Array<{ documentId: string; title: string; snippet: string; sourceUri: string | null }>>([]);
+  const search = async () => {
+    if (!vaultPath || !query) return;
+    try { setResults(await invoke("search_documents", { vaultPath, query, limit: 20 })); } catch { setResults([]); }
+  };
+  return (
+    <section className="search-panel" aria-label="Search">
+      <input aria-label="Search research" placeholder="Search your ledger…" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} />
+      <button className="button secondary" type="button" onClick={() => void search()}>Search</button>
+      {results.length > 0 && <div className="results">{results.map((result) => <article className="result" key={result.documentId}><strong>{result.title}</strong><p dangerouslySetInnerHTML={{ __html: result.snippet }} /></article>)}</div>}
+    </section>
   );
 }
 
@@ -61,6 +79,7 @@ function VaultStatusPanel() {
         {status ? `Local index: ${status.documentCount} documents` : "Choose a local Markdown vault to begin importing and indexing research."}
       </p>
       <div className="import-form">
+        <button className="button secondary" type="button">Select local vault</button>
         <input aria-label="Vault path" placeholder="/Users/you/ResearchVault" value={vaultPath} onChange={(event) => setVaultPath(event.target.value)} />
         <input aria-label="GitHub token" type="password" placeholder="GitHub token (never stored)" value={token} onChange={(event) => setToken(event.target.value)} />
         <button className="button primary" type="button" onClick={async () => {
