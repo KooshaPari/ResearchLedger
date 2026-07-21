@@ -65,6 +65,7 @@ function VaultStatusPanel() {
   const [status, setStatus] = useState<VaultStatus | null>(null);
   const [vaultPath, setVaultPath] = useState("");
   const [token, setToken] = useState("");
+  const [exportPath, setExportPath] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -90,6 +91,10 @@ function VaultStatusPanel() {
             setMessage(`Imported ${result.created + result.updated} repositories; ${result.unchanged} unchanged.`);
           } catch (error) { setMessage(String(error)); }
         }}>Import GitHub stars</button>
+        <input aria-label="Obsidian export path" placeholder="/Users/you/ResearchVault-export" value={exportPath} onChange={(event) => setExportPath(event.target.value)} />
+        <button className="button secondary" type="button" onClick={async () => {
+          try { const count = await invoke<number>("export_obsidian", { vaultPath, destination: exportPath }); setMessage(`Exported ${count} Markdown documents.`); } catch (error) { setMessage(String(error)); }
+        }}>Export Markdown vault</button>
         {message && <p className="import-message" role="status">{message}</p>}
       </div>
     </>

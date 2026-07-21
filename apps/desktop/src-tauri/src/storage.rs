@@ -153,6 +153,37 @@ pub fn search(connection: &Connection, query: &str, limit: u32) -> SqlResult<Vec
     rows.collect()
 }
 
+pub fn export_markdown(vault: &Path, destination: &Path) -> std::io::Result<u64> {
+    fn copy_tree(source: &Path, destination: &Path, count: &mut u64) -> std::io::Result<()> {
+        fs::create_dir_all(destination)?;
+        for entry in fs::read_dir(source)? {
+            let entry = entry?;
+            let path = entry.path();
+            let target = destination.join(entry.file_name());
+            if path
+                .file_name()
+                .is_some_and(|name| name == ".researchledger.db")
+            {
+                continue;
+            }
+            if path.is_dir() {
+                copy_tree(&path, &target, count)?;
+            } else if path.extension().is_some_and(|ext| ext == "md") {
+                fs::copy(&path, &target)?;
+                *count += 1;
+            }
+        }
+        Ok(())
+    }
+    let mut count = 0;
+    copy_tree(vault, destination, &mut count)?;
+    fs::write(
+        destination.join(".researchledger-export"),
+        "format: markdown-vault\nversion: 1\n",
+    )?;
+    Ok(count)
+}
+
 trait OptionalRow<T> {
     fn optional(self) -> SqlResult<Option<T>>;
 }

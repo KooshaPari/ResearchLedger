@@ -132,6 +132,15 @@ mod commands {
         storage::search(&connection, &query, limit.unwrap_or(20).min(100))
             .map_err(|error| error.to_string())
     }
+
+    #[tauri::command]
+    pub fn export_obsidian(vault_path: String, destination: String) -> Result<u64, String> {
+        storage::export_markdown(
+            std::path::Path::new(&vault_path),
+            std::path::Path::new(&destination),
+        )
+        .map_err(|error| error.to_string())
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -148,7 +157,8 @@ pub fn run() {
             commands::get_vault_status,
             commands::import_github,
             commands::import_linkedin_html,
-            commands::search_documents
+            commands::search_documents,
+            commands::export_obsidian
         ])
         .run(tauri::generate_context!())
         .expect("error while running ResearchLedger");
@@ -196,6 +206,10 @@ mod tests {
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].document_id, "github:octo/hello");
         assert!(root.join("sources/github/octo--hello.md").exists());
+        let export = temp_root();
+        assert_eq!(export_markdown(&root, &export).unwrap(), 1);
+        assert!(export.join("sources/github/octo--hello.md").exists());
         let _ = std::fs::remove_dir_all(root);
+        let _ = std::fs::remove_dir_all(export);
     }
 }
