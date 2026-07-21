@@ -193,6 +193,31 @@ pub fn export_markdown(vault: &Path, destination: &Path) -> std::io::Result<u64>
     }
     let mut count = 0;
     copy_tree(vault, destination, &mut count)?;
+    let mut index = String::from("# ResearchLedger Knowledge Bundle\n\n");
+    fn append_index(root: &Path, current: &Path, output: &mut String) -> std::io::Result<()> {
+        for entry in fs::read_dir(current)? {
+            let path = entry?.path();
+            if path.is_dir() {
+                append_index(root, &path, output)?;
+            } else if path.extension().is_some_and(|extension| extension == "md")
+                && path.file_name().is_some_and(|name| name != "index.md")
+            {
+                let relative = path
+                    .strip_prefix(root)
+                    .unwrap_or(&path)
+                    .to_string_lossy()
+                    .replace('\\', "/");
+                output.push_str(&format!(
+                    "- [{}]({})\n",
+                    relative.trim_end_matches(".md"),
+                    relative
+                ));
+            }
+        }
+        Ok(())
+    }
+    append_index(destination, destination, &mut index)?;
+    fs::write(destination.join("index.md"), index)?;
     fs::write(
         destination.join(".researchledger-export"),
         "format: markdown-vault\nversion: 1\n",

@@ -69,9 +69,14 @@ mod commands {
                     continue;
                 }
             };
-            let content = format!("---\nid: github:{}\ntitle: {}\nsource_kind: github\nsource_uri: {}\n---\n\n# {}\n\n{}\n\n## Repository\n\n{}\n",
-                repository.full_name, repository.name, repository.html_url, repository.name,
-                repository.description.as_deref().unwrap_or("No description provided."), readme);
+            let description = repository
+                .description
+                .as_deref()
+                .unwrap_or("No description provided.")
+                .replace('"', "'");
+            let content = format!("---\ntype: GitHub Repository\nid: github:{}\ntitle: {}\ndescription: \"{}\"\nresource: {}\ntags: [github, repository]\ntimestamp: {}\nsource_kind: github\nsource_uri: {}\n---\n\n# {}\n\n{}\n\n## Repository\n\n{}\n\n# Citations\n\n[1] [{}]({})\n",
+                repository.full_name, repository.name, description, repository.html_url, chrono::Utc::now().to_rfc3339(), repository.html_url, repository.name,
+                description, readme, repository.name, repository.html_url);
             let document = storage::SourceDocument {
                 id: format!("github:{}", repository.full_name),
                 relative_path: format!(
@@ -138,7 +143,7 @@ mod commands {
         };
         for post in posts {
             let id = post.url.rsplit(':').next().unwrap_or(&post.url).to_string();
-            let content = format!("---\nid: linkedin:{id}\ntitle: LinkedIn post {id}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n", post.url, post.text);
+            let content = format!("---\ntype: LinkedIn Post\nid: linkedin:{id}\ntitle: LinkedIn post {id}\ndescription: Captured LinkedIn post\nresource: {}\ntags: [linkedin, captured]\ntimestamp: {}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n\n# Citations\n\n[1] [LinkedIn post]({})\n", post.url, chrono::Utc::now().to_rfc3339(), post.url, post.text, post.url);
             let document = storage::SourceDocument {
                 id: format!("linkedin:{id}"),
                 relative_path: format!("sources/linkedin/{id}.md"),
@@ -183,7 +188,7 @@ mod commands {
                 title: format!("LinkedIn post {id}"),
                 source_kind: "linkedin".into(),
                 source_uri: Some(post.url.clone()),
-                content: format!("---\nid: linkedin:{id}\ntitle: LinkedIn post {id}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n", post.url, post.text),
+                content: format!("---\ntype: LinkedIn Post\nid: linkedin:{id}\ntitle: LinkedIn post {id}\ndescription: Captured LinkedIn post\nresource: {}\ntags: [linkedin, captured]\ntimestamp: {}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n\n# Citations\n\n[1] [LinkedIn post]({})\n", post.url, chrono::Utc::now().to_rfc3339(), post.url, post.text, post.url),
                 captured_at: chrono::Utc::now().to_rfc3339(),
             };
             match storage::upsert_document(&mut connection, &root, &document)
