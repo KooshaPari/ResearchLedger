@@ -41,3 +41,8 @@ Model providers are interfaces, not hardcoded dependencies: local embedding/rera
 are preferred for privacy, while Gemini or another hosted provider can be explicitly enabled
 for higher-quality enrichment. Every model call records provider, model, prompt/version,
 input fingerprint, output fingerprint, and citation references.
+
+The first local provider is Ollama’s `/api/embed` endpoint, defaulting to `embeddinggemma`
+and configurable to another installed embedding model. Embeddings are opt-in and persisted
+per chunk in SQLite; if Ollama is unavailable, lexical FTS5 and deterministic distillation
+continue to work without network or model dependencies.
