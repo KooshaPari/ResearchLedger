@@ -6,7 +6,7 @@ mod rag;
 mod storage;
 
 mod commands {
-    use super::{github::GithubClient, linkedin, rag, storage, VaultStatus};
+    use super::{github, github::GithubClient, linkedin, rag, storage, VaultStatus};
     use serde::Serialize;
 
     #[derive(Debug, Serialize)]
@@ -93,6 +93,31 @@ mod commands {
             }
         }
         Ok(summary)
+    }
+
+    #[tauri::command]
+    pub async fn github_device_start(
+        client_id: String,
+    ) -> Result<github::DeviceAuthorization, String> {
+        GithubClient::new("")
+            .map_err(|error| error.to_string())?
+            .request_device_authorization(&client_id)
+            .await
+            .map_err(|error| error.to_string())
+    }
+
+    #[tauri::command]
+    pub async fn github_device_poll(
+        client_id: String,
+        device_code: String,
+        interval: u64,
+        expires_in: u64,
+    ) -> Result<String, String> {
+        GithubClient::new("")
+            .map_err(|error| error.to_string())?
+            .poll_device_token(&client_id, &device_code, interval, expires_in)
+            .await
+            .map_err(|error| error.to_string())
     }
 
     #[tauri::command]
@@ -223,6 +248,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_vault_status,
             commands::import_github,
+            commands::github_device_start,
+            commands::github_device_poll,
             commands::import_linkedin_html,
             commands::import_linkedin_capture,
             commands::search_documents,

@@ -97,6 +97,8 @@ function HighlightedSnippet({ value }: { value: string }) {
 function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath: string; setVaultPath: (path: string) => void; chooseVault: () => Promise<void> }) {
   const [status, setStatus] = useState<VaultStatus | null>(null);
   const [token, setToken] = useState("");
+  const [githubClientId, setGithubClientId] = useState("");
+  const [deviceAuth, setDeviceAuth] = useState<{ deviceCode: string; userCode: string; verificationUri: string; expiresIn: number; interval: number } | null>(null);
   const [linkedinPath, setLinkedinPath] = useState("");
   const [exportPath, setExportPath] = useState("");
   const [message, setMessage] = useState("");
@@ -120,6 +122,15 @@ function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath:
       <div className="import-form">
         <button className="button secondary" type="button" onClick={() => void chooseVault()}>Choose local vault</button>
         <input aria-label="Vault path" placeholder="/Users/you/ResearchVault" value={vaultPath} onChange={(event) => setVaultPath(event.target.value)} />
+        <input aria-label="GitHub App client ID" placeholder="GitHub App client ID (OAuth device flow)" value={githubClientId} onChange={(event) => setGithubClientId(event.target.value)} />
+        <button className="button primary" type="button" onClick={async () => {
+          try { setDeviceAuth(await invoke("github_device_start", { clientId: githubClientId })); setMessage("GitHub verification code ready."); } catch (error) { setMessage(String(error)); }
+        }}>Connect GitHub</button>
+        {deviceAuth && <p className="muted">Open {deviceAuth.verificationUri} and enter <strong>{deviceAuth.userCode}</strong>, then finish sign-in.</p>}
+        {deviceAuth && <button className="button secondary" type="button" onClick={async () => {
+          try { setToken(await invoke("github_device_poll", { clientId: githubClientId, deviceCode: deviceAuth.deviceCode, interval: deviceAuth.interval, expiresIn: deviceAuth.expiresIn })); setDeviceAuth(null); setMessage("GitHub connected for this session."); } catch (error) { setMessage(String(error)); }
+        }}>Finish GitHub sign-in</button>}
+        <p className="muted">Advanced fallback: paste a GitHub token only if OAuth is unavailable; it is cleared after import.</p>
         <input aria-label="GitHub token" type="password" placeholder="GitHub token (never stored)" value={token} onChange={(event) => setToken(event.target.value)} />
         <button className="button primary" type="button" onClick={async () => {
           setMessage("Importing starred repositories…");

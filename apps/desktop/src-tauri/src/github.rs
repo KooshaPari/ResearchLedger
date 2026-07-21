@@ -25,6 +25,22 @@ struct ReadmeResponse {
     encoding: String,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeviceAuthorization {
+    pub device_code: String,
+    pub user_code: String,
+    pub verification_uri: String,
+    pub expires_in: u64,
+    pub interval: u64,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct DeviceTokenResponse {
+    access_token: Option<String>,
+    error: Option<String>,
+}
+
 #[derive(Debug)]
 pub enum GithubError {
     Http(reqwest::Error),
@@ -137,6 +153,67 @@ impl GithubClient {
             .map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
             .map(Some)
             .map_err(|error| GithubError::Decode(error.to_string()))
+    }
+
+    pub async fn request_device_authorization(
+        &self,
+        client_id: &str,
+    ) -> Result<DeviceAuthorization, GithubError> {
+        let response = self
+            .client
+            .post("https://github.com/login/device/code")
+            .form(&[("client_id", client_id), ("scope", "read:user")])
+            .send()
+            .await
+            .map_err(GithubError::Http)?;
+        if !response.status().is_success() {
+            return Err(GithubError::InvalidResponse(response.status().to_string()));
+        }
+        response.json().await.map_err(GithubError::Http)
+    }
+
+    pub async fn poll_device_token(
+        &self,
+        client_id: &str,
+        device_code: &str,
+        interval: u64,
+        expires_in: u64,
+    ) -> Result<String, GithubError> {
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(expires_in);
+        let mut delay = interval.max(5);
+        while std::time::Instant::now() < deadline {
+            tokio::time::sleep(std::time::Duration::from_secs(delay)).await;
+            let response = self
+                .client
+                .post("https://github.com/login/oauth/access_token")
+                .form(&[
+                    ("client_id", client_id),
+                    ("device_code", device_code),
+                    ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
+                ])
+                .send()
+                .await
+                .map_err(GithubError::Http)?;
+            let payload: DeviceTokenResponse = response.json().await.map_err(GithubError::Http)?;
+            if let Some(token) = payload.access_token {
+                return Ok(token);
+            }
+            if payload.error.as_deref() == Some("slow_down") {
+                delay += 5;
+            }
+            if payload.error.as_deref() != Some("authorization_pending")
+                && payload.error.as_deref() != Some("slow_down")
+            {
+                return Err(GithubError::InvalidResponse(
+                    payload
+                        .error
+                        .unwrap_or_else(|| "authorization failed".into()),
+                ));
+            }
+        }
+        Err(GithubError::InvalidResponse(
+            "device authorization expired".into(),
+        ))
     }
 }
 
