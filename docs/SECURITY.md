@@ -4,6 +4,8 @@ ResearchLedger is local-first. Vault Markdown, SQLite databases, imported source
 tokens, and browser state are local artifacts and must not be committed or uploaded.
 
 - GitHub tokens are accepted only in memory for an import and cleared from the UI after use.
+- GitHub OAuth device authorization is the primary path; the client ID is not a secret, and
+  the returned user token is held in memory only for the current import session.
 - The GitHub adapter is read-only: it lists stars and reads repository READMEs.
 - LinkedIn support uses either the official API where the account/app is approved or a
   user-directed local browser capture for read-only activity collection. It does not

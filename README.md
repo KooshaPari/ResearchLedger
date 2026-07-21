@@ -25,6 +25,10 @@ retrieval context with aligned citations. Imported documents are written as Mark
 the selected vault and indexed into a local SQLite database. Markdown export is compatible
 with Obsidian and Logseq-style vault workflows.
 
+GitHub uses the OAuth device flow when a GitHub App client ID is configured. The UI displays
+GitHub’s verification URL/code and polls only at the interval supplied by GitHub; a pasted
+token is retained solely as an advanced fallback.
+
 For LinkedIn’s personal reaction feed, use the authenticated browser connector:
 
 ```bash
