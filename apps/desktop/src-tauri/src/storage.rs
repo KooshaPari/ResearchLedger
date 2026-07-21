@@ -200,6 +200,51 @@ pub fn search(connection: &Connection, query: &str, limit: u32) -> SqlResult<Vec
     rows.collect()
 }
 
+pub fn search_vectors(
+    connection: &Connection,
+    query: &[f32],
+    limit: u32,
+) -> SqlResult<Vec<(SearchResult, f32)>> {
+    let mut statement = connection.prepare(
+        "SELECT d.id, d.title, d.source_uri, snippet(chunk_fts, 0, '<mark>', '</mark>', '…', 24), e.vector_json FROM chunk_embeddings e JOIN chunks c ON c.id=e.chunk_id JOIN documents d ON d.id=c.document_id JOIN chunk_fts ON chunk_fts.rowid=c.id",
+    )?;
+    let mut scored = statement
+        .query_map([], |row| {
+            let vector: Vec<f32> =
+                serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default();
+            Ok((
+                SearchResult {
+                    document_id: row.get(0)?,
+                    title: row.get(1)?,
+                    source_uri: row.get(2)?,
+                    snippet: row.get(3)?,
+                },
+                vector,
+            ))
+        })?
+        .collect::<SqlResult<Vec<_>>>()?
+        .into_iter()
+        .map(|(result, vector)| (result, cosine_similarity(query, &vector)))
+        .collect::<Vec<_>>();
+    scored.sort_by(|left, right| right.1.total_cmp(&left.1));
+    scored.truncate(limit as usize);
+    Ok(scored)
+}
+
+fn cosine_similarity(left: &[f32], right: &[f32]) -> f32 {
+    if left.len() != right.len() || left.is_empty() {
+        return 0.0;
+    }
+    let dot: f32 = left.iter().zip(right).map(|(a, b)| a * b).sum();
+    let left_norm = left.iter().map(|value| value * value).sum::<f32>().sqrt();
+    let right_norm = right.iter().map(|value| value * value).sum::<f32>().sqrt();
+    if left_norm == 0.0 || right_norm == 0.0 {
+        0.0
+    } else {
+        dot / (left_norm * right_norm)
+    }
+}
+
 pub fn export_markdown(vault: &Path, destination: &Path) -> std::io::Result<u64> {
     fn copy_tree(source: &Path, destination: &Path, count: &mut u64) -> std::io::Result<()> {
         fs::create_dir_all(destination)?;

@@ -264,7 +264,7 @@ mod commands {
     }
 
     #[tauri::command]
-    pub fn retrieve_context(
+    pub async fn retrieve_context(
         vault_path: String,
         query: String,
         limit: Option<u32>,
@@ -273,11 +273,31 @@ mod commands {
             .map_err(|error| error.to_string())?;
         let connection = storage::open(&paths).map_err(|error| error.to_string())?;
         let limit = limit.unwrap_or(8).min(50);
-        let results =
+        let lexical =
             storage::search(&connection, &query, limit).map_err(|error| error.to_string())?;
+        let vector_hits = match OllamaEmbedder::new("embeddinggemma")
+            .embed_batch(std::slice::from_ref(&query))
+            .await
+        {
+            Ok(vectors) => vectors
+                .into_iter()
+                .next()
+                .map(|vector| {
+                    storage::search_vectors(&connection, &vector, limit).unwrap_or_default()
+                })
+                .unwrap_or_default(),
+            Err(_) => Vec::new(),
+        };
+        let vector_hits = vector_hits
+            .into_iter()
+            .map(|(result, score)| rag::VectorHit {
+                document_id: result.document_id,
+                score,
+            })
+            .collect();
         Ok(rag::build_context(
             &query,
-            rag::fuse_ranked(results, Vec::new(), limit as usize),
+            rag::fuse_ranked(lexical, vector_hits, limit as usize),
         ))
     }
 
