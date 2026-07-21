@@ -8,6 +8,7 @@ mod storage;
 mod commands {
     use super::{github, github::GithubClient, linkedin, rag, storage, VaultStatus};
     use serde::Serialize;
+    use tauri::Manager;
 
     #[derive(Debug, Serialize)]
     #[serde(rename_all = "camelCase")]
@@ -203,6 +204,39 @@ mod commands {
     }
 
     #[tauri::command]
+    pub async fn capture_linkedin_browser(
+        app: tauri::AppHandle,
+        vault_path: String,
+        activity_url: Option<String>,
+    ) -> Result<ImportSummary, String> {
+        let output = std::path::PathBuf::from(&vault_path)
+            .join(".researchledger")
+            .join("linkedin-capture.json");
+        let resource_script = app
+            .path()
+            .resource_dir()
+            .map_err(|error| error.to_string())?
+            .join("scripts/linkedin_capture.mjs");
+        let script = if resource_script.exists() {
+            resource_script
+        } else {
+            std::env::current_dir()
+                .map_err(|error| error.to_string())?
+                .join("scripts/linkedin_capture.mjs")
+        };
+        let mut command = tokio::process::Command::new("node");
+        command.arg(script).arg("--output").arg(&output);
+        if let Some(url) = activity_url {
+            command.arg("--url").arg(url);
+        }
+        let result = command.output().await.map_err(|error| error.to_string())?;
+        if !result.status.success() {
+            return Err(String::from_utf8_lossy(&result.stderr).trim().to_string());
+        }
+        import_linkedin_capture(vault_path, output.to_string_lossy().into_owned())
+    }
+
+    #[tauri::command]
     pub fn search_documents(
         vault_path: String,
         query: String,
@@ -261,6 +295,7 @@ pub fn run() {
             commands::github_device_poll,
             commands::import_linkedin_html,
             commands::import_linkedin_capture,
+            commands::capture_linkedin_browser,
             commands::search_documents,
             commands::export_obsidian,
             commands::retrieve_context

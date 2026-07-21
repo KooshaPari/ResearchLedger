@@ -10,6 +10,7 @@ describe("ResearchLedger shell", () => {
     expect(screen.getByRole("heading", { name: "ResearchLedger" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Choose local vault" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Import LinkedIn capture" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Capture LinkedIn in browser" })).toBeInTheDocument();
   });
 
   it("switches accessible primary workspaces", () => {

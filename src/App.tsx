@@ -141,6 +141,13 @@ function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath:
           } catch (error) { setMessage(String(error)); }
         }}>Import GitHub stars</button>
         <p className="muted">LinkedIn capture runs through your authenticated local browser profile; no export or API key is required.</p>
+        <button className="button primary" type="button" onClick={async () => {
+          setMessage("Opening your authenticated LinkedIn browser and capturing reactions…");
+          try {
+            const result = await invoke<{ created: number; updated: number; unchanged: number; failed: number }>("capture_linkedin_browser", { vaultPath, activityUrl: null });
+            setMessage(`Captured and imported ${result.created + result.updated} LinkedIn posts; ${result.unchanged} unchanged.`);
+          } catch (error) { setMessage(String(error)); }
+        }}>Capture LinkedIn in browser</button>
         <input aria-label="LinkedIn capture path" placeholder="/Users/you/ResearchLedger/linkedin-capture.json" value={linkedinPath} onChange={(event) => setLinkedinPath(event.target.value)} />
         <button className="button secondary" type="button" onClick={() => void chooseLinkedInExport()}>Choose LinkedIn capture</button>
         <button className="button secondary" type="button" onClick={async () => {
