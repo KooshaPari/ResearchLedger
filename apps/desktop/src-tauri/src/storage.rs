@@ -136,6 +136,12 @@ pub fn upsert_document(
             params![document.id, crate::enrichment::canonical_url(&url), document.captured_at],
         )?;
     }
+    if document.source_kind != "distillation" {
+        tx.execute(
+            "INSERT INTO enrichment_jobs (document_id, strategy, status, input_hash, created_at, updated_at) VALUES (?1, 'deterministic-v1', 'pending', ?2, ?3, ?3) ON CONFLICT(document_id) DO UPDATE SET input_hash=excluded.input_hash, updated_at=excluded.updated_at, status='pending', error=NULL",
+            params![document.id, hash, document.captured_at],
+        )?;
+    }
     write_markdown_atomic(root, &document.relative_path, &document.content)
         .map_err(|_| rusqlite::Error::InvalidPath(root.to_path_buf()))?;
     tx.commit()?;
@@ -150,6 +156,23 @@ pub fn document_count(connection: &Connection) -> SqlResult<u64> {
     connection.query_row("SELECT COUNT(*) FROM documents", [], |row| {
         row.get::<_, u64>(0)
     })
+}
+
+pub fn load_document(
+    connection: &Connection,
+    root: &Path,
+    id: &str,
+) -> SqlResult<Option<SourceDocument>> {
+    let result = connection.query_row(
+        "SELECT id, canonical_path, title, source_kind, source_uri, captured_at FROM documents WHERE id = ?1",
+        params![id],
+        |row| Ok(SourceDocument { id: row.get(0)?, relative_path: row.get(1)?, title: row.get(2)?, source_kind: row.get(3)?, source_uri: row.get(4)?, content: String::new(), captured_at: row.get(5)? }),
+    ).optional()?;
+    let Some(mut document) = result else {
+        return Ok(None);
+    };
+    document.content = fs::read_to_string(root.join(&document.relative_path)).unwrap_or_default();
+    Ok(Some(document))
 }
 
 pub fn search(connection: &Connection, query: &str, limit: u32) -> SqlResult<Vec<SearchResult>> {

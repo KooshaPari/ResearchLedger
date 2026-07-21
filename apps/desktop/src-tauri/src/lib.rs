@@ -1,4 +1,5 @@
 use serde::Serialize;
+mod distill;
 mod enrichment;
 mod github;
 mod linkedin;
@@ -6,7 +7,7 @@ mod rag;
 mod storage;
 
 mod commands {
-    use super::{github, github::GithubClient, linkedin, rag, storage, VaultStatus};
+    use super::{distill, github, github::GithubClient, linkedin, rag, storage, VaultStatus};
     use serde::Serialize;
     use tauri::Manager;
 
@@ -275,6 +276,43 @@ mod commands {
             rag::fuse_ranked(results, Vec::new(), limit as usize),
         ))
     }
+
+    #[tauri::command]
+    pub fn distill_document(
+        vault_path: String,
+        document_id: String,
+    ) -> Result<ImportSummary, String> {
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let source = storage::load_document(&connection, &root, &document_id)
+            .map_err(|error| error.to_string())?
+            .ok_or_else(|| "source document not found".to_string())?;
+        let distilled = storage::SourceDocument {
+            id: format!("distillation:{document_id}"),
+            relative_path: format!(
+                "knowledge/{}--distilled.md",
+                document_id.replace([':', '/'], "--")
+            ),
+            title: format!("{} — deterministic distillation", source.title),
+            source_kind: "distillation".into(),
+            source_uri: source.source_uri.clone(),
+            content: distill::render_deterministic(&source),
+            captured_at: chrono::Utc::now().to_rfc3339(),
+        };
+        let result = storage::upsert_document(&mut connection, &root, &distilled)
+            .map_err(|error| error.to_string())?;
+        connection.execute(
+            "UPDATE enrichment_jobs SET status='completed', updated_at=?2, error=NULL WHERE document_id=?1",
+            rusqlite::params![document_id, distilled.captured_at],
+        ).map_err(|error| error.to_string())?;
+        Ok(ImportSummary {
+            created: u64::from(result == storage::UpsertResult::Created),
+            updated: u64::from(result == storage::UpsertResult::Updated),
+            unchanged: u64::from(result == storage::UpsertResult::Unchanged),
+            failed: 0,
+        })
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -298,7 +336,8 @@ pub fn run() {
             commands::capture_linkedin_browser,
             commands::search_documents,
             commands::export_obsidian,
-            commands::retrieve_context
+            commands::retrieve_context,
+            commands::distill_document
         ])
         .run(tauri::generate_context!())
         .expect("error while running ResearchLedger");

@@ -70,3 +70,13 @@ CREATE TABLE IF NOT EXISTS document_links (
 );
 
 CREATE INDEX IF NOT EXISTS idx_document_links_target ON document_links(target_url);
+
+CREATE TABLE IF NOT EXISTS enrichment_jobs (
+  document_id TEXT PRIMARY KEY REFERENCES documents(id) ON DELETE CASCADE,
+  strategy TEXT NOT NULL,
+  status TEXT NOT NULL,
+  input_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  error TEXT
+);
