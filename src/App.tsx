@@ -157,6 +157,13 @@ function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath:
             setMessage(`Imported ${result.created + result.updated} LinkedIn posts; ${result.unchanged} unchanged.`);
           } catch (error) { setMessage(String(error)); }
         }}>Import LinkedIn capture</button>
+        <button className="button secondary" type="button" onClick={async () => {
+          setMessage("Distilling pending research into OKF notes…");
+          try {
+            const result = await invoke<{ created: number; updated: number; unchanged: number; failed: number }>("process_pending_enrichment", { vaultPath, limit: 25 });
+            setMessage(`Created ${result.created + result.updated} distilled notes; ${result.unchanged} unchanged.`);
+          } catch (error) { setMessage(String(error)); }
+        }}>Distill pending research</button>
         <input aria-label="Obsidian export path" placeholder="/Users/you/ResearchVault-export" value={exportPath} onChange={(event) => setExportPath(event.target.value)} />
         <button className="button secondary" type="button" onClick={async () => {
           try { const count = await invoke<number>("export_obsidian", { vaultPath, destination: exportPath }); setMessage(`Exported ${count} Markdown documents.`); } catch (error) { setMessage(String(error)); }

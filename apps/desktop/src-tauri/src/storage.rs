@@ -175,6 +175,14 @@ pub fn load_document(
     Ok(Some(document))
 }
 
+pub fn pending_enrichment_ids(connection: &Connection, limit: u32) -> SqlResult<Vec<String>> {
+    let mut statement = connection.prepare(
+        "SELECT document_id FROM enrichment_jobs WHERE status='pending' ORDER BY created_at LIMIT ?1",
+    )?;
+    let rows = statement.query_map(params![limit], |row| row.get(0))?;
+    rows.collect()
+}
+
 pub fn search(connection: &Connection, query: &str, limit: u32) -> SqlResult<Vec<SearchResult>> {
     let mut statement = connection.prepare(
         "SELECT d.id, d.title, d.source_uri, snippet(chunk_fts, 0, '<mark>', '</mark>', '…', 24)

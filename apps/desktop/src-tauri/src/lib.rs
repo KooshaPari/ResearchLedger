@@ -313,6 +313,36 @@ mod commands {
             failed: 0,
         })
     }
+
+    #[tauri::command]
+    pub fn process_pending_enrichment(
+        vault_path: String,
+        limit: Option<u32>,
+    ) -> Result<ImportSummary, String> {
+        let root = std::path::PathBuf::from(&vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let ids = storage::pending_enrichment_ids(&connection, limit.unwrap_or(25).min(100))
+            .map_err(|error| error.to_string())?;
+        drop(connection);
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for id in ids {
+            match distill_document(vault_path.clone(), id) {
+                Ok(result) => {
+                    summary.created += result.created;
+                    summary.updated += result.updated;
+                    summary.unchanged += result.unchanged;
+                }
+                Err(_) => summary.failed += 1,
+            }
+        }
+        Ok(summary)
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -337,7 +367,8 @@ pub fn run() {
             commands::search_documents,
             commands::export_obsidian,
             commands::retrieve_context,
-            commands::distill_document
+            commands::distill_document,
+            commands::process_pending_enrichment
         ])
         .run(tauri::generate_context!())
         .expect("error while running ResearchLedger");
