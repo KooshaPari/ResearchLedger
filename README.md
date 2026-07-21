@@ -18,3 +18,10 @@ Tests and production build:
 npm test -- --run
 npm run build
 ```
+
+The desktop app currently supports local vault setup, GitHub starred-repository import,
+manual LinkedIn HTML export import, and offline FTS5 search. Imported documents are written
+as Markdown under the selected vault and indexed into a local SQLite database.
+
+See [security](docs/SECURITY.md) and [testing](docs/TESTING.md) for data-handling and
+verification rules.
