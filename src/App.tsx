@@ -101,7 +101,7 @@ function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath:
   const [exportPath, setExportPath] = useState("");
   const [message, setMessage] = useState("");
   const chooseLinkedInExport = async () => {
-    const selected = await open({ multiple: false, title: "Choose LinkedIn activity HTML export", filters: [{ name: "HTML", extensions: ["html", "htm"] }] });
+    const selected = await open({ multiple: false, title: "Choose ResearchLedger LinkedIn capture", filters: [{ name: "JSON", extensions: ["json"] }] });
     if (typeof selected === "string") setLinkedinPath(selected);
   };
 
@@ -129,15 +129,16 @@ function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath:
             setMessage(`Imported ${result.created + result.updated} repositories; ${result.unchanged} unchanged.`);
           } catch (error) { setMessage(String(error)); }
         }}>Import GitHub stars</button>
-        <input aria-label="LinkedIn HTML export path" placeholder="/Users/you/Downloads/LinkedIn activity.html" value={linkedinPath} onChange={(event) => setLinkedinPath(event.target.value)} />
-        <button className="button secondary" type="button" onClick={() => void chooseLinkedInExport()}>Choose LinkedIn export</button>
+        <p className="muted">LinkedIn capture runs through your authenticated local browser profile; no export or API key is required.</p>
+        <input aria-label="LinkedIn capture path" placeholder="/Users/you/ResearchLedger/linkedin-capture.json" value={linkedinPath} onChange={(event) => setLinkedinPath(event.target.value)} />
+        <button className="button secondary" type="button" onClick={() => void chooseLinkedInExport()}>Choose LinkedIn capture</button>
         <button className="button secondary" type="button" onClick={async () => {
           setMessage("Importing LinkedIn activity export…");
           try {
-            const result = await invoke<{ created: number; updated: number; unchanged: number; failed: number }>("import_linkedin_html", { vaultPath, htmlPath: linkedinPath });
+            const result = await invoke<{ created: number; updated: number; unchanged: number; failed: number }>("import_linkedin_capture", { vaultPath, capturePath: linkedinPath });
             setMessage(`Imported ${result.created + result.updated} LinkedIn posts; ${result.unchanged} unchanged.`);
           } catch (error) { setMessage(String(error)); }
-        }}>Import LinkedIn HTML</button>
+        }}>Import LinkedIn capture</button>
         <input aria-label="Obsidian export path" placeholder="/Users/you/ResearchVault-export" value={exportPath} onChange={(event) => setExportPath(event.target.value)} />
         <button className="button secondary" type="button" onClick={async () => {
           try { const count = await invoke<number>("export_obsidian", { vaultPath, destination: exportPath }); setMessage(`Exported ${count} Markdown documents.`); } catch (error) { setMessage(String(error)); }

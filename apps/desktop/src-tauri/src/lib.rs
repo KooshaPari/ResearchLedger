@@ -134,6 +134,44 @@ mod commands {
     }
 
     #[tauri::command]
+    pub fn import_linkedin_capture(
+        vault_path: String,
+        capture_path: String,
+    ) -> Result<ImportSummary, String> {
+        let json = std::fs::read_to_string(&capture_path).map_err(|error| error.to_string())?;
+        let posts = linkedin::parse_capture_json(&json).map_err(|error| error.to_string())?;
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for post in posts {
+            let id = post.url.rsplit(':').next().unwrap_or(&post.url).to_string();
+            let document = storage::SourceDocument {
+                id: format!("linkedin:{id}"),
+                relative_path: format!("sources/linkedin/{id}.md"),
+                title: format!("LinkedIn post {id}"),
+                source_kind: "linkedin".into(),
+                source_uri: Some(post.url.clone()),
+                content: format!("---\nid: linkedin:{id}\ntitle: LinkedIn post {id}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n", post.url, post.text),
+                captured_at: chrono::Utc::now().to_rfc3339(),
+            };
+            match storage::upsert_document(&mut connection, &root, &document)
+                .map_err(|error| error.to_string())?
+            {
+                storage::UpsertResult::Created => summary.created += 1,
+                storage::UpsertResult::Updated => summary.updated += 1,
+                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+            }
+        }
+        Ok(summary)
+    }
+
+    #[tauri::command]
     pub fn search_documents(
         vault_path: String,
         query: String,
@@ -185,6 +223,7 @@ pub fn run() {
             commands::get_vault_status,
             commands::import_github,
             commands::import_linkedin_html,
+            commands::import_linkedin_capture,
             commands::search_documents,
             commands::export_obsidian,
             commands::retrieve_context

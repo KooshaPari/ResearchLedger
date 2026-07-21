@@ -1,10 +1,19 @@
 use scraper::{Html, Selector};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
 pub struct LinkedInPost {
     pub url: String,
     pub text: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct CaptureFile {
+    pub posts: Vec<LinkedInPost>,
+}
+
+pub fn parse_capture_json(json: &str) -> Result<Vec<LinkedInPost>, serde_json::Error> {
+    Ok(serde_json::from_str::<CaptureFile>(json)?.posts)
 }
 
 pub fn parse_activity_html(html: &str) -> Vec<LinkedInPost> {
@@ -63,5 +72,14 @@ mod tests {
             "https://www.linkedin.com/feed/update/urn:li:activity:123"
         );
         assert!(posts[0].text.contains("local research systems"));
+    }
+
+    #[test]
+    fn parses_playwright_capture_file() {
+        let posts = parse_capture_json(r#"{"version":1,"posts":[{"url":"https://www.linkedin.com/feed/update/urn:li:activity:42","text":"A captured research post with enough useful text."}]}"#).unwrap();
+        assert_eq!(
+            posts[0].url,
+            "https://www.linkedin.com/feed/update/urn:li:activity:42"
+        );
     }
 }
