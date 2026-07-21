@@ -1,9 +1,10 @@
 use serde::Serialize;
 mod github;
+mod linkedin;
 mod storage;
 
 mod commands {
-    use super::{github::GithubClient, storage, VaultStatus};
+    use super::{github::GithubClient, linkedin, storage, VaultStatus};
     use serde::Serialize;
 
     #[derive(Debug, Serialize)]
@@ -79,6 +80,45 @@ mod commands {
         }
         Ok(summary)
     }
+
+    #[tauri::command]
+    pub fn import_linkedin_html(
+        vault_path: String,
+        html_path: String,
+    ) -> Result<ImportSummary, String> {
+        let html = std::fs::read_to_string(&html_path).map_err(|error| error.to_string())?;
+        let posts = linkedin::parse_activity_html(&html);
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for post in posts {
+            let id = post.url.rsplit(':').next().unwrap_or(&post.url).to_string();
+            let content = format!("---\nid: linkedin:{id}\ntitle: LinkedIn post {id}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n", post.url, post.text);
+            let document = storage::SourceDocument {
+                id: format!("linkedin:{id}"),
+                relative_path: format!("sources/linkedin/{id}.md"),
+                title: format!("LinkedIn post {id}"),
+                source_kind: "linkedin".into(),
+                source_uri: Some(post.url),
+                content,
+                captured_at: chrono::Utc::now().to_rfc3339(),
+            };
+            match storage::upsert_document(&mut connection, &root, &document)
+                .map_err(|error| error.to_string())?
+            {
+                storage::UpsertResult::Created => summary.created += 1,
+                storage::UpsertResult::Updated => summary.updated += 1,
+                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+            }
+        }
+        Ok(summary)
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -93,7 +133,8 @@ pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             commands::get_vault_status,
-            commands::import_github
+            commands::import_github,
+            commands::import_linkedin_html
         ])
         .run(tauri::generate_context!())
         .expect("error while running ResearchLedger");
