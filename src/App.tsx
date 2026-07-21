@@ -68,9 +68,17 @@ function SearchPanel({ vaultPath }: { vaultPath: string }) {
     <section className="search-panel" aria-label="Search">
       <input aria-label="Search research" placeholder="Search your ledger…" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} />
       <button className="button secondary" type="button" onClick={() => void search()}>Search</button>
-      {results.length > 0 && <div className="results">{results.map((result) => <article className="result" key={result.documentId}><strong>{result.title}</strong><p dangerouslySetInnerHTML={{ __html: result.snippet }} /></article>)}</div>}
+      {results.length > 0 && <div className="results">{results.map((result) => <article className="result" key={result.documentId}><strong>{result.title}</strong><p><HighlightedSnippet value={result.snippet} /></p></article>)}</div>}
     </section>
   );
+}
+
+function HighlightedSnippet({ value }: { value: string }) {
+  return value.split(/(<mark>|<\/mark>)/g).map((part, index) => {
+    if (part === "<mark>" || part === "</mark>" || !part) return null;
+    const marked = value.split(/(<mark>|<\/mark>)/g).slice(0, index).filter((item) => item === "<mark>").length % 2 === 1;
+    return marked ? <mark key={`${part}-${index}`}>{part}</mark> : <span key={`${part}-${index}`}>{part}</span>;
+  });
 }
 
 function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath: string; setVaultPath: (path: string) => void; chooseVault: () => Promise<void> }) {
