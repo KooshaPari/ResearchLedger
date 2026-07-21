@@ -76,8 +76,13 @@ function SearchPanel({ vaultPath }: { vaultPath: string }) {
 function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath: string; setVaultPath: (path: string) => void; chooseVault: () => Promise<void> }) {
   const [status, setStatus] = useState<VaultStatus | null>(null);
   const [token, setToken] = useState("");
+  const [linkedinPath, setLinkedinPath] = useState("");
   const [exportPath, setExportPath] = useState("");
   const [message, setMessage] = useState("");
+  const chooseLinkedInExport = async () => {
+    const selected = await open({ multiple: false, title: "Choose LinkedIn activity HTML export", filters: [{ name: "HTML", extensions: ["html", "htm"] }] });
+    if (typeof selected === "string") setLinkedinPath(selected);
+  };
 
 
   useEffect(() => {
@@ -103,6 +108,15 @@ function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath:
             setMessage(`Imported ${result.created + result.updated} repositories; ${result.unchanged} unchanged.`);
           } catch (error) { setMessage(String(error)); }
         }}>Import GitHub stars</button>
+        <input aria-label="LinkedIn HTML export path" placeholder="/Users/you/Downloads/LinkedIn activity.html" value={linkedinPath} onChange={(event) => setLinkedinPath(event.target.value)} />
+        <button className="button secondary" type="button" onClick={() => void chooseLinkedInExport()}>Choose LinkedIn export</button>
+        <button className="button secondary" type="button" onClick={async () => {
+          setMessage("Importing LinkedIn activity export…");
+          try {
+            const result = await invoke<{ created: number; updated: number; unchanged: number; failed: number }>("import_linkedin_html", { vaultPath, htmlPath: linkedinPath });
+            setMessage(`Imported ${result.created + result.updated} LinkedIn posts; ${result.unchanged} unchanged.`);
+          } catch (error) { setMessage(String(error)); }
+        }}>Import LinkedIn HTML</button>
         <input aria-label="Obsidian export path" placeholder="/Users/you/ResearchVault-export" value={exportPath} onChange={(event) => setExportPath(event.target.value)} />
         <button className="button secondary" type="button" onClick={async () => {
           try { const count = await invoke<number>("export_obsidian", { vaultPath, destination: exportPath }); setMessage(`Exported ${count} Markdown documents.`); } catch (error) { setMessage(String(error)); }

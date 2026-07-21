@@ -9,5 +9,6 @@ describe("ResearchLedger shell", () => {
     render(<App />);
     expect(screen.getByRole("heading", { name: "ResearchLedger" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Choose local vault" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Import LinkedIn HTML" })).toBeInTheDocument();
   });
 });
