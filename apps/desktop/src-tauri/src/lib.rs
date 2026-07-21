@@ -228,9 +228,13 @@ mod commands {
         let paths = storage::initialize(std::path::Path::new(&vault_path))
             .map_err(|error| error.to_string())?;
         let connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let results = storage::search(&connection, &query, limit.unwrap_or(8).min(50))
-            .map_err(|error| error.to_string())?;
-        Ok(rag::build_context(&query, results))
+        let limit = limit.unwrap_or(8).min(50);
+        let results =
+            storage::search(&connection, &query, limit).map_err(|error| error.to_string())?;
+        Ok(rag::build_context(
+            &query,
+            rag::fuse_ranked(results, Vec::new(), limit as usize),
+        ))
     }
 }
 
