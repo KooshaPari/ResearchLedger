@@ -119,6 +119,19 @@ mod commands {
         }
         Ok(summary)
     }
+
+    #[tauri::command]
+    pub fn search_documents(
+        vault_path: String,
+        query: String,
+        limit: Option<u32>,
+    ) -> Result<Vec<storage::SearchResult>, String> {
+        let paths = storage::initialize(std::path::Path::new(&vault_path))
+            .map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        storage::search(&connection, &query, limit.unwrap_or(20).min(100))
+            .map_err(|error| error.to_string())
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -134,7 +147,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_vault_status,
             commands::import_github,
-            commands::import_linkedin_html
+            commands::import_linkedin_html,
+            commands::search_documents
         ])
         .run(tauri::generate_context!())
         .expect("error while running ResearchLedger");
@@ -178,6 +192,9 @@ mod tests {
             UpsertResult::Unchanged
         );
         assert_eq!(document_count(&db).unwrap(), 1);
+        let results = search(&db, "hello", 10).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].document_id, "github:octo/hello");
         assert!(root.join("sources/github/octo--hello.md").exists());
         let _ = std::fs::remove_dir_all(root);
     }

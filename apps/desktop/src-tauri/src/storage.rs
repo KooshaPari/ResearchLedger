@@ -27,6 +27,15 @@ pub enum UpsertResult {
     Unchanged,
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchResult {
+    pub document_id: String,
+    pub title: String,
+    pub source_uri: Option<String>,
+    pub snippet: String,
+}
+
 pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     fs::create_dir_all(root).map_err(|_| rusqlite::Error::InvalidPath(root.to_path_buf()))?;
     let database = root.join(".researchledger.db");
@@ -92,8 +101,25 @@ pub fn upsert_document(
         params![document.id, document.relative_path, document.title, document.source_kind,
             document.source_uri, hash, document.captured_at],
     )?;
+    tx.execute(
+        "DELETE FROM chunk_fts WHERE rowid IN (SELECT id FROM chunks WHERE document_id = ?1)",
+        params![document.id],
+    )?;
+    tx.execute(
+        "DELETE FROM chunks WHERE document_id = ?1",
+        params![document.id],
+    )?;
     tx.execute("INSERT OR IGNORE INTO document_versions(document_id, content_hash, raw_content, captured_at) VALUES(?1, ?2, ?3, ?4)",
         params![document.id, hash, document.content, document.captured_at])?;
+    tx.execute(
+        "INSERT INTO chunks(document_id, ordinal, heading_path, text) VALUES(?1, 0, NULL, ?2)",
+        params![document.id, document.content],
+    )?;
+    let rowid = tx.last_insert_rowid();
+    tx.execute(
+        "INSERT INTO chunk_fts(rowid, text, heading_path) VALUES(?1, ?2, NULL)",
+        params![rowid, document.content],
+    )?;
     write_markdown_atomic(root, &document.relative_path, &document.content)
         .map_err(|_| rusqlite::Error::InvalidPath(root.to_path_buf()))?;
     tx.commit()?;
@@ -108,6 +134,23 @@ pub fn document_count(connection: &Connection) -> SqlResult<u64> {
     connection.query_row("SELECT COUNT(*) FROM documents", [], |row| {
         row.get::<_, u64>(0)
     })
+}
+
+pub fn search(connection: &Connection, query: &str, limit: u32) -> SqlResult<Vec<SearchResult>> {
+    let mut statement = connection.prepare(
+        "SELECT d.id, d.title, d.source_uri, snippet(chunk_fts, 0, '<mark>', '</mark>', '…', 24)
+         FROM chunk_fts JOIN chunks c ON c.id = chunk_fts.rowid JOIN documents d ON d.id = c.document_id
+         WHERE chunk_fts MATCH ?1 ORDER BY rank LIMIT ?2",
+    )?;
+    let rows = statement.query_map(params![query, limit], |row| {
+        Ok(SearchResult {
+            document_id: row.get(0)?,
+            title: row.get(1)?,
+            source_uri: row.get(2)?,
+            snippet: row.get(3)?,
+        })
+    })?;
+    rows.collect()
 }
 
 trait OptionalRow<T> {
