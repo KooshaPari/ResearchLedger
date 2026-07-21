@@ -6,6 +6,6 @@ describe("ResearchLedger shell", () => {
   it("shows the local-first vault setup", () => {
     render(<App />);
     expect(screen.getByRole("heading", { name: "ResearchLedger" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Select local vault" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Use local vault path" })).toBeInTheDocument();
   });
 });

@@ -228,4 +228,19 @@ mod tests {
         let _ = std::fs::remove_dir_all(root);
         let _ = std::fs::remove_dir_all(export);
     }
+
+    #[test]
+    fn markdown_writer_rejects_paths_outside_vault() {
+        let root = temp_root();
+        std::fs::create_dir_all(&root).unwrap();
+        let outside = root.parent().unwrap().join("outside.md");
+        let _ = std::fs::remove_file(&outside);
+        let result = write_markdown_atomic(&root, "../outside.md", "blocked");
+        assert_eq!(
+            result.unwrap_err().kind(),
+            std::io::ErrorKind::PermissionDenied
+        );
+        assert!(!outside.exists());
+        let _ = std::fs::remove_dir_all(root);
+    }
 }

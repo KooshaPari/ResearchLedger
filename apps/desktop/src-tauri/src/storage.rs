@@ -54,6 +54,16 @@ pub fn write_markdown_atomic(
     relative_path: &str,
     content: &str,
 ) -> std::io::Result<PathBuf> {
+    if Path::new(relative_path).is_absolute()
+        || Path::new(relative_path)
+            .components()
+            .any(|component| matches!(component, std::path::Component::ParentDir))
+    {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::PermissionDenied,
+            "path escapes vault",
+        ));
+    }
     let path = root.join(relative_path);
     if !path.starts_with(root) {
         return Err(std::io::Error::new(
