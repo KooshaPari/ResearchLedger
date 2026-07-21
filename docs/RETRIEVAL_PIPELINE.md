@@ -4,6 +4,8 @@ ResearchLedger treats an imported item as a durable research seed, not the final
 Every seed is normalized, fingerprinted, linked to its source, and eligible for bounded
 enrichment.
 
+The Markdown interchange target is [Open Knowledge Format (OKF) v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md): each concept has parseable frontmatter with a non-empty `type`, portable links, and a `# Citations` section where claims depend on external sources. OKF intentionally does not prescribe a database or vector engine, so those remain implementation details of the local-first vault.
+
 ## Deterministic stages
 
 1. Capture the source payload and immutable provenance.
