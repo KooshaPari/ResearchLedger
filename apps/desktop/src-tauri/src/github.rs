@@ -33,6 +33,19 @@ pub enum GithubError {
     Decode(String),
 }
 
+impl std::fmt::Display for GithubError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Http(error) => write!(formatter, "GitHub request failed: {error}"),
+            Self::RateLimited => write!(formatter, "GitHub rate limit exceeded"),
+            Self::InvalidResponse(status) => write!(formatter, "GitHub returned {status}"),
+            Self::Decode(message) => write!(formatter, "GitHub README decode failed: {message}"),
+        }
+    }
+}
+
+impl std::error::Error for GithubError {}
+
 pub struct GithubClient {
     client: Client,
     token: String,

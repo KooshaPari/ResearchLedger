@@ -1,10 +1,11 @@
 use serde::Serialize;
 mod github;
 mod linkedin;
+mod rag;
 mod storage;
 
 mod commands {
-    use super::{github::GithubClient, linkedin, storage, VaultStatus};
+    use super::{github::GithubClient, linkedin, rag, storage, VaultStatus};
     use serde::Serialize;
 
     #[derive(Debug, Serialize)]
@@ -33,11 +34,11 @@ mod commands {
         let root = std::path::PathBuf::from(vault_path);
         let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
         let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let client = GithubClient::new(token).map_err(|error| format!("{error:?}"))?;
+        let client = GithubClient::new(token).map_err(|error| error.to_string())?;
         let repositories = client
             .list_starred()
             .await
-            .map_err(|error| format!("{error:?}"))?;
+            .map_err(|error| error.to_string())?;
         let mut summary = ImportSummary {
             created: 0,
             updated: 0,
@@ -141,6 +142,20 @@ mod commands {
         )
         .map_err(|error| error.to_string())
     }
+
+    #[tauri::command]
+    pub fn retrieve_context(
+        vault_path: String,
+        query: String,
+        limit: Option<u32>,
+    ) -> Result<rag::RetrievalContext, String> {
+        let paths = storage::initialize(std::path::Path::new(&vault_path))
+            .map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let results = storage::search(&connection, &query, limit.unwrap_or(8).min(50))
+            .map_err(|error| error.to_string())?;
+        Ok(rag::build_context(&query, results))
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -158,7 +173,8 @@ pub fn run() {
             commands::import_github,
             commands::import_linkedin_html,
             commands::search_documents,
-            commands::export_obsidian
+            commands::export_obsidian,
+            commands::retrieve_context
         ])
         .run(tauri::generate_context!())
         .expect("error while running ResearchLedger");

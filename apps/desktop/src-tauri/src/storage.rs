@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct LedgerPaths {
-    pub vault: PathBuf,
     pub database: PathBuf,
 }
 
@@ -41,10 +40,7 @@ pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     let database = root.join(".researchledger.db");
     let connection = Connection::open(&database)?;
     connection.execute_batch(include_str!("../migrations/001_initial.sql"))?;
-    Ok(LedgerPaths {
-        vault: root.to_path_buf(),
-        database,
-    })
+    Ok(LedgerPaths { database })
 }
 
 pub fn open(paths: &LedgerPaths) -> SqlResult<Connection> {
