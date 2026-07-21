@@ -15,6 +15,7 @@ cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml -- --check
 ```
 
 The current test suite covers the React shell, SQLite vault initialization and idempotent
-upserts, FTS5 search, GitHub README decoding, and duplicate LinkedIn activity URLs. Network
+upserts, FTS5 search, citation-preserving retrieval context, GitHub README decoding, safe
+Markdown path handling, and duplicate LinkedIn activity URLs. Network
 connectors require fixture-backed contract tests before release; live credentials are never
 used in CI.

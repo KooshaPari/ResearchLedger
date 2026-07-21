@@ -2,8 +2,8 @@
 
 Local-first research ledger and LLM knowledge base.
 
-The first slice is a Tauri/React desktop shell. The application will keep Markdown and
-SQLite data local, preserve source provenance, and expose import/search/export adapters.
+The desktop app keeps Markdown and SQLite data local, preserves source provenance, and
+exposes import/search/RAG/export adapters through a Tauri command boundary.
 
 ## Development
 
@@ -19,9 +19,11 @@ npm test -- --run
 npm run build
 ```
 
-The desktop app currently supports local vault setup, GitHub starred-repository import,
-manual LinkedIn HTML export import, and offline FTS5 search. Imported documents are written
-as Markdown under the selected vault and indexed into a local SQLite database.
+The desktop app supports a native local-vault picker, persisted vault status, GitHub
+starred-repository import, manual LinkedIn HTML export import, offline FTS5 search, and
+retrieval context with aligned citations. Imported documents are written as Markdown under
+the selected vault and indexed into a local SQLite database. Markdown export is compatible
+with Obsidian and Logseq-style vault workflows.
 
 See [security](docs/SECURITY.md) and [testing](docs/TESTING.md) for data-handling and
 verification rules.
