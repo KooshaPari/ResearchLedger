@@ -8,6 +8,8 @@ mod rag;
 mod storage;
 
 mod commands {
+    include!("commands.rs");
+
     use super::{
         distill, embeddings::OllamaEmbedder, github, github::GithubClient, linkedin, rag, storage,
         VaultStatus,
@@ -213,6 +215,7 @@ mod commands {
         app: tauri::AppHandle,
         vault_path: String,
         activity_url: Option<String>,
+        profile_path: Option<String>,
     ) -> Result<ImportSummary, String> {
         let output = std::path::PathBuf::from(&vault_path)
             .join(".researchledger")
@@ -231,6 +234,15 @@ mod commands {
         };
         let mut command = tokio::process::Command::new("node");
         command.arg(script).arg("--output").arg(&output);
+        if let Ok(resource_dir) = app.path().resource_dir() {
+            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
+            if packaged_module.exists() {
+                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
+            }
+        }
+        if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
+            command.arg("--profile").arg(profile);
+        }
         if let Some(url) = activity_url {
             command.arg("--url").arg(url);
         }
@@ -419,6 +431,9 @@ pub fn run() {
             commands::import_linkedin_capture,
             commands::capture_linkedin_browser,
             commands::search_documents,
+            commands::list_document_summaries,
+            commands::list_collections,
+            commands::list_document_links,
             commands::export_obsidian,
             commands::retrieve_context,
             commands::distill_document,

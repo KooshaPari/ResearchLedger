@@ -1,175 +1,68 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
-type VaultStatus = {
-  selected: boolean;
-  path: string | null;
-  documentCount: number;
-};
+type VaultStatus = { selected: boolean; path: string | null; documentCount: number };
 type PrimaryView = "inbox" | "library" | "collections" | "graph";
-const views: Array<{ id: PrimaryView; label: string }> = [
-  { id: "inbox", label: "Inbox" },
-  { id: "library", label: "Library" },
-  { id: "collections", label: "Collections" },
-  { id: "graph", label: "Graph" },
+type Result = { documentId: string; title: string; snippet: string; sourceUri: string | null };
+type ImportResult = { created: number; updated: number; unchanged: number; failed: number };
+const views: Array<{ id: PrimaryView; label: string; hint: string }> = [
+  { id: "inbox", label: "Inbox", hint: "Capture, review, and move sources forward" },
+  { id: "library", label: "Library", hint: "Browse the indexed research corpus" },
+  { id: "collections", label: "Collections", hint: "Group sources into working sets" },
+  { id: "graph", label: "Graph", hint: "See how ideas and sources connect" },
 ];
 
 export function App() {
   const [activeView, setActiveView] = useState<PrimaryView>("inbox");
-  const [vaultPath, setVaultPath] = useState(() =>
-    typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.vaultPath") ?? "",
-  );
-  useEffect(() => {
-    if (vaultPath && typeof localStorage !== "undefined") {
-      localStorage.setItem("researchledger.vaultPath", vaultPath);
-    }
-  }, [vaultPath]);
-  const chooseVault = async () => {
-    const selected = await open({ directory: true, multiple: false, title: "Choose ResearchLedger vault" });
-    if (typeof selected === "string") setVaultPath(selected);
-  };
-  return (
-    <main className="shell">
-      <aside className="sidebar">
-        <p className="eyebrow">LOCAL RESEARCH SYSTEM</p>
-        <h1>ResearchLedger</h1>
-        <nav aria-label="Primary navigation" role="tablist" onKeyDown={(event) => {
-          const index = views.findIndex((view) => view.id === activeView);
-          const next = event.key === "ArrowRight" ? (index + 1) % views.length : event.key === "ArrowLeft" ? (index + views.length - 1) % views.length : event.key === "Home" ? 0 : event.key === "End" ? views.length - 1 : -1;
-          if (next >= 0) { event.preventDefault(); setActiveView(views[next].id); document.getElementById(`tab-${views[next].id}`)?.focus(); }
-        }}>
-          {views.map((view) => <button key={view.id} id={`tab-${view.id}`} className={`nav-item${activeView === view.id ? " active" : ""}`} role="tab" aria-selected={activeView === view.id} aria-controls={`panel-${view.id}`} tabIndex={activeView === view.id ? 0 : -1} type="button" onClick={() => setActiveView(view.id)}>{view.label}</button>)}
-        </nav>
-        <div className="sidebar-footer">
-          <span className="status-dot" />
-          Local-first · offline ready
-        </div>
-      </aside>
-      <section className="content">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">INBOX</p>
-            <h2>Build your research corpus</h2>
-          </div>
-          <button className="button secondary" type="button" onClick={() => void chooseVault()}>Select vault</button>
-        </header>
-        <section id={`panel-${activeView}`} role="tabpanel" aria-labelledby={`tab-${activeView}`} className="view-panel">
-        {activeView === "inbox" ? <>
-        <SearchPanel vaultPath={vaultPath} />
-        <section className="hero-card" aria-label="Vault setup">
-          <div className="hero-mark">RL</div>
-          <div>
-            <VaultStatusPanel vaultPath={vaultPath} setVaultPath={setVaultPath} chooseVault={chooseVault} />
-          </div>
-        </section>
-        </> : <section className="empty-view"><p className="eyebrow">{activeView.toUpperCase()}</p><h2>{views.find((view) => view.id === activeView)?.label}</h2><p className="muted">This workspace is connected to the same local vault and will surface enriched research as it is indexed.</p></section>}
-        </section>
-      </section>
-    </main>
-  );
-}
-
-function SearchPanel({ vaultPath }: { vaultPath: string }) {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Array<{ documentId: string; title: string; snippet: string; sourceUri: string | null }>>([]);
-  const search = async () => {
-    if (!vaultPath || !query) return;
-    try { setResults(await invoke("search_documents", { vaultPath, query, limit: 20 })); } catch { setResults([]); }
-  };
-  return (
-    <section className="search-panel" aria-label="Search">
-      <input aria-label="Search research" placeholder="Search your ledger…" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} />
-      <button className="button secondary" type="button" onClick={() => void search()}>Search</button>
-      {results.length > 0 && <div className="results">{results.map((result) => <article className="result" key={result.documentId}><strong>{result.title}</strong><p><HighlightedSnippet value={result.snippet} /></p></article>)}</div>}
-    </section>
-  );
-}
-
-function HighlightedSnippet({ value }: { value: string }) {
-  return value.split(/(<mark>|<\/mark>)/g).map((part, index) => {
-    if (part === "<mark>" || part === "</mark>" || !part) return null;
-    const marked = value.split(/(<mark>|<\/mark>)/g).slice(0, index).filter((item) => item === "<mark>").length % 2 === 1;
-    return marked ? <mark key={`${part}-${index}`}>{part}</mark> : <span key={`${part}-${index}`}>{part}</span>;
-  });
-}
-
-function VaultStatusPanel({ vaultPath, setVaultPath, chooseVault }: { vaultPath: string; setVaultPath: (path: string) => void; chooseVault: () => Promise<void> }) {
+  const [vaultPath, setVaultPath] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.vaultPath") ?? "");
   const [status, setStatus] = useState<VaultStatus | null>(null);
-  const [token, setToken] = useState("");
-  const [githubClientId, setGithubClientId] = useState("");
-  const [deviceAuth, setDeviceAuth] = useState<{ deviceCode: string; userCode: string; verificationUri: string; expiresIn: number; interval: number } | null>(null);
-  const [linkedinPath, setLinkedinPath] = useState("");
-  const [exportPath, setExportPath] = useState("");
   const [message, setMessage] = useState("");
-  const chooseLinkedInExport = async () => {
-    const selected = await open({ multiple: false, title: "Choose ResearchLedger LinkedIn capture", filters: [{ name: "JSON", extensions: ["json"] }] });
-    if (typeof selected === "string") setLinkedinPath(selected);
+  useEffect(() => { if (vaultPath) localStorage.setItem("researchledger.vaultPath", vaultPath); }, [vaultPath]);
+  useEffect(() => { invoke<VaultStatus>("get_vault_status", { vaultPath: vaultPath || null }).then(setStatus).catch(() => setStatus(null)); }, [vaultPath]);
+  const chooseVault = async () => { const selected = await open({ directory: true, multiple: false, title: "Choose ResearchLedger vault" }); if (typeof selected === "string") setVaultPath(selected); };
+  const run = async (command: string, args: Record<string, unknown>, success: (value: any) => string) => {
+    if (!vaultPath) { setMessage("Select a vault before running a source action."); return; }
+    try { setMessage(success(await invoke(command, args))); } catch (error) { setMessage(`Could not run ${command}: ${String(error)}`); }
   };
-
-
-  useEffect(() => {
-    invoke<VaultStatus>("get_vault_status", { vaultPath: vaultPath || null }).then(setStatus).catch(() => setStatus(null));
-  }, [vaultPath]);
-
-  return (
-    <>
-      <p className="eyebrow">{status?.selected ? "VAULT READY" : "NO VAULT SELECTED"}</p>
-      <h3>Your sources stay yours.</h3>
-      <p className="muted">
-        {status ? `Local index: ${status.documentCount} documents` : "Choose a local Markdown vault to begin importing and indexing research."}
-      </p>
-      <div className="import-form">
-        <button className="button secondary" type="button" onClick={() => void chooseVault()}>Choose local vault</button>
-        <input aria-label="Vault path" placeholder="/Users/you/ResearchVault" value={vaultPath} onChange={(event) => setVaultPath(event.target.value)} />
-        <input aria-label="GitHub App client ID" placeholder="GitHub App client ID (OAuth device flow)" value={githubClientId} onChange={(event) => setGithubClientId(event.target.value)} />
-        <button className="button primary" type="button" onClick={async () => {
-          try { setDeviceAuth(await invoke("github_device_start", { clientId: githubClientId })); setMessage("GitHub verification code ready."); } catch (error) { setMessage(String(error)); }
-        }}>Connect GitHub</button>
-        {deviceAuth && <p className="muted">Open {deviceAuth.verificationUri} and enter <strong>{deviceAuth.userCode}</strong>, then finish sign-in.</p>}
-        {deviceAuth && <button className="button secondary" type="button" onClick={async () => {
-          try { setToken(await invoke("github_device_poll", { clientId: githubClientId, deviceCode: deviceAuth.deviceCode, interval: deviceAuth.interval, expiresIn: deviceAuth.expiresIn })); setDeviceAuth(null); setMessage("GitHub connected for this session."); } catch (error) { setMessage(String(error)); }
-        }}>Finish GitHub sign-in</button>}
-        <p className="muted">Advanced fallback: paste a GitHub token only if OAuth is unavailable; it is cleared after import.</p>
-        <input aria-label="GitHub token" type="password" placeholder="GitHub token (never stored)" value={token} onChange={(event) => setToken(event.target.value)} />
-        <button className="button primary" type="button" onClick={async () => {
-          setMessage("Importing starred repositories…");
-          try {
-            const result = await invoke<{ created: number; updated: number; unchanged: number; failed: number }>("import_github", { vaultPath, token });
-            setToken("");
-            setMessage(`Imported ${result.created + result.updated} repositories; ${result.unchanged} unchanged.`);
-          } catch (error) { setMessage(String(error)); }
-        }}>Import GitHub stars</button>
-        <p className="muted">LinkedIn capture runs through your authenticated local browser profile; no export or API key is required.</p>
-        <button className="button primary" type="button" onClick={async () => {
-          setMessage("Opening your authenticated LinkedIn browser and capturing reactions…");
-          try {
-            const result = await invoke<{ created: number; updated: number; unchanged: number; failed: number }>("capture_linkedin_browser", { vaultPath, activityUrl: null });
-            setMessage(`Captured and imported ${result.created + result.updated} LinkedIn posts; ${result.unchanged} unchanged.`);
-          } catch (error) { setMessage(String(error)); }
-        }}>Capture LinkedIn in browser</button>
-        <input aria-label="LinkedIn capture path" placeholder="/Users/you/ResearchLedger/linkedin-capture.json" value={linkedinPath} onChange={(event) => setLinkedinPath(event.target.value)} />
-        <button className="button secondary" type="button" onClick={() => void chooseLinkedInExport()}>Choose LinkedIn capture</button>
-        <button className="button secondary" type="button" onClick={async () => {
-          setMessage("Importing LinkedIn activity export…");
-          try {
-            const result = await invoke<{ created: number; updated: number; unchanged: number; failed: number }>("import_linkedin_capture", { vaultPath, capturePath: linkedinPath });
-            setMessage(`Imported ${result.created + result.updated} LinkedIn posts; ${result.unchanged} unchanged.`);
-          } catch (error) { setMessage(String(error)); }
-        }}>Import LinkedIn capture</button>
-        <button className="button secondary" type="button" onClick={async () => {
-          setMessage("Distilling pending research into OKF notes…");
-          try {
-            const result = await invoke<{ created: number; updated: number; unchanged: number; failed: number }>("process_pending_enrichment", { vaultPath, limit: 25 });
-            setMessage(`Created ${result.created + result.updated} distilled notes; ${result.unchanged} unchanged.`);
-          } catch (error) { setMessage(String(error)); }
-        }}>Distill pending research</button>
-        <input aria-label="Obsidian export path" placeholder="/Users/you/ResearchVault-export" value={exportPath} onChange={(event) => setExportPath(event.target.value)} />
-        <button className="button secondary" type="button" onClick={async () => {
-          try { const count = await invoke<number>("export_obsidian", { vaultPath, destination: exportPath }); setMessage(`Exported ${count} Markdown documents.`); } catch (error) { setMessage(String(error)); }
-        }}>Export Markdown vault</button>
-        {message && <p className="import-message" role="status">{message}</p>}
-      </div>
-    </>
-  );
+  const index = views.findIndex((view) => view.id === activeView);
+  return <main className="shell">
+    <aside className="sidebar">
+      <p className="eyebrow">LOCAL RESEARCH SYSTEM</p><h1>ResearchLedger</h1>
+      <nav aria-label="Primary navigation" role="tablist" onKeyDown={(event) => { const next = event.key === "ArrowRight" ? (index + 1) % views.length : event.key === "ArrowLeft" ? (index + views.length - 1) % views.length : event.key === "Home" ? 0 : event.key === "End" ? views.length - 1 : -1; if (next >= 0) { event.preventDefault(); setActiveView(views[next].id); document.getElementById(`tab-${views[next].id}`)?.focus(); } }}>
+        {views.map((view) => <button key={view.id} id={`tab-${view.id}`} className={`nav-item${activeView === view.id ? " active" : ""}`} role="tab" aria-selected={activeView === view.id} aria-controls={`panel-${view.id}`} tabIndex={activeView === view.id ? 0 : -1} type="button" onClick={() => setActiveView(view.id)}><span>{view.label}</span><small>{view.hint}</small></button>)}
+      </nav>
+      <div className="sidebar-footer"><span className="status-dot" /> Local-first · offline ready</div>
+    </aside>
+    <section className="content">
+      <header className="topbar"><div><p className="eyebrow">{activeView.toUpperCase()}</p><h2>{views[index].hint}</h2></div><button className="button secondary" type="button" onClick={() => void chooseVault()}>Select vault</button></header>
+      <section id={`panel-${activeView}`} role="tabpanel" aria-labelledby={`tab-${activeView}`} className="view-panel">
+        {activeView === "inbox" && <Inbox vaultPath={vaultPath} status={status} setVaultPath={setVaultPath} chooseVault={chooseVault} run={run} message={message} setMessage={setMessage} />}
+        {activeView === "library" && <Library vaultPath={vaultPath} />}
+        {activeView === "collections" && <Collections vaultPath={vaultPath} />}
+        {activeView === "graph" && <Graph vaultPath={vaultPath} />}
+      </section>
+    </section>
+  </main>;
 }
+
+function Inbox({ vaultPath, status, setVaultPath, chooseVault, run, message, setMessage }: { vaultPath: string; status: VaultStatus | null; setVaultPath: (path: string) => void; chooseVault: () => Promise<void>; run: (command: string, args: Record<string, unknown>, success: (value: any) => string) => Promise<void>; message: string; setMessage: (value: string) => void }) {
+  const [token, setToken] = useState(""); const [linkedinPath, setLinkedinPath] = useState(""); const [linkedinProfile, setLinkedinProfile] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.linkedinProfile") ?? ""); const [githubClientId, setGithubClientId] = useState(""); const [deviceAuth, setDeviceAuth] = useState<any>(null); const [query, setQuery] = useState(""); const [results, setResults] = useState<Result[]>([]); const [linkedinState, setLinkedinState] = useState<"needs-auth" | "ready" | "capturing">("needs-auth");
+  const capture = async () => { if (linkedinProfile && typeof localStorage !== "undefined") localStorage.setItem("researchledger.linkedinProfile", linkedinProfile); setLinkedinState("capturing"); await run("capture_linkedin_browser", { vaultPath, activityUrl: null, profilePath: linkedinProfile || null }, (value: ImportResult) => `Captured ${value.created + value.updated} LinkedIn posts; ${value.unchanged} unchanged.`); setLinkedinState("ready"); };
+  const search = async () => { if (!vaultPath || !query) return; try { setResults(await invoke<Result[]>("search_documents", { vaultPath, query, limit: 20 })); } catch { setResults([]); } };
+  return <>
+    <section className="inbox-grid"><div className="source-rail"><p className="eyebrow">SOURCE CONTROL</p><h3>Move research from raw to useful.</h3><p className="muted">Every action stays visible: capture, import, distill, and export from one local queue.</p><div className="queue-stats"><span><strong>{status?.documentCount ?? 0}</strong> indexed</span><span><strong>25</strong> enrichment batch</span></div></div><div className="action-stack"><Action title="LinkedIn" label={linkedinState === "needs-auth" ? "Connect browser" : linkedinState === "capturing" ? "Capturing…" : "Connected"} state={linkedinState === "needs-auth" ? "Needs authentication" : linkedinState === "capturing" ? "Capture in progress" : "Ready to capture"} onClick={() => void capture()} disabled={linkedinState === "capturing"} /><Action title="GitHub" label="Import starred repos" state="Token cleared after import" onClick={() => void run("import_github", { vaultPath, token }, (value: ImportResult) => { setToken(""); return `Imported ${value.created + value.updated} repositories; ${value.unchanged} unchanged.`; })} /><Action title="Enrichment" label="Distill pending notes" state="Up to 25 sources" onClick={() => void run("process_pending_enrichment", { vaultPath, limit: 25 }, (value: ImportResult) => `Created ${value.created + value.updated} distilled notes.`)} /></div></section>
+    <section className="capture-panel"><div className="panel-heading"><div><p className="eyebrow">LINKEDIN CONNECTION</p><h3>{linkedinState === "needs-auth" ? "Sign in once, capture locally" : "Browser profile connected"}</h3></div><span className={`state-pill ${linkedinState}`}>{linkedinState === "needs-auth" ? "AUTH REQUIRED" : linkedinState === "capturing" ? "CAPTURING" : "READY"}</span></div><p className="muted">Use a dedicated persistent Chrome profile. ResearchLedger opens LinkedIn in that profile so SSO, cookies, and MFA remain in your browser; it never stores your LinkedIn password.</p><div className="profile-row"><input aria-label="LinkedIn browser profile" placeholder="Default profile or /Users/you/Library/Application Support/ResearchLedger/linkedin-profile" value={linkedinProfile} onChange={(event) => setLinkedinProfile(event.target.value)} /><button className="button secondary" type="button" onClick={() => void capture()} disabled={linkedinState === "capturing"}>Open LinkedIn sign-in</button></div><div className="capture-actions"><button className="button primary" type="button" onClick={() => void capture()} disabled={linkedinState === "capturing"}>Capture reactions in browser</button><input aria-label="LinkedIn capture path" placeholder="Optional capture JSON path" value={linkedinPath} onChange={(event) => setLinkedinPath(event.target.value)} /><button className="button secondary" type="button" onClick={() => void run("import_linkedin_capture", { vaultPath, capturePath: linkedinPath }, (value: ImportResult) => `Imported ${value.created + value.updated} LinkedIn posts.`)}>Import capture</button></div><p className="import-message">Advanced API credentials are not requested because LinkedIn’s approved member APIs do not expose a general reactions feed. Use an approved integration only through a future provider adapter.</p></section>
+    <section className="vault-strip"><div><p className="eyebrow">VAULT</p><strong>{vaultPath || "No local vault selected"}</strong><span>{status ? `${status.documentCount} documents indexed` : "Choose a Markdown vault to begin"}</span></div><button className="button secondary" type="button" onClick={() => void chooseVault()}>Choose vault</button><input aria-label="Vault path" placeholder="/Users/you/ResearchVault" value={vaultPath} onChange={(event) => setVaultPath(event.target.value)} /></section>
+    <section className="search-panel" aria-label="Search"><input aria-label="Search research" placeholder="Search your ledger…" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} /><button className="button secondary" type="button" onClick={() => void search()}>Search</button>{results.length > 0 && <div className="results">{results.map((result) => <article className="result" key={result.documentId}><strong>{result.title}</strong><p><HighlightedSnippet value={result.snippet} /></p></article>)}</div>}</section>
+    <section className="export-row"><input aria-label="GitHub App client ID" placeholder="GitHub App client ID (optional OAuth)" value={githubClientId} onChange={(event) => setGithubClientId(event.target.value)} /><button className="button secondary" type="button" onClick={async () => { try { setDeviceAuth(await invoke("github_device_start", { clientId: githubClientId })); setMessage("GitHub verification code ready."); } catch (error) { setMessage(String(error)); } }}>Connect GitHub</button><input aria-label="GitHub token" type="password" placeholder="GitHub token (never stored)" value={token} onChange={(event) => setToken(event.target.value)} /><button className="button secondary" type="button" onClick={() => void run("export_obsidian", { vaultPath, destination: "" }, (count: number) => `Exported ${count} Markdown documents.`)}>Export Markdown</button></section>{deviceAuth && <p className="import-message" role="status">Open {deviceAuth.verificationUri} and enter <strong>{deviceAuth.userCode}</strong>, then import starred repositories.</p>}{message && <p className="import-message" role="status">{message}</p>}
+  </>;
+}
+
+function Action({ title, label, state, onClick, disabled }: { title: string; label: string; state: string; onClick: () => void; disabled?: boolean }) { return <article className="action-card"><div><strong>{title}</strong><span>{state}</span></div><button className="button secondary" type="button" onClick={onClick} disabled={disabled}>{label}</button></article>; }
+function WorkspaceView({ title, eyebrow, description, command, vaultPath, render }: { title: string; eyebrow: string; description: string; command: string; vaultPath: string; render?: (data: any[]) => ReactNode }) { const [data, setData] = useState<any[]>([]); const [loading, setLoading] = useState(false); const load = async () => { if (!vaultPath) return; setLoading(true); try { setData(await invoke<any[]>(command, { vaultPath })); } catch { setData([]); } finally { setLoading(false); } }; useEffect(() => { if (vaultPath) void load(); }, [vaultPath]); return <section className="workspace-view"><div className="workspace-intro"><p className="eyebrow">{eyebrow}</p><h3>{title}</h3><p className="muted">{description}</p><button className="button secondary" type="button" onClick={() => void load()} disabled={!vaultPath || loading}>{loading ? "Refreshing…" : "Refresh view"}</button></div>{render ? render(data) : <div className="data-surface">{data.length ? data.map((item, index) => <div className="data-row" key={item.id ?? index}><strong>{item.title ?? item.name ?? `Research item ${index + 1}`}</strong><span>{item.description ?? item.kind ?? item.sourceKind ?? "Indexed locally"}</span></div>) : <EmptyState vaultPath={vaultPath} />}</div>}</section>; }
+function Library({ vaultPath }: { vaultPath: string }) { return <WorkspaceView title="Your indexed corpus" eyebrow="LIBRARY" description="A searchable inventory of every source ResearchLedger has accepted into the vault." command="list_document_summaries" vaultPath={vaultPath} />; }
+function Collections({ vaultPath }: { vaultPath: string }) { return <WorkspaceView title="Working sets for active questions" eyebrow="COLLECTIONS" description="Collections are deliberate slices of the corpus. The view is ready for collection commands as they land." command="list_collections" vaultPath={vaultPath} />; }
+function Graph({ vaultPath }: { vaultPath: string }) { return <WorkspaceView title="Connections worth following" eyebrow="GRAPH" description="A relationship surface for sources, distilled notes, and recurring themes." command="list_document_links" vaultPath={vaultPath} render={(data) => <div className="graph-surface">{data.length ? data.map((link, index) => <div className="data-row" key={`${link.sourceDocumentId}-${link.targetUrl}-${index}`}><strong>{link.sourceTitle}</strong><span>{link.relation} → {link.targetUrl}</span></div>) : <EmptyState vaultPath={vaultPath} />}</div>} />; }
+function EmptyState({ vaultPath }: { vaultPath: string }) { return <div className="empty-state"><span className="empty-orbit">+</span><strong>{vaultPath ? "Nothing surfaced yet" : "Choose a vault to begin"}</strong><p>{vaultPath ? "Run an import or distill pending sources in Inbox, then refresh this view." : "Your local vault is the source of truth for every workspace."}</p></div>; }
+function HighlightedSnippet({ value }: { value: string }) { return value.split(/(<mark>|<\/mark>)/g).map((part, index) => part === "<mark>" || part === "</mark>" || !part ? null : value.split(/(<mark>|<\/mark>)/g).slice(0, index).filter((item) => item === "<mark>").length % 2 === 1 ? <mark key={index}>{part}</mark> : <span key={index}>{part}</span>); }

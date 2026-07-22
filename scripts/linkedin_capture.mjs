@@ -2,7 +2,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { chromium } from "playwright";
+import { pathToFileURL } from "node:url";
+
+const playwrightModule = process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE ?? "playwright";
+const { chromium } = await import(
+  playwrightModule.startsWith("/") ? pathToFileURL(playwrightModule).href : playwrightModule,
+);
 
 const args = new Map();
 for (let index = 2; index < process.argv.length; index += 2) args.set(process.argv[index], process.argv[index + 1]);
