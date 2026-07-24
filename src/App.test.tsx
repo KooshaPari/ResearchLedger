@@ -9,7 +9,10 @@ describe("ResearchLedger shell", () => {
     render(<App />);
     expect(screen.getByRole("heading", { name: "ResearchLedger" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Choose vault" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Capture reactions in browser" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Capture in browser" })).toHaveLength(3);
+    expect(screen.getByLabelText("LinkedIn capture")).toBeInTheDocument();
+    expect(screen.getByLabelText("Reddit capture")).toBeInTheDocument();
+    expect(screen.getByLabelText("X capture")).toBeInTheDocument();
   });
 
   it("switches accessible primary workspaces", () => {

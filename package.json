@@ -6,8 +6,10 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest",
     "lint": "tsc --noEmit",
-    "tauri": "tauri"
-    ,"linkedin:capture": "node scripts/linkedin_capture.mjs",
+    "tauri": "tauri",
+    "linkedin:capture": "node scripts/linkedin_capture.mjs",
+    "reddit:capture": "node scripts/reddit_capture.mjs",
+    "x:capture": "node scripts/x_capture.mjs",
     "typecheck:tsc": "tsc --noEmit -p tsconfig.json",
     "typecheck:tsgo": "tsgo --noEmit -p tsconfig.json",
     "typecheck:experimental": "bun run typecheck:tsgo"

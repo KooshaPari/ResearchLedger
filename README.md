@@ -20,8 +20,9 @@ npm run build
 ```
 
 The desktop app supports a native local-vault picker, persisted vault status, GitHub
-starred-repository import, manual LinkedIn HTML export import, offline FTS5 search, and
-retrieval context with aligned citations. Imported documents are written as Markdown under
+starred-repository import, browser-capture imports for LinkedIn, Reddit, and X
+bookmarks, offline FTS5 search, and retrieval context with aligned citations.
+Imported documents are written as Markdown under
 the selected vault and indexed into a local SQLite database. Markdown export is compatible
 with Obsidian and Logseq-style vault workflows.
 
@@ -29,17 +30,24 @@ GitHub uses the OAuth device flow when a GitHub App client ID is configured. The
 GitHub’s verification URL/code and polls only at the interval supplied by GitHub; a pasted
 token is retained solely as an advanced fallback.
 
-For LinkedIn’s personal reaction feed, use the authenticated browser connector:
+For LinkedIn’s personal reaction feed, Reddit saved posts, and X bookmarks, use the
+authenticated browser connectors (each uses a dedicated persistent browser profile):
 
 ```bash
 npm run linkedin:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/linkedin-profile" \
   --output "$PWD/linkedin-capture.json"
+
+npm run reddit:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/reddit-profile" \
+  --output "$PWD/reddit-capture.json"
+
+npm run x:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/x-profile" \
+  --output "$PWD/x-capture.json"
 ```
 
-The connector opens a persistent local browser profile, waits for the user’s normal login
-if needed, scrolls at a bounded rate, deduplicates activity URLs, and writes a deterministic
-capture file for import into the selected vault. It does not automate posting, messaging,
-reactions, follows, or other account actions.
+Each connector opens a persistent local browser profile, waits for the user’s normal login
+if needed, scrolls at a bounded rate, deduplicates post URLs, and writes a deterministic
+capture file for import into the selected vault. None of them automate posting, messaging,
+reactions, follows, votes, or other account actions.
 
 See [security](docs/SECURITY.md) and [testing](docs/TESTING.md) for data-handling and
 verification rules.

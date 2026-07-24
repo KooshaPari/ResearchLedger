@@ -59,6 +59,13 @@ h3 { font-size: 26px; letter-spacing: -.035em; margin-bottom: 10px; }
 .state-pill.ready { color: #b5f0c8; background: #23402d; }
 .capture-actions { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; }
 .profile-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+.provider-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; align-items: stretch; }
+.provider-card { display: grid; gap: 10px; padding: 18px; border: 1px solid #303746; border-radius: 14px; background: rgba(20, 26, 36, .82); }
+.provider-card .provider-card-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.provider-card h4 { margin: 0; font-size: 14px; font-weight: 600; color: #cdd5e2; word-break: break-word; }
+.provider-card input { width: 100%; border: 1px solid #3a4353; border-radius: 8px; padding: 10px 12px; color: #edf1f7; background: #161a22; }
+.provider-card .capture-actions { grid-template-columns: 1fr 1fr; }
+@supports (gap: 1rem) { .provider-card .capture-actions { gap: .65rem; } }
 .vault-strip { padding: 16px 20px; }
 .vault-strip > div { flex: 1; }
 .vault-strip input { max-width: 280px; }

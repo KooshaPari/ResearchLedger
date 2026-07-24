@@ -4,15 +4,19 @@ mod embeddings;
 mod enrichment;
 mod github;
 mod linkedin;
+mod provider_html;
 mod rag;
+mod reddit;
+mod safe_paths;
 mod storage;
+mod x;
 
 mod commands {
     include!("commands.rs");
 
     use super::{
-        distill, embeddings::OllamaEmbedder, github, github::GithubClient, linkedin, rag, storage,
-        VaultStatus,
+        distill, embeddings::OllamaEmbedder, github, github::GithubClient, linkedin, rag, reddit,
+        storage, x, VaultStatus,
     };
     use serde::Serialize;
     use tauri::Manager;
@@ -24,6 +28,110 @@ mod commands {
         pub updated: u64,
         pub unchanged: u64,
         pub failed: u64,
+    }
+
+    /// Render a third-party-provider post (LinkedIn, Reddit, X) into a `SourceDocument`.
+    /// `id_prefix`/`type_label`/`relative_dir` describe the schema, while `url`, `title`,
+    /// and `body` come from the connector-specific parser. The captured-at timestamp is
+    /// **not** embedded in the content so re-imports of identical input hash
+    /// identically and surface as `Unchanged` rather than churning to `Updated`.
+    pub fn render_provider_document(
+        timestamp: &str,
+        id_prefix: &str,
+        source_kind: &str,
+        type_label: &str,
+        description: &str,
+        tags: &[&str],
+        relative_dir: &str,
+        url: &str,
+        title: &str,
+        body: &str,
+    ) -> storage::SourceDocument {
+        let id_segment = url_id_segment(url);
+        let id = format!("{id_prefix}:{id_segment}");
+        let tags_text = format!("[{}]", tags.join(", "));
+        // NB: do NOT include `timestamp` inside the content body — including it would
+        // change the SHA-256 hash on every re-import and break downsync detection.
+        let content = format!(
+            "---\n\
+             type: {type_label}\n\
+             id: {id}\n\
+             title: {title}\n\
+             description: {description}\n\
+             resource: {url}\n\
+             tags: {tags_text}\n\
+             source_kind: {source_kind}\n\
+             source_uri: {url}\n\
+             ---\n\
+             \n\
+             {body}\n\
+             \n\
+             # Citations\n\
+             \n\
+             [1] [{type_label}]({url})\n"
+        );
+        storage::SourceDocument {
+            id: id.clone(),
+            relative_path: format!("{relative_dir}/{id_segment}.md"),
+            title: title.into(),
+            source_kind: source_kind.into(),
+            source_uri: Some(url.into()),
+            content,
+            captured_at: timestamp.into(),
+        }
+    }
+
+    /// Derive a filesystem/document-id-safe slug from a provider URL. Strips an
+    /// optional `https?://` scheme so the slug begins at the domain.
+    pub fn url_id_segment(url: &str) -> String {
+        let trimmed = url
+            .trim()
+            .split('?')
+            .next()
+            .unwrap_or(url)
+            .trim_end_matches('/');
+        let trimmed = trimmed
+            .strip_prefix("https://")
+            .or_else(|| trimmed.strip_prefix("http://"))
+            .unwrap_or(trimmed);
+        let mut slug = String::with_capacity(trimmed.len());
+        for character in trimmed.chars() {
+            if character.is_ascii_alphanumeric() {
+                slug.push(character.to_ascii_lowercase());
+            } else if matches!(character, '_' | '-' | '.') {
+                slug.push(character);
+            } else if character == '/' {
+                if !slug.ends_with('-') {
+                    slug.push('-');
+                }
+            }
+        }
+        let slug = slug.trim_matches('-').to_string();
+        if slug.is_empty() {
+            "post".into()
+        } else {
+            slug
+        }
+    }
+
+    /// Validate that `user_path` is a safe, descendant of an acceptable root.
+    /// Returns the canonicalised path. Used by import_* and capture_*
+    /// commands to mitigate path-injection rules (Sonar `rust:S2089`).
+    fn validated_user_path(
+        user_path: &str,
+        label: &str,
+        vault_path: &str,
+    ) -> Result<std::path::PathBuf, String> {
+        let vault = std::path::PathBuf::from(vault_path);
+        let temp = std::env::temp_dir();
+        let home = std::env::var("HOME")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|_| temp.clone());
+        super::safe_paths::ensure_within_acceptable_roots(
+            user_path,
+            label,
+            &[vault, temp, home],
+        )
     }
 
     #[tauri::command]
@@ -138,29 +246,127 @@ mod commands {
         vault_path: String,
         html_path: String,
     ) -> Result<ImportSummary, String> {
-        let html = std::fs::read_to_string(&html_path).map_err(|error| error.to_string())?;
+        let path = validated_user_path(&html_path, "LinkedIn html", &vault_path)?;
+        let html = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
         let posts = linkedin::parse_activity_html(&html);
+        import_provider_posts(
+            &vault_path,
+            ProviderMetadata::linkedin(),
+            posts.into_iter().map(|post| ProviderImportInput {
+                url: post.url,
+                title: extract_linkedin_title(&post.text),
+                body: post.text,
+            }),
+        )
+    }
+
+    #[tauri::command]
+    pub fn import_linkedin_capture(
+        vault_path: String,
+        capture_path: String,
+    ) -> Result<ImportSummary, String> {
+        let path = validated_user_path(&capture_path, "LinkedIn capture", &vault_path)?;
+        let json = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
+        let posts = linkedin::parse_capture_json(&json).map_err(|error| error.to_string())?;
+        import_provider_posts(
+            &vault_path,
+            ProviderMetadata::linkedin(),
+            posts.into_iter().map(|post| ProviderImportInput {
+                url: post.url,
+                title: extract_linkedin_title(&post.text),
+                body: post.text,
+            }),
+        )
+    }
+
+    pub struct ProviderImportInput {
+        pub url: String,
+        pub title: String,
+        pub body: String,
+    }
+
+    pub struct ProviderMetadata {
+        pub id_prefix: &'static str,
+        pub source_kind: &'static str,
+        pub type_label: &'static str,
+        pub description: &'static str,
+        pub tags: &'static [&'static str],
+        pub relative_dir: &'static str,
+    }
+
+    impl ProviderMetadata {
+        pub const fn linkedin() -> Self {
+            Self {
+                id_prefix: "linkedin",
+                source_kind: "linkedin",
+                type_label: "LinkedIn Post",
+                description: "Captured LinkedIn post",
+                tags: &["linkedin", "captured"],
+                relative_dir: "sources/linkedin",
+            }
+        }
+
+        pub const fn reddit() -> Self {
+            Self {
+                id_prefix: "reddit",
+                source_kind: "reddit",
+                type_label: "Reddit Saved Post",
+                description: "Captured Reddit saved post",
+                tags: &["reddit", "saved", "captured"],
+                relative_dir: "sources/reddit",
+            }
+        }
+
+        pub const fn x() -> Self {
+            Self {
+                id_prefix: "x",
+                source_kind: "x",
+                type_label: "X Bookmark",
+                description: "Captured X bookmark",
+                tags: &["x", "bookmark", "captured"],
+                relative_dir: "sources/x",
+            }
+        }
+    }
+
+    /// Persist a batch of provider posts into the vault using the shared renderer.
+    pub fn import_provider_posts(
+        vault_path: &str,
+        metadata: ProviderMetadata,
+        posts: impl IntoIterator<Item = ProviderImportInput>,
+    ) -> Result<ImportSummary, String> {
+        let inputs: Vec<ProviderImportInput> = posts.into_iter().collect();
+        if inputs.is_empty() {
+            return Ok(ImportSummary {
+                created: 0,
+                updated: 0,
+                unchanged: 0,
+                failed: 0,
+            });
+        }
         let root = std::path::PathBuf::from(vault_path);
         let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
         let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let timestamp = chrono::Utc::now().to_rfc3339();
         let mut summary = ImportSummary {
             created: 0,
             updated: 0,
             unchanged: 0,
             failed: 0,
         };
-        for post in posts {
-            let id = post.url.rsplit(':').next().unwrap_or(&post.url).to_string();
-            let content = format!("---\ntype: LinkedIn Post\nid: linkedin:{id}\ntitle: LinkedIn post {id}\ndescription: Captured LinkedIn post\nresource: {}\ntags: [linkedin, captured]\ntimestamp: {}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n\n# Citations\n\n[1] [LinkedIn post]({})\n", post.url, chrono::Utc::now().to_rfc3339(), post.url, post.text, post.url);
-            let document = storage::SourceDocument {
-                id: format!("linkedin:{id}"),
-                relative_path: format!("sources/linkedin/{id}.md"),
-                title: format!("LinkedIn post {id}"),
-                source_kind: "linkedin".into(),
-                source_uri: Some(post.url),
-                content,
-                captured_at: chrono::Utc::now().to_rfc3339(),
-            };
+        for input in inputs {
+            let document = render_provider_document(
+                &timestamp,
+                metadata.id_prefix,
+                metadata.source_kind,
+                metadata.type_label,
+                metadata.description,
+                metadata.tags,
+                metadata.relative_dir,
+                &input.url,
+                &input.title,
+                &input.body,
+            );
             match storage::upsert_document(&mut connection, &root, &document)
                 .map_err(|error| error.to_string())?
             {
@@ -172,42 +378,58 @@ mod commands {
         Ok(summary)
     }
 
-    #[tauri::command]
-    pub fn import_linkedin_capture(
-        vault_path: String,
-        capture_path: String,
-    ) -> Result<ImportSummary, String> {
-        let json = std::fs::read_to_string(&capture_path).map_err(|error| error.to_string())?;
-        let posts = linkedin::parse_capture_json(&json).map_err(|error| error.to_string())?;
-        let root = std::path::PathBuf::from(vault_path);
-        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
-        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let mut summary = ImportSummary {
-            created: 0,
-            updated: 0,
-            unchanged: 0,
-            failed: 0,
-        };
-        for post in posts {
-            let id = post.url.rsplit(':').next().unwrap_or(&post.url).to_string();
-            let document = storage::SourceDocument {
-                id: format!("linkedin:{id}"),
-                relative_path: format!("sources/linkedin/{id}.md"),
-                title: format!("LinkedIn post {id}"),
-                source_kind: "linkedin".into(),
-                source_uri: Some(post.url.clone()),
-                content: format!("---\ntype: LinkedIn Post\nid: linkedin:{id}\ntitle: LinkedIn post {id}\ndescription: Captured LinkedIn post\nresource: {}\ntags: [linkedin, captured]\ntimestamp: {}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n\n# Citations\n\n[1] [LinkedIn post]({})\n", post.url, chrono::Utc::now().to_rfc3339(), post.url, post.text, post.url),
-                captured_at: chrono::Utc::now().to_rfc3339(),
-            };
-            match storage::upsert_document(&mut connection, &root, &document)
-                .map_err(|error| error.to_string())?
-            {
-                storage::UpsertResult::Created => summary.created += 1,
-                storage::UpsertResult::Updated => summary.updated += 1,
-                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+    /// Pick a short LinkedIn title from the body text. LinkedIn posts don't expose a
+    /// separate title in the activity feed; the first non-empty line is usually a
+    /// reasonable stand-in. We fall back to a fixed placeholder if the body is empty.
+    fn extract_linkedin_title(body: &str) -> String {
+        body.lines()
+            .map(str::trim)
+            .find(|line| !line.is_empty())
+            .map(|line| line.chars().take(80).collect::<String>())
+            .unwrap_or_else(|| "LinkedIn post".into())
+    }
+
+    /// Resolve the absolute path to a bundled capture script. Prefers the packaged
+    /// Tauri resource directory and falls back to the development checkout.
+    fn resolve_capture_script(
+        app: &tauri::AppHandle,
+        script_name: &str,
+    ) -> Result<std::path::PathBuf, String> {
+        let packaged = app
+            .path()
+            .resource_dir()
+            .map_err(|error| error.to_string())?
+            .join(format!("scripts/{script_name}"));
+        if packaged.exists() {
+            return Ok(packaged);
+        }
+        let local = std::env::current_dir()
+            .map_err(|error| error.to_string())?
+            .join(format!("scripts/{script_name}"));
+        if local.exists() {
+            return Ok(local);
+        }
+        Err(format!(
+            "Capture script {script_name} was not found in resource or local scripts/."
+        ))
+    }
+
+    /// Build a tokio Command for invoking a browser-capture script with the shared
+    /// Playwright module + profile URL conventions.
+    fn build_capture_command(
+        app: &tauri::AppHandle,
+        script: &std::path::Path,
+        output: &std::path::Path,
+    ) -> Result<tokio::process::Command, String> {
+        let mut command = tokio::process::Command::new("node");
+        command.arg(script).arg("--output").arg(output);
+        if let Ok(resource_dir) = app.path().resource_dir() {
+            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
+            if packaged_module.exists() {
+                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
             }
         }
-        Ok(summary)
+        Ok(command)
     }
 
     #[tauri::command]
@@ -220,37 +442,181 @@ mod commands {
         let output = std::path::PathBuf::from(&vault_path)
             .join(".researchledger")
             .join("linkedin-capture.json");
-        let resource_script = app
-            .path()
-            .resource_dir()
-            .map_err(|error| error.to_string())?
-            .join("scripts/linkedin_capture.mjs");
-        let script = if resource_script.exists() {
-            resource_script
-        } else {
-            std::env::current_dir()
-                .map_err(|error| error.to_string())?
-                .join("scripts/linkedin_capture.mjs")
-        };
-        let mut command = tokio::process::Command::new("node");
-        command.arg(script).arg("--output").arg(&output);
-        if let Ok(resource_dir) = app.path().resource_dir() {
-            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
-            if packaged_module.exists() {
-                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
-            }
-        }
+        let script =
+            resolve_capture_script(&app, "linkedin_capture.mjs")?;
+        let mut command = build_capture_command(&app, &script, &output)?;
         if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
-            command.arg("--profile").arg(profile);
+            let safe = super::safe_paths::ensure_safe_command_arg(&profile, "profile path")?;
+            command.arg("--profile").arg(safe);
         }
         if let Some(url) = activity_url {
-            command.arg("--url").arg(url);
+            let safe = super::safe_paths::ensure_safe_provider_url(
+                &url,
+                &["www.linkedin.com", "linkedin.com"],
+            )?;
+            command.arg("--url").arg(safe);
         }
         let result = command.output().await.map_err(|error| error.to_string())?;
         if !result.status.success() {
             return Err(String::from_utf8_lossy(&result.stderr).trim().to_string());
         }
         import_linkedin_capture(vault_path, output.to_string_lossy().into_owned())
+    }
+
+    #[tauri::command]
+    pub fn import_reddit_html(
+        vault_path: String,
+        html_path: String,
+    ) -> Result<ImportSummary, String> {
+        let path = validated_user_path(&html_path, "Reddit html", &vault_path)?;
+        let html = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
+        import_provider_posts(
+            &vault_path,
+            ProviderMetadata::reddit(),
+            reddit::parse_saved_html(&html).into_iter().map(|post| ProviderImportInput {
+                title: if post.title.is_empty() {
+                    post.subreddit
+                        .as_deref()
+                        .map(|subreddit| format!("Saved Reddit post in r/{subreddit}"))
+                        .unwrap_or_else(|| "Saved Reddit post".into())
+                } else {
+                    post.title
+                },
+                url: post.url,
+                body: post.text,
+            }),
+        )
+    }
+
+    #[tauri::command]
+    pub fn import_reddit_capture(
+        vault_path: String,
+        capture_path: String,
+    ) -> Result<ImportSummary, String> {
+        let path = validated_user_path(&capture_path, "Reddit capture", &vault_path)?;
+        let json = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
+        let posts = reddit::parse_capture_json(&json).map_err(|error| error.to_string())?;
+        import_provider_posts(
+            &vault_path,
+            ProviderMetadata::reddit(),
+            posts.into_iter().map(|post| ProviderImportInput {
+                title: if post.title.is_empty() {
+                    post.subreddit
+                        .as_deref()
+                        .map(|subreddit| format!("Saved Reddit post in r/{subreddit}"))
+                        .unwrap_or_else(|| "Saved Reddit post".into())
+                } else {
+                    post.title
+                },
+                url: post.url,
+                body: post.text,
+            }),
+        )
+    }
+
+    #[tauri::command]
+    pub async fn capture_reddit_browser(
+        app: tauri::AppHandle,
+        vault_path: String,
+        saved_url: Option<String>,
+        profile_path: Option<String>,
+    ) -> Result<ImportSummary, String> {
+        let output = std::path::PathBuf::from(&vault_path)
+            .join(".researchledger")
+            .join("reddit-capture.json");
+        let script = resolve_capture_script(&app, "reddit_capture.mjs")?;
+        let mut command = build_capture_command(&app, &script, &output)?;
+        if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
+            let safe = super::safe_paths::ensure_safe_command_arg(&profile, "profile path")?;
+            command.arg("--profile").arg(safe);
+        }
+        if let Some(url) = saved_url {
+            let safe = super::safe_paths::ensure_safe_provider_url(
+                &url,
+                &["www.reddit.com", "reddit.com", "old.reddit.com"],
+            )?;
+            command.arg("--url").arg(safe);
+        }
+        let result = command.output().await.map_err(|error| error.to_string())?;
+        if !result.status.success() {
+            return Err(String::from_utf8_lossy(&result.stderr).trim().to_string());
+        }
+        import_reddit_capture(vault_path, output.to_string_lossy().into_owned())
+    }
+
+    #[tauri::command]
+    pub fn import_x_html(
+        vault_path: String,
+        html_path: String,
+    ) -> Result<ImportSummary, String> {
+        let path = validated_user_path(&html_path, "X html", &vault_path)?;
+        let html = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
+        import_provider_posts(
+            &vault_path,
+            ProviderMetadata::x(),
+            x::parse_bookmarks_html(&html).into_iter().map(|post| ProviderImportInput {
+                title: if post.author.is_empty() {
+                    "Bookmarked X post".into()
+                } else {
+                    format!("@{author}", author = post.author)
+                },
+                url: post.url,
+                body: post.text,
+            }),
+        )
+    }
+
+    #[tauri::command]
+    pub fn import_x_capture(
+        vault_path: String,
+        capture_path: String,
+    ) -> Result<ImportSummary, String> {
+        let path = validated_user_path(&capture_path, "X capture", &vault_path)?;
+        let json = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
+        let posts = x::parse_capture_json(&json).map_err(|error| error.to_string())?;
+        import_provider_posts(
+            &vault_path,
+            ProviderMetadata::x(),
+            posts.into_iter().map(|post| ProviderImportInput {
+                title: if post.author.is_empty() {
+                    "Bookmarked X post".into()
+                } else {
+                    format!("@{author}", author = post.author)
+                },
+                url: post.url,
+                body: post.text,
+            }),
+        )
+    }
+
+    #[tauri::command]
+    pub async fn capture_x_browser(
+        app: tauri::AppHandle,
+        vault_path: String,
+        saved_url: Option<String>,
+        profile_path: Option<String>,
+    ) -> Result<ImportSummary, String> {
+        let output = std::path::PathBuf::from(&vault_path)
+            .join(".researchledger")
+            .join("x-capture.json");
+        let script = resolve_capture_script(&app, "x_capture.mjs")?;
+        let mut command = build_capture_command(&app, &script, &output)?;
+        if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
+            let safe = super::safe_paths::ensure_safe_command_arg(&profile, "profile path")?;
+            command.arg("--profile").arg(safe);
+        }
+        if let Some(url) = saved_url {
+            let safe = super::safe_paths::ensure_safe_provider_url(
+                &url,
+                &["x.com", "twitter.com"],
+            )?;
+            command.arg("--url").arg(safe);
+        }
+        let result = command.output().await.map_err(|error| error.to_string())?;
+        if !result.status.success() {
+            return Err(String::from_utf8_lossy(&result.stderr).trim().to_string());
+        }
+        import_x_capture(vault_path, output.to_string_lossy().into_owned())
     }
 
     #[tauri::command]
@@ -430,6 +796,12 @@ pub fn run() {
             commands::import_linkedin_html,
             commands::import_linkedin_capture,
             commands::capture_linkedin_browser,
+            commands::import_reddit_html,
+            commands::import_reddit_capture,
+            commands::capture_reddit_browser,
+            commands::import_x_html,
+            commands::import_x_capture,
+            commands::capture_x_browser,
             commands::search_documents,
             commands::list_document_summaries,
             commands::list_collections,
@@ -506,5 +878,93 @@ mod tests {
         );
         assert!(!outside.exists());
         let _ = std::fs::remove_dir_all(root);
+    }
+}
+
+#[cfg(test)]
+mod provider_tests {
+    use crate::commands::{import_provider_posts, render_provider_document, url_id_segment, ProviderImportInput, ProviderMetadata};
+
+    #[test]
+    fn url_id_segment_lowercases_and_slugifies_path() {
+        assert_eq!(
+            url_id_segment("https://www.Reddit.com/r/rust/comments/ABC/why/"),
+            "www.reddit.com-r-rust-comments-abc-why"
+        );
+        assert_eq!(
+            url_id_segment("https://x.com/user/status/1234567890"),
+            "x.com-user-status-1234567890"
+        );
+        assert_eq!(url_id_segment(""), "post");
+    }
+
+    #[test]
+    fn render_provider_document_emits_okf_frontmatter_and_citations() {
+        let document = render_provider_document(
+            "2026-07-23T00:00:00Z",
+            "reddit",
+            "reddit",
+            "Reddit Saved Post",
+            "Captured Reddit saved post",
+            &["reddit", "saved"],
+            "sources/reddit",
+            "https://www.reddit.com/r/rust/comments/abc/hi/",
+            "Saved Reddit post in r/rust",
+            "Body text with substance.",
+        );
+        assert!(document.content.starts_with("---\ntype: Reddit Saved Post\n"));
+        assert!(document.content.contains("\nid: reddit:www.reddit.com-r-rust-comments-abc-hi\n"));
+        assert!(document.content.contains("\ntags: [reddit, saved]\n"));
+        assert!(document.content.contains("\n# Citations\n"));
+        assert!(document.content.contains("[1] [Reddit Saved Post]"));
+        assert!(document.relative_path.starts_with("sources/reddit/"));
+    }
+
+    #[test]
+    fn import_provider_posts_persists_and_idempotently_updates() {
+        let root = std::env::temp_dir().join(format!(
+            "researchledger-provider-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        vault_setup::ensure_root(&root);
+        let summary = import_provider_posts(
+            &root.to_string_lossy(),
+            ProviderMetadata::reddit(),
+            vec![ProviderImportInput {
+                url: "https://www.reddit.com/r/rust/comments/abc/hi/".into(),
+                title: "Test".into(),
+                body: "first body".into(),
+            }],
+        )
+        .unwrap();
+        assert_eq!(summary.created, 1);
+        assert!(root.join("sources/reddit").exists());
+        // Re-running with identical content must remain Unchanged (re-imports of the
+        // same capture must not churn through "Updated" because the renderer embeds
+        // the captured-at timestamp only in the DB column, not in the hash).
+        let again = import_provider_posts(
+            &root.to_string_lossy(),
+            ProviderMetadata::reddit(),
+            vec![ProviderImportInput {
+                url: "https://www.reddit.com/r/rust/comments/abc/hi/".into(),
+                title: "Test".into(),
+                body: "first body".into(),
+            }],
+        )
+        .unwrap();
+        assert_eq!(again.created, 0);
+        assert_eq!(again.updated, 0);
+        assert_eq!(again.unchanged, 1);
+        assert_eq!(again.failed, 0);
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    mod vault_setup {
+        pub(super) fn ensure_root(root: &std::path::Path) {
+            std::fs::create_dir_all(root).unwrap();
+        }
     }
 }
