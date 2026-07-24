@@ -21,3 +21,26 @@ tokens, and browser state are local artifacts and must not be committed or uploa
 
 Before release, review Tauri capabilities, macOS signing/notarization settings, dependency
 licenses, and the exact external service terms for every enabled connector.
+
+## Known accepted risks
+
+### `glib` 0.18.x — RUSTSEC-2024-0429 (GHSA-wrw7-89jp-8q8g, CVSS 6.9)
+
+The `glib` crate (via `glib::VariantStrIter::impl_get`) has an unsound `&*mut c_char`
+out-argument pass that crashes on iteration in optimised builds. **ResearchLedger
+does not reach this code path.**
+
+- `glib` is transitive: `webkit2gtk 2.0.2` → `gtk 0.18.2` → `glib 0.18.5`.
+- Linux only. macOS builds use `WKWebView` via `objc`; `cargo tree -i glib`
+  reports "nothing to print" on the macOS target.
+- App source contains zero references to `glib::Variant`, `VariantStrIter`,
+  or `use glib` (verified by `grep -rn`).
+- The patched release is `glib 0.20.0`, which requires a breaking upgrade
+  of the entire `gtk-rs` stack. The current stack is pinned by the
+  Tauri 1.x line.
+
+**Mitigation:** none required at the application layer. Track for
+remediation when Tauri/webkit2gtk bumps to the `gtk-rs` 0.20+ series.
+
+GitHub Dependabot alert #1 (medium) is dismissed with the `tolerable_risk`
+reason and the comment recorded in the alert audit trail.
