@@ -1,94 +1,43 @@
 #!/usr/bin/env node
 /**
- * ResearchLedger – X (Twitter) bookmarks capture (authenticated).
+ * ResearchLedger – X (Twitter) bookmarks capture.
  *
- * X does not expose a public bookmarks API outside of paid enterprise tiers.
- * We sign in via a *dedicated persistent Chromium profile* (managed entirely
- * by the user) and scroll the Bookmarks page. Each post is keyed by status
- * URL so re-runs are idempotent. The script writes a JSON capture consumable
- * by the `import_x_capture` / `import_x_html` Tauri commands.
- *
- * Privacy guarantees:
- *   - No credentials, cookies, or text leave this machine.
- *   - The persistent profile lives at the configured `profile` path; if it
- *     does not yet exist Playwright will create it on first launch.
- *   - The capture JSON contains only public X status URLs and text
- *     scraped from the bookmarks view.
+ * Opens x.com in a persistent Chromium profile so the user's authentication
+ * session is reused across runs, navigates to /i/bookmarks, scrolls the
+ * page in bounded rounds, deduplicates on the canonical
+ * https://x.com/<user>/status/<id> URL, and writes the captured posts to a
+ * JSON file the Tauri desktop app can import into the vault.
  *
  * Usage:
- *   x_capture.mjs \
- *     --output <path/to/x-capture.json> \
- *     --profile <persistent-chromium-profile-dir> \
- *     --url    https://x.com/i/bookmarks
+ *   node scripts/x_capture.mjs --output <path>
+ *       [--profile <dir>] [--url <bookmarks-url>]
+ *       [--max-rounds N] [--wait-ms MS] [--min-length CHARS]
  *
- * Flags (all optional except --output):
- *   --profile      Persistent profile directory. Defaults to
- *                   $HOME/Library/Application Support/ResearchLedger/x-profile.
- *   --output       Destination .json file (required).
- *   --url          Bookmarks page URL (default above).
- *   --max-rounds   Bound on scroll iterations (default 240; ~8 with no growth aborts).
- *   --wait-ms      Pause between scrolls in ms (default 1200).
- *   --min-length   Skip posts with body text shorter than this (default 40 chars).
+ * Privacy: this script never sends data to a third party. Cookies,
+ * session tokens, and the captured text stay in the user's profile
+ * directory and the output file.
  */
-import {
-  loadPlaywright,
-  parseFlags,
-  resolveProfile,
-  readInt,
-  canonicalUrl,
-  openAuthenticatedSession,
-  scrollAndCollect,
-  getProbe,
-  writeCapture,
-} from "./_capture_common.mjs";
+import { runCaptureSession } from "./_capture_common.mjs";
 
-const args = parseFlags(process.argv);
-const profile = resolveProfile(args, "x-profile");
-const output = args.get("--output");
-if (!output) throw new Error("Missing required flag: --output <path>");
-const url = args.get("--url") ?? "https://x.com/i/bookmarks";
-const maxRounds = readInt(args, "--max-rounds", 240);
-const waitMs = readInt(args, "--wait-ms", 1200);
-const minLength = readInt(args, "--min-length", 40);
+function buildXPost(sample) {
+  const text = sample.text;
+  const match = sample.href.match(/\/([^/]+)\/status\/(\d+)/);
+  if (!match) return null;
+  const [, user, statusId] = match;
+  return {
+    url: sample.href.split("?")[0],
+    text,
+    user,
+    statusId,
+  };
+}
 
-const { chromium } = await loadPlaywright();
-const { context, page } = await openAuthenticatedSession({
-  chromium,
-  profile,
-  url,
-  logMessage:
-    "ResearchLedger X capture is running in the authenticated profile. Complete login if prompted.",
-});
-
-const probe = getProbe({ mode: "x-article" });
-
-const build = ({ href, text }) => {
-  const u = canonicalUrl(href);
-  const author = text.match(/@([A-Za-z0-9_]{1,15})/)?.[1] ?? "";
-  return { url: u, text, author };
-};
-
-const posts = await scrollAndCollect({
-  page,
+await runCaptureSession({
+  providerName: "X",
+  argv: process.argv,
+  profileSubdir: "x",
+  defaultUrl: "https://x.com/i/bookmarks",
+  probeMode: "x-article",
   selector: "a[href*='/status/']",
-  probe,
-  build,
-  minLength,
-  maxRounds,
-  waitMs,
+  build: buildXPost,
 });
-
-const payload = {
-  version: 1,
-  capturedAt: new Date().toISOString(),
-  source: "x-playwright-authenticated-session",
-  bookmarksUrl: url,
-  posts: [...posts.values()],
-};
-
-await writeCapture(
-  output,
-  payload,
-  `Captured ${payload.posts.length} unique X bookmarks to ${output}`,
-);
-await context.close();

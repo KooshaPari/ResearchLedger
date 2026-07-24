@@ -285,3 +285,81 @@ export async function writeCapture(outputPath, payload, successMessage) {
   await fs.writeFile(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
   console.error(successMessage);
 }
+
+/**
+ * Run a complete authenticated capture session end-to-end. This is the
+ * primary entry point used by every provider script — it owns the entire
+ * shared lifecycle so the provider scripts become a 5-line config block.
+ *
+ * @param {{
+ *   providerName: string,            // for logs only ("Reddit", "X", ...)
+ *   argv: readonly string[],         // typically process.argv
+ *   profileSubdir: string,           // default persistent profile subdir
+ *   defaultUrl: string,              // default saved/bookmarks URL
+ *   probeMode: keyof typeof PROBES,  // which entry in PROBES to use
+ *   selector: string,                // page.locator selector for anchors
+ *   build: (probed: { href: string; text: string }) =>
+ *     { url: string; text: string; [k: string]: unknown } | null,
+ *   payloadExtras?: Record<string, unknown>, // extra top-level fields
+ *   sourceTag?: string,              // default: "<provider>-playwright-authenticated-session"
+ *   urlFieldName?: string,           // default: "savedUrl" for Reddit, "bookmarksUrl" for X
+ * }} params
+ */
+export async function runCaptureSession(params) {
+  const {
+    providerName,
+    argv,
+    profileSubdir,
+    defaultUrl,
+    probeMode,
+    selector,
+    build,
+    payloadExtras = {},
+    sourceTag = `${providerName.toLowerCase()}-playwright-authenticated-session`,
+    urlFieldName = providerName === "X" ? "bookmarksUrl" : "savedUrl",
+  } = params;
+
+  const args = parseFlags(argv);
+  const profile = resolveProfile(args, profileSubdir);
+  const output = args.get("--output");
+  if (!output) throw new Error("Missing required flag: --output <path>");
+  const url = args.get("--url") ?? defaultUrl;
+  const maxRounds = readInt(args, "--max-rounds", 240);
+  const waitMs = readInt(args, "--wait-ms", 1200);
+  const minLength = readInt(args, "--min-length", 40);
+
+  const { chromium } = await loadPlaywright();
+  const { context, page } = await openAuthenticatedSession({
+    chromium,
+    profile,
+    url,
+    logMessage: `ResearchLedger ${providerName} capture is running in the authenticated profile. Complete login if prompted.`,
+  });
+
+  const probe = getProbe({ mode: probeMode });
+  const posts = await scrollAndCollect({
+    page,
+    selector,
+    probe,
+    build,
+    minLength,
+    maxRounds,
+    waitMs,
+  });
+
+  const payload = {
+    version: 1,
+    capturedAt: new Date().toISOString(),
+    source: sourceTag,
+    [urlFieldName]: url,
+    posts: [...posts.values()],
+    ...payloadExtras,
+  };
+
+  await writeCapture(
+    output,
+    payload,
+    `Captured ${payload.posts.length} unique ${providerName} posts to ${output}`,
+  );
+  await context.close();
+}
