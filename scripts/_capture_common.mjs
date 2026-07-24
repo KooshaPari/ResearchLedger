@@ -262,6 +262,99 @@ export async function writeCapture(outputPath, payload, successMessage) {
 }
 
 /**
+ * Build a post record from a `probed` sample and a per-provider match config.
+ *
+ * The capture scripts (reddit, x, linkedin) all followed the same shape:
+ * run a regex over `href`, pull out named/positional captures, build a record
+ * whose fields are `{url, text, ...captures}`. This helper replaces that
+ * shape with a single shared implementation so the three call sites each
+ * carry only the truly-unique parts (provider name, regex, field names).
+ *
+ * The shape of the returned record is documented here because it is the
+ * canonical contract between the capture scripts and the Tauri import
+ * commands (`import_linkedin_capture`, `import_reddit_capture`,
+ * `import_x_capture`). Changing it requires updating all three Rust parsers
+ * in `apps/desktop/src-tauri/src/`.
+ *
+ * @param {{
+ *   sample: { href: string; text: string },
+ *   hrefRegex: RegExp,
+ *   fields: readonly string[],          // names to pull from regex groups, in order
+ *   urlFieldName?: string,              // default "url"
+ *   textFieldName?: string,             // default "text"
+ * }} params
+ * @returns {{ url: string; text: string; [k: string]: string } | null}
+ */
+export function buildPostFromMatch(params) {
+  const { sample, hrefRegex, fields } = params;
+  const urlFieldName = params.urlFieldName ?? "url";
+  const textFieldName = params.textFieldName ?? "text";
+  // `transform` is an optional hook so providers that need to re-shape a raw
+  // capture group (e.g. LinkedIn prefixing the digits with `urn:li:activity:`)
+  // don't have to re-implement the matcher scaffolding here. Default: identity
+  // — the captured string becomes the field value verbatim.
+  const transform = params.transform ?? ((name, value) => value);
+  const match = sample.href.match(hrefRegex);
+  if (!match) return null;
+  const record = {};
+  // group 0 (the full match) is dropped — only capture groups become fields.
+  for (let i = 0; i < fields.length; i += 1) {
+    const value = match[i + 1];
+    if (value === undefined) continue;
+    record[fields[i]] = transform(fields[i], value);
+  }
+  record[urlFieldName] = sample.href.split("?")[0];
+  record[textFieldName] = sample.text;
+  return record;
+}
+
+/**
+ * Pre-built regex + field tuples for each supported provider.
+ *
+ * Each entry is `{ regex, fields }` matching the shape expected by
+ * `buildPostFromMatch`. Keep entries here, not in the per-provider scripts,
+ * so the duplication counter on the shared module is the only place Sonar
+ * sees the pattern (and only once across the three providers).
+ */
+export const MATCHERS = Object.freeze({
+  reddit: {
+    regex: /\/r\/([^/]+)\/comments\/([^/]+)\/([^/?#]+)?/,
+    fields: ["subreddit", "postId", "slug"],
+  },
+  x: {
+    regex: /\/([^/]+)\/status\/(\d+)/,
+    fields: ["user", "statusId"],
+  },
+  linkedin: {
+    regex: /urn:li:activity:(\d+)/,
+    fields: ["activityUrn"],
+    transform: (_name, value) => `urn:li:activity:${value}`,
+  },
+});
+
+/**
+ * Convenience builder: pull a provider's matcher from `MATCHERS` and pass it
+ * to `buildPostFromMatch` so each per-provider `build*Post` becomes a one-
+ * line wrapper. Keeping this thin wrapper means the per-provider scripts
+ * still expose their `build` function with the exact signature the helper
+ * expects — the rest is delegated here.
+ *
+ * @param {keyof typeof MATCHERS} provider
+ */
+export function makeProviderBuilder(provider) {
+  const matcher = MATCHERS[provider];
+  if (!matcher) throw new Error(`makeProviderBuilder: unknown provider ${provider}`);
+  const { regex, fields, transform } = matcher;
+  return (sample) =>
+    buildPostFromMatch({
+      sample,
+      hrefRegex: regex,
+      fields,
+      transform,
+    });
+}
+
+/**
  * Run a complete authenticated capture session end-to-end. This is the
  * primary entry point used by every provider script — it owns the entire
  * shared lifecycle so the provider scripts become a 5-line config block.

@@ -23,19 +23,7 @@
  *   --wait-ms      Pause between scrolls in ms (default 1200).
  *   --min-length   Skip posts with body text shorter than this (default 40 chars).
  */
-import { runCaptureSession } from "./_capture_common.mjs";
-
-function buildLinkedInPost(sample) {
-  const text = sample.text;
-  const activityMatch = sample.href.match(/urn:li:activity:(\d+)/);
-  if (!activityMatch) return null;
-  const activityUrn = `urn:li:activity:${activityMatch[1]}`;
-  return {
-    url: sample.href.split("?")[0],
-    text,
-    activityUrn,
-  };
-}
+import { makeProviderBuilder, runCaptureSession } from "./_capture_common.mjs";
 
 await runCaptureSession({
   providerName: "LinkedIn",
@@ -44,5 +32,5 @@ await runCaptureSession({
   defaultUrl: "https://www.linkedin.com/my-items/saved-posts/",
   probeMode: "linkedin-article",
   selector: "a[href*='urn:li:activity:']",
-  build: buildLinkedInPost,
+  build: makeProviderBuilder("linkedin"),
 });

@@ -17,21 +17,7 @@
  * session tokens, and the captured text stay in the user's profile
  * directory and the output file.
  */
-import { runCaptureSession } from "./_capture_common.mjs";
-
-function buildRedditPost(sample) {
-  const text = sample.text;
-  const match = sample.href.match(/\/r\/([^/]+)\/comments\/([^/]+)\/([^/?#]+)?/);
-  if (!match) return null;
-  const [, subreddit, postId, slug] = match;
-  return {
-    url: sample.href.split("?")[0],
-    text,
-    subreddit,
-    postId,
-    slug: slug ?? "",
-  };
-}
+import { makeProviderBuilder, runCaptureSession } from "./_capture_common.mjs";
 
 await runCaptureSession({
   providerName: "Reddit",
@@ -40,5 +26,5 @@ await runCaptureSession({
   defaultUrl: "https://www.reddit.com/user/saved",
   probeMode: "reddit-article",
   selector: "a[href*='/r/'][href*='/comments/']",
-  build: buildRedditPost,
+  build: makeProviderBuilder("reddit"),
 });

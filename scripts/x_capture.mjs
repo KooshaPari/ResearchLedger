@@ -17,20 +17,7 @@
  * session tokens, and the captured text stay in the user's profile
  * directory and the output file.
  */
-import { runCaptureSession } from "./_capture_common.mjs";
-
-function buildXPost(sample) {
-  const text = sample.text;
-  const match = sample.href.match(/\/([^/]+)\/status\/(\d+)/);
-  if (!match) return null;
-  const [, user, statusId] = match;
-  return {
-    url: sample.href.split("?")[0],
-    text,
-    user,
-    statusId,
-  };
-}
+import { makeProviderBuilder, runCaptureSession } from "./_capture_common.mjs";
 
 await runCaptureSession({
   providerName: "X",
@@ -39,5 +26,5 @@ await runCaptureSession({
   defaultUrl: "https://x.com/i/bookmarks",
   probeMode: "x-article",
   selector: "a[href*='/status/']",
-  build: buildXPost,
+  build: makeProviderBuilder("x"),
 });
