@@ -7,12 +7,13 @@ tokens, and browser state are local artifacts and must not be committed or uploa
 - GitHub OAuth device authorization is the primary path; the client ID is not a secret, and
   the returned user token is held in memory only for the current import session.
 - The GitHub adapter is read-only: it lists stars and reads repository READMEs.
-- LinkedIn support uses either the official API where the account/app is approved or a
-  user-directed local browser capture for read-only activity collection. It does not
-  automate posting, messaging, reactions, follows, or other account actions.
-- The LinkedIn browser connector uses a user-selected persistent local profile only for
-  reading the activity feed, applies bounded scrolling and deduplication, and stores only
-  extracted post text/URLs in the capture file; browser cookies remain in the profile.
+- LinkedIn, Reddit, and X support use a user-directed local browser capture for
+  read-only collection of activity / saved posts / bookmarks. None of them automate
+  posting, messaging, reactions, follows, votes, or other account actions.
+- The LinkedIn, Reddit, and X browser connectors each use a user-selected persistent
+  local profile only for reading the appropriate saved-posts page, apply bounded
+  scrolling and deduplication, and store only extracted post text/URLs in the
+  capture file; browser cookies remain in the dedicated profile.
 - Tauri filesystem commands must validate user-selected roots before reading or writing.
 - Logs and error messages must redact tokens and authentication artifacts.
 - CI uses synthetic fixtures and never requires real credentials or personal data.

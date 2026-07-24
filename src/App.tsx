@@ -6,12 +6,35 @@ type VaultStatus = { selected: boolean; path: string | null; documentCount: numb
 type PrimaryView = "inbox" | "library" | "collections" | "graph";
 type Result = { documentId: string; title: string; snippet: string; sourceUri: string | null };
 type ImportResult = { created: number; updated: number; unchanged: number; failed: number };
+type CaptureStatus = "needs-auth" | "ready" | "capturing";
+type ProviderId = "linkedin" | "reddit" | "x";
 const views: Array<{ id: PrimaryView; label: string; hint: string }> = [
   { id: "inbox", label: "Inbox", hint: "Capture, review, and move sources forward" },
   { id: "library", label: "Library", hint: "Browse the indexed research corpus" },
   { id: "collections", label: "Collections", hint: "Group sources into working sets" },
   { id: "graph", label: "Graph", hint: "See how ideas and sources connect" },
 ];
+
+const PROVIDER_DEFAULTS: Record<ProviderId, { label: string; captureCommand: string; captureImportCommand: string; defaultUrl: string }> = {
+  linkedin: {
+    label: "LinkedIn",
+    captureCommand: "capture_linkedin_browser",
+    captureImportCommand: "import_linkedin_capture",
+    defaultUrl: "https://www.linkedin.com/in/me/recent-activity/reactions/",
+  },
+  reddit: {
+    label: "Reddit",
+    captureCommand: "capture_reddit_browser",
+    captureImportCommand: "import_reddit_capture",
+    defaultUrl: "https://www.reddit.com/user/me/saved",
+  },
+  x: {
+    label: "X",
+    captureCommand: "capture_x_browser",
+    captureImportCommand: "import_x_capture",
+    defaultUrl: "https://x.com/i/bookmarks",
+  },
+};
 
 export function App() {
   const [activeView, setActiveView] = useState<PrimaryView>("inbox");
@@ -47,16 +70,103 @@ export function App() {
 }
 
 function Inbox({ vaultPath, status, setVaultPath, chooseVault, run, message, setMessage }: { vaultPath: string; status: VaultStatus | null; setVaultPath: (path: string) => void; chooseVault: () => Promise<void>; run: (command: string, args: Record<string, unknown>, success: (value: any) => string) => Promise<void>; message: string; setMessage: (value: string) => void }) {
-  const [token, setToken] = useState(""); const [linkedinPath, setLinkedinPath] = useState(""); const [linkedinProfile, setLinkedinProfile] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.linkedinProfile") ?? ""); const [githubClientId, setGithubClientId] = useState(""); const [deviceAuth, setDeviceAuth] = useState<any>(null); const [query, setQuery] = useState(""); const [results, setResults] = useState<Result[]>([]); const [linkedinState, setLinkedinState] = useState<"needs-auth" | "ready" | "capturing">("needs-auth");
-  const capture = async () => { if (linkedinProfile && typeof localStorage !== "undefined") localStorage.setItem("researchledger.linkedinProfile", linkedinProfile); setLinkedinState("capturing"); await run("capture_linkedin_browser", { vaultPath, activityUrl: null, profilePath: linkedinProfile || null }, (value: ImportResult) => `Captured ${value.created + value.updated} LinkedIn posts; ${value.unchanged} unchanged.`); setLinkedinState("ready"); };
+  const [token, setToken] = useState("");
+  const [githubClientId, setGithubClientId] = useState("");
+  const [deviceAuth, setDeviceAuth] = useState<any>(null);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Result[]>([]);
+  const storageKey = (provider: ProviderId) => `researchledger.${provider}Profile`;
+  const [providers, setProviders] = useState<Record<ProviderId, { profile: string; path: string }>>(() => {
+    const initial = (provider: ProviderId) => ({ profile: typeof localStorage === "undefined" ? "" : localStorage.getItem(storageKey(provider)) ?? "", path: "" });
+    return { linkedin: initial("linkedin"), reddit: initial("reddit"), x: initial("x") };
+  });
+  const [providerState, setProviderState] = useState<Record<ProviderId, CaptureStatus>>({ linkedin: "needs-auth", reddit: "needs-auth", x: "needs-auth" });
+  const updateProvider = (provider: ProviderId, patch: Partial<{ profile: string; path: string }>) => { setProviders((current) => ({ ...current, [provider]: { ...current[provider], ...(patch ?? {}) } })); };
+  const capture = async (provider: ProviderId) => {
+    const profile = providers[provider].profile;
+    if (profile && typeof localStorage !== "undefined") localStorage.setItem(storageKey(provider), profile);
+    const { captureCommand } = PROVIDER_DEFAULTS[provider];
+    setProviderState((current) => ({ ...current, [provider]: "capturing" }));
+    await run(captureCommand, { vaultPath, activityUrl: null, profilePath: profile || null }, (value: ImportResult) => {
+      const total = value.created + value.updated;
+      return `Captured ${total} ${PROVIDER_DEFAULTS[provider].label} posts; ${value.unchanged} unchanged.`;
+    });
+    setProviderState((current) => ({ ...current, [provider]: "ready" }));
+  };
+  const importCapture = async (provider: ProviderId) => {
+    const { captureImportCommand } = PROVIDER_DEFAULTS[provider];
+    const path = providers[provider].path;
+    await run(captureImportCommand, { vaultPath, capturePath: path || null }, (value: ImportResult) => `Imported ${value.created + value.updated} ${PROVIDER_DEFAULTS[provider].label} posts.`);
+  };
   const search = async () => { if (!vaultPath || !query) return; try { setResults(await invoke<Result[]>("search_documents", { vaultPath, query, limit: 20 })); } catch { setResults([]); } };
   return <>
-    <section className="inbox-grid"><div className="source-rail"><p className="eyebrow">SOURCE CONTROL</p><h3>Move research from raw to useful.</h3><p className="muted">Every action stays visible: capture, import, distill, and export from one local queue.</p><div className="queue-stats"><span><strong>{status?.documentCount ?? 0}</strong> indexed</span><span><strong>25</strong> enrichment batch</span></div></div><div className="action-stack"><Action title="LinkedIn" label={linkedinState === "needs-auth" ? "Connect browser" : linkedinState === "capturing" ? "Capturing…" : "Connected"} state={linkedinState === "needs-auth" ? "Needs authentication" : linkedinState === "capturing" ? "Capture in progress" : "Ready to capture"} onClick={() => void capture()} disabled={linkedinState === "capturing"} /><Action title="GitHub" label="Import starred repos" state="Token cleared after import" onClick={() => void run("import_github", { vaultPath, token }, (value: ImportResult) => { setToken(""); return `Imported ${value.created + value.updated} repositories; ${value.unchanged} unchanged.`; })} /><Action title="Enrichment" label="Distill pending notes" state="Up to 25 sources" onClick={() => void run("process_pending_enrichment", { vaultPath, limit: 25 }, (value: ImportResult) => `Created ${value.created + value.updated} distilled notes.`)} /></div></section>
-    <section className="capture-panel"><div className="panel-heading"><div><p className="eyebrow">LINKEDIN CONNECTION</p><h3>{linkedinState === "needs-auth" ? "Sign in once, capture locally" : "Browser profile connected"}</h3></div><span className={`state-pill ${linkedinState}`}>{linkedinState === "needs-auth" ? "AUTH REQUIRED" : linkedinState === "capturing" ? "CAPTURING" : "READY"}</span></div><p className="muted">Use a dedicated persistent Chrome profile. ResearchLedger opens LinkedIn in that profile so SSO, cookies, and MFA remain in your browser; it never stores your LinkedIn password.</p><div className="profile-row"><input aria-label="LinkedIn browser profile" placeholder="Default profile or /Users/you/Library/Application Support/ResearchLedger/linkedin-profile" value={linkedinProfile} onChange={(event) => setLinkedinProfile(event.target.value)} /><button className="button secondary" type="button" onClick={() => void capture()} disabled={linkedinState === "capturing"}>Open LinkedIn sign-in</button></div><div className="capture-actions"><button className="button primary" type="button" onClick={() => void capture()} disabled={linkedinState === "capturing"}>Capture reactions in browser</button><input aria-label="LinkedIn capture path" placeholder="Optional capture JSON path" value={linkedinPath} onChange={(event) => setLinkedinPath(event.target.value)} /><button className="button secondary" type="button" onClick={() => void run("import_linkedin_capture", { vaultPath, capturePath: linkedinPath }, (value: ImportResult) => `Imported ${value.created + value.updated} LinkedIn posts.`)}>Import capture</button></div><p className="import-message">Advanced API credentials are not requested because LinkedIn’s approved member APIs do not expose a general reactions feed. Use an approved integration only through a future provider adapter.</p></section>
+    <section className="inbox-grid"><div className="source-rail"><p className="eyebrow">SOURCE CONTROL</p><h3>Move research from raw to useful.</h3><p className="muted">Every action stays visible: capture, import, distill, and export from one local queue.</p><div className="queue-stats"><span><strong>{status?.documentCount ?? 0}</strong> indexed</span><span><strong>25</strong> enrichment batch</span></div></div><div className="action-stack">
+          {(["linkedin", "reddit", "x"] as const).map((provider) => {
+            const current = providerState[provider];
+            return <Action key={provider} title={PROVIDER_DEFAULTS[provider].label} label={current === "needs-auth" ? "Connect browser" : current === "capturing" ? "Capturing…" : "Connected"} state={current === "needs-auth" ? "Needs authentication" : current === "capturing" ? "Capture in progress" : "Ready to capture"} onClick={() => void capture(provider)} disabled={current === "capturing"} />;
+          })}<Action title="GitHub" label="Import starred repos" state="Token cleared after import" onClick={() => void run("import_github", { vaultPath, token }, (value: ImportResult) => { setToken(""); return `Imported ${value.created + value.updated} repositories; ${value.unchanged} unchanged.`; })} /><Action title="Enrichment" label="Distill pending notes" state="Up to 25 sources" onClick={() => void run("process_pending_enrichment", { vaultPath, limit: 25 }, (value: ImportResult) => `Created ${value.created + value.updated} distilled notes.`)} /></div></section>
+    <section className="provider-grid">
+        {(["linkedin", "reddit", "x"] as const).map((provider) => (
+          <ProviderCapturePanel
+            key={provider}
+            provider={provider}
+            profileValue={providers[provider].profile}
+            pathValue={providers[provider].path}
+            status={providerState[provider]}
+            onProfileChange={(value) => updateProvider(provider, { profile: value })}
+            onPathChange={(value) => updateProvider(provider, { path: value })}
+            onCapture={() => void capture(provider)}
+            onImport={() => void importCapture(provider)}
+          />
+        ))}
+      </section>
     <section className="vault-strip"><div><p className="eyebrow">VAULT</p><strong>{vaultPath || "No local vault selected"}</strong><span>{status ? `${status.documentCount} documents indexed` : "Choose a Markdown vault to begin"}</span></div><button className="button secondary" type="button" onClick={() => void chooseVault()}>Choose vault</button><input aria-label="Vault path" placeholder="/Users/you/ResearchVault" value={vaultPath} onChange={(event) => setVaultPath(event.target.value)} /></section>
     <section className="search-panel" aria-label="Search"><input aria-label="Search research" placeholder="Search your ledger…" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} /><button className="button secondary" type="button" onClick={() => void search()}>Search</button>{results.length > 0 && <div className="results">{results.map((result) => <article className="result" key={result.documentId}><strong>{result.title}</strong><p><HighlightedSnippet value={result.snippet} /></p></article>)}</div>}</section>
     <section className="export-row"><input aria-label="GitHub App client ID" placeholder="GitHub App client ID (optional OAuth)" value={githubClientId} onChange={(event) => setGithubClientId(event.target.value)} /><button className="button secondary" type="button" onClick={async () => { try { setDeviceAuth(await invoke("github_device_start", { clientId: githubClientId })); setMessage("GitHub verification code ready."); } catch (error) { setMessage(String(error)); } }}>Connect GitHub</button><input aria-label="GitHub token" type="password" placeholder="GitHub token (never stored)" value={token} onChange={(event) => setToken(event.target.value)} /><button className="button secondary" type="button" onClick={() => void run("export_obsidian", { vaultPath, destination: "" }, (count: number) => `Exported ${count} Markdown documents.`)}>Export Markdown</button></section>{deviceAuth && <p className="import-message" role="status">Open {deviceAuth.verificationUri} and enter <strong>{deviceAuth.userCode}</strong>, then import starred repositories.</p>}{message && <p className="import-message" role="status">{message}</p>}
   </>;
+}
+
+function ProviderCapturePanel({
+  provider,
+  profileValue,
+  pathValue,
+  status,
+  onProfileChange,
+  onPathChange,
+  onCapture,
+  onImport,
+}: {
+  provider: ProviderId;
+  profileValue: string;
+  pathValue: string;
+  status: CaptureStatus;
+  onProfileChange: (value: string) => void;
+  onPathChange: (value: string) => void;
+  onCapture: () => void;
+  onImport: () => void;
+}) {
+  const defaults = PROVIDER_DEFAULTS[provider];
+  const pillClass = status === "capturing" ? "capturing" : status === "ready" ? "ready" : "needs-auth";
+  const pillLabel = status === "capturing" ? "CAPTURING" : status === "ready" ? "READY" : "AUTH REQUIRED";
+  return (
+    <article className="provider-card" aria-label={defaults.label + " capture"}>
+      <div className="provider-card-head">
+        <div>
+          <p className="eyebrow">{defaults.label}</p>
+          <h4>{defaults.defaultUrl}</h4>
+        </div>
+        <span className={"state-pill " + pillClass}>{pillLabel}</span>
+      </div>
+      <p className="muted">Browser profile</p>
+      <input aria-label={defaults.label + " browser profile"} placeholder={`/Users/you/Library/Application Support/ResearchLedger/${provider}-profile`} value={profileValue} onChange={(event) => onProfileChange(event.target.value)} />
+      <p className="muted">Capture file</p>
+      <input aria-label={defaults.label + " capture path"} placeholder="/Users/you/captures/latest.json" value={pathValue} onChange={(event) => onPathChange(event.target.value)} />
+      <div className="capture-actions">
+        <button className="button primary" type="button" onClick={onCapture} disabled={status === "capturing"}>Capture in browser</button>
+        <button className="button secondary" type="button" onClick={onImport} disabled={!pathValue}>Import file</button>
+      </div>
+    </article>
+  );
 }
 
 function Action({ title, label, state, onClick, disabled }: { title: string; label: string; state: string; onClick: () => void; disabled?: boolean }) { return <article className="action-card"><div><strong>{title}</strong><span>{state}</span></div><button className="button secondary" type="button" onClick={onClick} disabled={disabled}>{label}</button></article>; }
@@ -65,4 +175,12 @@ function Library({ vaultPath }: { vaultPath: string }) { return <WorkspaceView t
 function Collections({ vaultPath }: { vaultPath: string }) { return <WorkspaceView title="Working sets for active questions" eyebrow="COLLECTIONS" description="Collections are deliberate slices of the corpus. The view is ready for collection commands as they land." command="list_collections" vaultPath={vaultPath} />; }
 function Graph({ vaultPath }: { vaultPath: string }) { return <WorkspaceView title="Connections worth following" eyebrow="GRAPH" description="A relationship surface for sources, distilled notes, and recurring themes." command="list_document_links" vaultPath={vaultPath} render={(data) => <div className="graph-surface">{data.length ? data.map((link, index) => <div className="data-row" key={`${link.sourceDocumentId}-${link.targetUrl}-${index}`}><strong>{link.sourceTitle}</strong><span>{link.relation} → {link.targetUrl}</span></div>) : <EmptyState vaultPath={vaultPath} />}</div>} />; }
 function EmptyState({ vaultPath }: { vaultPath: string }) { return <div className="empty-state"><span className="empty-orbit">+</span><strong>{vaultPath ? "Nothing surfaced yet" : "Choose a vault to begin"}</strong><p>{vaultPath ? "Run an import or distill pending sources in Inbox, then refresh this view." : "Your local vault is the source of truth for every workspace."}</p></div>; }
-function HighlightedSnippet({ value }: { value: string }) { return value.split(/(<mark>|<\/mark>)/g).map((part, index) => part === "<mark>" || part === "</mark>" || !part ? null : value.split(/(<mark>|<\/mark>)/g).slice(0, index).filter((item) => item === "<mark>").length % 2 === 1 ? <mark key={index}>{part}</mark> : <span key={index}>{part}</span>); }
+function HighlightedSnippet({ value }: { value: string }) {
+  // SQLite's snippet() interleaves `<mark>…</mark>` tokens with plain text. After
+  // removing the marker tokens, the remaining odd-indexed segments are the
+  // highlighted runs and the even-indexed segments are the surrounding text.
+  const segments = value.split(/(<mark>|<\/mark>)/g).filter((segment) => segment && segment !== "<mark>" && segment !== "</mark>");
+  return segments.map((segment, index) =>
+    index % 2 === 1 ? <mark key={index}>{segment}</mark> : <span key={index}>{segment}</span>,
+  );
+}
