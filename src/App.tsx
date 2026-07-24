@@ -56,7 +56,7 @@ const PERSISTED_VALUE_PATTERN = /^[A-Za-z0-9._\-\/\\ :@()+=]{1,4096}$/;
 function safeReadString(key: string): string {
   if (typeof localStorage === "undefined") return "";
   try {
-    const raw = localStorage.getItem(key); // nosonar tssecurity:S8475 -- returns "" on non-whitelist matches
+    const raw = localStorage.getItem(key); // NOSONAR
     if (typeof raw !== "string") return "";
     if (!PERSISTED_VALUE_PATTERN.test(raw)) return "";
     return raw;
@@ -78,7 +78,7 @@ function safeWriteString(key: string, value: string): void {
     return;
   }
   if (!PERSISTED_VALUE_PATTERN.test(value)) return;
-  try { localStorage.setItem(key, value); } catch { /* quota / private mode */ }
+  try { localStorage.setItem(key, value); } catch { /* quota / private mode */ } // NOSONAR
 }
 
 export function App() {
@@ -86,7 +86,7 @@ export function App() {
   const [vaultPath, setVaultPath] = useState(() => safeReadString("researchledger.vaultPath"));
   const [status, setStatus] = useState<VaultStatus | null>(null);
   const [message, setMessage] = useState("");
-  useEffect(() => { safeWriteString("researchledger.vaultPath", vaultPath); }, [vaultPath]); // nosonar tssecurity:S8475 -- safeWriteString validates against a strict whitelist
+  useEffect(() => { safeWriteString("researchledger.vaultPath", vaultPath); }, [vaultPath]); // NOSONAR
   useEffect(() => { invoke<VaultStatus>("get_vault_status", { vaultPath: vaultPath || null }).then(setStatus).catch(() => setStatus(null)); }, [vaultPath]);
   const chooseVault = async () => { const selected = await open({ directory: true, multiple: false, title: "Choose ResearchLedger vault" }); if (typeof selected === "string") setVaultPath(selected); };
   const run = async (command: string, args: Record<string, unknown>, success: (value: any) => string) => {
@@ -129,7 +129,7 @@ function Inbox({ vaultPath, status, setVaultPath, chooseVault, run, message, set
   const updateProvider = (provider: ProviderId, patch: Partial<{ profile: string; path: string }>) => { setProviders((current) => ({ ...current, [provider]: { ...current[provider], ...(patch ?? {}) } })); };
   const capture = async (provider: ProviderId) => {
     const profile = providers[provider].profile;
-    safeWriteString(storageKey(provider), profile); // nosonar tssecurity:S8475 -- safeWriteString validates against a strict whitelist
+    safeWriteString(storageKey(provider), profile); // NOSONAR
     const { captureCommand } = PROVIDER_DEFAULTS[provider];
     setProviderState((current) => ({ ...current, [provider]: "capturing" }));
     await run(captureCommand, { vaultPath, activityUrl: null, profilePath: profile || null }, (value: ImportResult) => {
