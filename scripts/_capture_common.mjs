@@ -124,6 +124,32 @@ export async function openAuthenticatedSession(params) {
 }
 
 /**
+ * Apply a per-sample validation + build pipeline that decides whether a
+ * probed link should be added to the posts map. Pulled out of
+ * `scrollAndCollect` to keep that function's cognitive complexity within
+ * SonarCloud's threshold (15).
+ *
+ * @param {{
+ *   sample: unknown,
+ *   build: (probed: { href: string; text: string }) =>
+ *     { url: string; text: string; [k: string]: unknown } | null,
+ *   minLength: number,
+ *   posts: Map<string, { url: string; text: string; [k: string]: unknown }>,
+ * }} params
+ * @returns {boolean} true if the post was added, false if filtered out
+ */
+function applySample({ sample, build, minLength, posts }) {
+  if (!sample || typeof sample.href !== "string") return false;
+  const built = build(sample);
+  if (!built || typeof built.url !== "string" || !built.url) return false;
+  const text = typeof built.text === "string" ? built.text : "";
+  if (text.length < minLength) return false;
+  if (posts.has(built.url)) return false;
+  posts.set(built.url, built);
+  return true;
+}
+
+/**
  * Scroll the saved/bookmarks page in rounds, collecting posts via the
  * caller-supplied probe + build functions. The probe runs inside the page
  * via Playwright's `evaluateAll` (which serialises the function literal — no
@@ -155,26 +181,34 @@ export async function scrollAndCollect(params) {
 
   const posts = new Map();
   let unchangedRounds = 0;
+  let round = 0;
 
-  for (let round = 0; round < maxRounds && unchangedRounds < unchangedAbort; round += 1) {
+  while (round < maxRounds && unchangedRounds < unchangedAbort) {
+    round += 1;
     const before = posts.size;
     const probed = await page.locator(selector).evaluateAll(probe); // NOSONAR
-
     for (const sample of probed) {
-      if (!sample || typeof sample.href !== "string") continue;
-      const built = build(sample);
-      if (!built || typeof built.url !== "string" || !built.url) continue;
-      const text = typeof built.text === "string" ? built.text : "";
-      if (text.length < minLength) continue;
-      if (!posts.has(built.url)) posts.set(built.url, built);
+      applySample({ sample, build, minLength, posts });
     }
-
     unchangedRounds = posts.size === before ? unchangedRounds + 1 : 0;
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); // NOSONAR
     await page.waitForTimeout(waitMs);
   }
 
   return posts;
+}
+
+/**
+ * Extract the rendered text from a DOM element. Always returns a string —
+ * null, undefined, missing text content, and whitespace-only all collapse to
+ * the empty string so callers can call `.length` without null-guards.
+ *
+ * @param {Element | null | undefined} node
+ * @returns {string}
+ */
+function textOf(node) {
+  const raw = node?.innerText ?? "";
+  return raw.replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -188,13 +222,13 @@ export async function scrollAndCollect(params) {
  * structurally distinct (different shape, different early-return order) so
  * SonarCloud's `new_duplicated_lines_density` rule sees it as unique code.
  */
+
 function redditProbe(link) {
   if (!(link instanceof HTMLAnchorElement)) return null;
   const href = link.href || "";
   if (!/\/r\/[^/]+\/comments\//.test(href)) return null;
   const post = link.closest("article, shreddit-post, div[data-testid='post-container']");
-  const text = post?.innerText?.replace(/\s+/g, " ").trim() ?? "";
-  return { href, text };
+  return { href, text: textOf(post) };
 }
 
 function xProbe(link) {
@@ -202,8 +236,7 @@ function xProbe(link) {
   const href = link.href || "";
   if (!/\/status\/\d+/.test(href)) return null;
   const card = link.closest("article") || link.closest('[data-testid="tweet"]');
-  const text = card?.innerText?.replace(/\s+/g, " ").trim() ?? "";
-  return { href, text };
+  return { href, text: textOf(card) };
 }
 
 function linkedinProbe(link) {
@@ -211,8 +244,7 @@ function linkedinProbe(link) {
   const href = link.href || "";
   if (!/urn:li:activity:/.test(href)) return null;
   const card = link.closest("article") || link.closest(".feed-shared-update-v2");
-  const text = card?.innerText?.replace(/\s+/g, " ").trim() ?? "";
-  return { href, text };
+  return { href, text: textOf(card) };
 }
 
 export const PROBES = Object.freeze({
@@ -293,14 +325,14 @@ export function buildPostFromMatch(params) {
   // capture group (e.g. LinkedIn prefixing the digits with `urn:li:activity:`)
   // don't have to re-implement the matcher scaffolding here. Default: identity
   // — the captured string becomes the field value verbatim.
-  const transform = params.transform ?? ((name, value) => value);
-  const match = sample.href.match(hrefRegex);
-  if (!match) return null;
+  const transform = params.transform ?? ((_name, value) => value);
+  const match = hrefRegex.exec(sample.href);
+  if (match === null) return null;
   const record = {};
   // group 0 (the full match) is dropped — only capture groups become fields.
   for (let i = 0; i < fields.length; i += 1) {
     const value = match[i + 1];
-    if (value === undefined) continue;
+    if (value == null) continue;
     record[fields[i]] = transform(fields[i], value);
   }
   record[urlFieldName] = sample.href.split("?")[0];
