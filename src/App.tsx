@@ -36,12 +36,53 @@ const PROVIDER_DEFAULTS: Record<ProviderId, { label: string; captureCommand: str
   },
 };
 
+/**
+ * Read a string from `localStorage` defensively. Any non-string value
+ * (including null, undefined, `{}`, `[1,2]`, malformed JSON) is normalized to
+ * an empty string so downstream code can trust the shape. This satisfies
+ * Sonar `tssecurity:S8475` ("tainted data is sanitized before being written
+ * to browser storage") by validating *read* inputs and by centralising the
+ * storage access.
+ */
+function safeReadString(key: string): string {
+  if (typeof localStorage === "undefined") return "";
+  try {
+    const raw = localStorage.getItem(key);
+    if (typeof raw !== "string") return "";
+    // Reject values that contain control characters or NUL bytes that would
+    // not appear in a legitimate vault path or browser profile directory.
+    if (raw.includes("\0") || /[\x01-\x08\x0b-\x1f]/.test(raw)) return "";
+    // Cap at 4 KiB so a malicious or corrupt entry cannot blow up the UI.
+    if (raw.length > 4096) return "";
+    return raw;
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Write a string to `localStorage` defensively. Empty values clear the key;
+ * values that fail the same validation as `safeReadString` are silently
+ * dropped so a corrupt value cannot poison the storage layer.
+ */
+function safeWriteString(key: string, value: string): void {
+  if (typeof localStorage === "undefined") return;
+  if (!value) {
+    try { localStorage.removeItem(key); } catch { /* quota / private mode */ }
+    return;
+  }
+  if (typeof value !== "string") return;
+  if (value.includes("\0") || /[\x01-\x08\x0b-\x1f]/.test(value)) return;
+  if (value.length > 4096) return;
+  try { localStorage.setItem(key, value); } catch { /* quota / private mode */ }
+}
+
 export function App() {
   const [activeView, setActiveView] = useState<PrimaryView>("inbox");
-  const [vaultPath, setVaultPath] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.vaultPath") ?? "");
+  const [vaultPath, setVaultPath] = useState(() => safeReadString("researchledger.vaultPath"));
   const [status, setStatus] = useState<VaultStatus | null>(null);
   const [message, setMessage] = useState("");
-  useEffect(() => { if (vaultPath) localStorage.setItem("researchledger.vaultPath", vaultPath); }, [vaultPath]);
+  useEffect(() => { safeWriteString("researchledger.vaultPath", vaultPath); }, [vaultPath]);
   useEffect(() => { invoke<VaultStatus>("get_vault_status", { vaultPath: vaultPath || null }).then(setStatus).catch(() => setStatus(null)); }, [vaultPath]);
   const chooseVault = async () => { const selected = await open({ directory: true, multiple: false, title: "Choose ResearchLedger vault" }); if (typeof selected === "string") setVaultPath(selected); };
   const run = async (command: string, args: Record<string, unknown>, success: (value: any) => string) => {
@@ -77,14 +118,14 @@ function Inbox({ vaultPath, status, setVaultPath, chooseVault, run, message, set
   const [results, setResults] = useState<Result[]>([]);
   const storageKey = (provider: ProviderId) => `researchledger.${provider}Profile`;
   const [providers, setProviders] = useState<Record<ProviderId, { profile: string; path: string }>>(() => {
-    const initial = (provider: ProviderId) => ({ profile: typeof localStorage === "undefined" ? "" : localStorage.getItem(storageKey(provider)) ?? "", path: "" });
+    const initial = (provider: ProviderId) => ({ profile: safeReadString(storageKey(provider)), path: "" });
     return { linkedin: initial("linkedin"), reddit: initial("reddit"), x: initial("x") };
   });
   const [providerState, setProviderState] = useState<Record<ProviderId, CaptureStatus>>({ linkedin: "needs-auth", reddit: "needs-auth", x: "needs-auth" });
   const updateProvider = (provider: ProviderId, patch: Partial<{ profile: string; path: string }>) => { setProviders((current) => ({ ...current, [provider]: { ...current[provider], ...(patch ?? {}) } })); };
   const capture = async (provider: ProviderId) => {
     const profile = providers[provider].profile;
-    if (profile && typeof localStorage !== "undefined") localStorage.setItem(storageKey(provider), profile);
+    safeWriteString(storageKey(provider), profile);
     const { captureCommand } = PROVIDER_DEFAULTS[provider];
     setProviderState((current) => ({ ...current, [provider]: "capturing" }));
     await run(captureCommand, { vaultPath, activityUrl: null, profilePath: profile || null }, (value: ImportResult) => {

@@ -1,43 +1,78 @@
 #!/usr/bin/env node
-import fs from "node:fs/promises";
-import path from "node:path";
-import process from "node:process";
-import { pathToFileURL } from "node:url";
+/**
+ * ResearchLedger – LinkedIn reactions capture (authenticated).
+ *
+ * LinkedIn does not expose a public API for the reactions tab outside of
+ * enterprise partner contracts. We sign in via a *dedicated persistent
+ * Chromium profile* (managed entirely by the user) and scroll the
+ * `/recent-activity/reactions/` page. Each post is keyed by URL so re-runs
+ * are idempotent. The script writes a JSON capture consumable by the
+ * `import_linkedin_capture` / `import_linkedin_html` Tauri commands.
+ *
+ * Privacy guarantees:
+ *   - No credentials, cookies, or text leave this machine.
+ *   - The persistent profile lives at the configured `profile` path; if it
+ *     does not yet exist Playwright will create it on first launch.
+ *   - The capture JSON contains only public LinkedIn post URLs and text
+ *     scraped from the reactions view.
+ *
+ * Usage:
+ *   linkedin_capture.mjs \
+ *     --output <path/to/linkedin-capture.json> \
+ *     --profile <persistent-chromium-profile-dir> \
+ *     --url    https://www.linkedin.com/in/me/recent-activity/reactions/
+ *
+ * Flags (all optional except --output):
+ *   --profile      Persistent profile directory. Defaults to
+ *                   $HOME/Library/Application Support/ResearchLedger/linkedin-profile.
+ *   --output       Destination .json file (defaults to linkedin-capture.json).
+ *   --url          Reactions page URL (default above).
+ *   --max-rounds   Bound on scroll iterations (default 240; ~8 with no growth aborts).
+ *   --wait-ms      Pause between scrolls in ms (default 1200).
+ *   --min-length   Skip posts with body text shorter than this (default 40 chars).
+ */
+import {
+  loadPlaywright,
+  parseFlags,
+  resolveProfile,
+  readInt,
+  openAuthenticatedSession,
+  scrollAndCollect,
+  writeCapture,
+} from "./_capture_common.mjs";
 
-const playwrightModule = process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE ?? "playwright";
-const { chromium } = await import(
-  playwrightModule.startsWith("/") ? pathToFileURL(playwrightModule).href : playwrightModule,
-);
-
-const args = new Map();
-for (let index = 2; index < process.argv.length; index += 2) args.set(process.argv[index], process.argv[index + 1]);
-const profile = args.get("--profile") ?? `${process.env.HOME}/Library/Application Support/ResearchLedger/linkedin-profile`;
+const args = parseFlags(process.argv);
+const profile = resolveProfile(args, "linkedin-profile");
 const output = args.get("--output") ?? "linkedin-capture.json";
-const url = args.get("--url") ?? "https://www.linkedin.com/in/me/recent-activity/reactions/";
-const maxRounds = Number(args.get("--max-rounds") ?? 240);
-const waitMs = Number(args.get("--wait-ms") ?? 1200);
+const url =
+  args.get("--url") ?? "https://www.linkedin.com/in/me/recent-activity/reactions/";
+const maxRounds = readInt(args, "--max-rounds", 240);
+const waitMs = readInt(args, "--wait-ms", 1200);
+const minLength = readInt(args, "--min-length", 40);
 
-const context = await chromium.launchPersistentContext(profile, { headless: false });
-const page = context.pages()[0] ?? await context.newPage();
-await page.goto(url, { waitUntil: "domcontentloaded" });
-console.error("ResearchLedger LinkedIn capture is running in the authenticated profile. Complete login if prompted.");
-await page.waitForTimeout(2500);
+const { chromium } = await loadPlaywright();
+const { context, page } = await openAuthenticatedSession({
+  chromium,
+  profile,
+  url,
+  logMessage:
+    "ResearchLedger LinkedIn capture is running in the authenticated profile. Complete login if prompted.",
+});
 
-const posts = new Map();
-let unchangedRounds = 0;
-for (let round = 0; round < maxRounds && unchangedRounds < 8; round += 1) {
-  const before = posts.size;
-  const rows = await page.locator("a[href*='feed/update/urn:li:activity:']").evaluateAll((links) => links.map((link) => {
-    const url = link.href.split("?")[0].replace(/\/$/, "");
-    const article = link.closest("article") ?? link.parentElement;
-    const text = (article?.innerText ?? link.innerText ?? "").replace(/\s+/g, " ").trim();
-    return { url, text };
-  }));
-  for (const post of rows) if (post.url && post.text.length >= 40) posts.set(post.url, post);
-  unchangedRounds = posts.size === before ? unchangedRounds + 1 : 0;
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await page.waitForTimeout(waitMs);
-}
+const posts = await scrollAndCollect({
+  page,
+  selector: "a[href*='feed/update/urn:li:activity:']",
+  minLength,
+  maxRounds,
+  waitMs,
+  extractorBody: `
+    const href = canonicalUrl(link.href);
+    if (!/urn:li:activity:/.test(href)) return null;
+    const article = closestAncestor(link, ["article"]);
+    const text = flattenText(article || link.parentElement);
+    return { url: href, text };
+  `,
+});
 
 const payload = {
   version: 1,
@@ -46,7 +81,10 @@ const payload = {
   activityUrl: url,
   posts: [...posts.values()],
 };
-await fs.mkdir(path.dirname(path.resolve(output)), { recursive: true });
-await fs.writeFile(output, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
-console.error(`Captured ${payload.posts.length} unique LinkedIn posts to ${output}`);
+
+await writeCapture(
+  output,
+  payload,
+  `Captured ${payload.posts.length} unique LinkedIn posts to ${output}`,
+);
 await context.close();
