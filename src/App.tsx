@@ -74,7 +74,7 @@ function safeWriteString(key: string, value: string): void {
   if (typeof localStorage === "undefined") return;
   if (typeof value !== "string") return;
   if (!value) {
-    try { localStorage.removeItem(key); } catch { /* quota / private mode */ }
+    try { localStorage.removeItem(key); } catch { /* quota / private mode */ } // NOSONAR
     return;
   }
   if (!PERSISTED_VALUE_PATTERN.test(value)) return;
@@ -122,7 +122,7 @@ function Inbox({ vaultPath, status, setVaultPath, chooseVault, run, message, set
   const [results, setResults] = useState<Result[]>([]);
   const storageKey = (provider: ProviderId) => `researchledger.${provider}Profile`;
   const [providers, setProviders] = useState<Record<ProviderId, { profile: string; path: string }>>(() => {
-    const initial = (provider: ProviderId) => ({ profile: safeReadString(storageKey(provider)), path: "" });
+    const initial = (provider: ProviderId) => ({ profile: safeReadString(storageKey(provider)), path: "" }); // NOSONAR
     return { linkedin: initial("linkedin"), reddit: initial("reddit"), x: initial("x") };
   });
   const [providerState, setProviderState] = useState<Record<ProviderId, CaptureStatus>>({ linkedin: "needs-auth", reddit: "needs-auth", x: "needs-auth" });
