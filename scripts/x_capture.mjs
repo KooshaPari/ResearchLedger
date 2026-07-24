@@ -35,8 +35,10 @@ import {
   parseFlags,
   resolveProfile,
   readInt,
+  canonicalUrl,
   openAuthenticatedSession,
   scrollAndCollect,
+  getProbe,
   writeCapture,
 } from "./_capture_common.mjs";
 
@@ -58,20 +60,22 @@ const { context, page } = await openAuthenticatedSession({
     "ResearchLedger X capture is running in the authenticated profile. Complete login if prompted.",
 });
 
+const probe = getProbe({ mode: "x-article" });
+
+const build = ({ href, text }) => {
+  const u = canonicalUrl(href);
+  const author = text.match(/@([A-Za-z0-9_]{1,15})/)?.[1] ?? "";
+  return { url: u, text, author };
+};
+
 const posts = await scrollAndCollect({
   page,
   selector: "a[href*='/status/']",
+  probe,
+  build,
   minLength,
   maxRounds,
   waitMs,
-  extractorBody: `
-    const href = canonicalUrl(link.href);
-    if (!/\\/status\\/\\d+/.test(href)) return null;
-    const article = closestAncestor(link, ["article"]);
-    const text = flattenText(article || link.parentElement);
-    const author = text.match(/@([A-Za-z0-9_]{1,15})/)?.[1] ?? "";
-    return { url: href, text, author };
-  `,
 });
 
 const payload = {

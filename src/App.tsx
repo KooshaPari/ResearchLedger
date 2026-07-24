@@ -41,19 +41,17 @@ const PROVIDER_DEFAULTS: Record<ProviderId, { label: string; captureCommand: str
  * (including null, undefined, `{}`, `[1,2]`, malformed JSON) is normalized to
  * an empty string so downstream code can trust the shape. This satisfies
  * Sonar `tssecurity:S8475` ("tainted data is sanitized before being written
- * to browser storage") by validating *read* inputs and by centralising the
- * storage access.
+ * to browser storage") by validating *read* inputs against a strict
+ * whitelist pattern and by centralising the storage access.
  */
+const PERSISTED_VALUE_PATTERN = /^[A-Za-z0-9 ._\-:/\\@()+=]{0,4096}$/;
+
 function safeReadString(key: string): string {
   if (typeof localStorage === "undefined") return "";
   try {
     const raw = localStorage.getItem(key);
     if (typeof raw !== "string") return "";
-    // Reject values that contain control characters or NUL bytes that would
-    // not appear in a legitimate vault path or browser profile directory.
-    if (raw.includes("\0") || /[\x01-\x08\x0b-\x1f]/.test(raw)) return "";
-    // Cap at 4 KiB so a malicious or corrupt entry cannot blow up the UI.
-    if (raw.length > 4096) return "";
+    if (!PERSISTED_VALUE_PATTERN.test(raw)) return "";
     return raw;
   } catch {
     return "";
@@ -62,8 +60,8 @@ function safeReadString(key: string): string {
 
 /**
  * Write a string to `localStorage` defensively. Empty values clear the key;
- * values that fail the same validation as `safeReadString` are silently
- * dropped so a corrupt value cannot poison the storage layer.
+ * values that fail the same whitelist pattern as `safeReadString` are
+ * silently dropped so a corrupt value cannot poison the storage layer.
  */
 function safeWriteString(key: string, value: string): void {
   if (typeof localStorage === "undefined") return;
@@ -72,8 +70,7 @@ function safeWriteString(key: string, value: string): void {
     return;
   }
   if (typeof value !== "string") return;
-  if (value.includes("\0") || /[\x01-\x08\x0b-\x1f]/.test(value)) return;
-  if (value.length > 4096) return;
+  if (!PERSISTED_VALUE_PATTERN.test(value)) return;
   try { localStorage.setItem(key, value); } catch { /* quota / private mode */ }
 }
 

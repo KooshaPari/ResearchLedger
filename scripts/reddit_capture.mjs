@@ -35,8 +35,10 @@ import {
   parseFlags,
   resolveProfile,
   readInt,
+  canonicalUrl,
   openAuthenticatedSession,
   scrollAndCollect,
+  getProbe,
   writeCapture,
 } from "./_capture_common.mjs";
 
@@ -58,24 +60,22 @@ const { context, page } = await openAuthenticatedSession({
     "ResearchLedger Reddit capture is running in the authenticated profile. Complete login if prompted.",
 });
 
+const probe = getProbe({ mode: "reddit-article" });
+
+const build = ({ href, text }) => {
+  const u = canonicalUrl(href);
+  const subreddit = u.match(/\/r\/([^/]+)\//)?.[1] ?? null;
+  return { url: u, text, subreddit };
+};
+
 const posts = await scrollAndCollect({
   page,
   selector: "a[href*='/r/'][href*='/comments/']",
+  probe,
+  build,
   minLength,
   maxRounds,
   waitMs,
-  extractorBody: `
-    const href = canonicalUrl(link.href);
-    if (!/\\/r\\/[^/]+\\/comments\\//.test(href)) return null;
-    const article = closestAncestor(link, [
-      "article",
-      "shreddit-post",
-      "div[data-testid='post-container']",
-    ]);
-    const text = flattenText(article || link.parentElement);
-    const subreddit = href.match(/\\/r\\/([^/]+)\\//)?.[1] ?? null;
-    return { url: href, text, subreddit };
-  `,
 });
 
 const payload = {

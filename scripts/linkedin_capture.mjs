@@ -36,8 +36,10 @@ import {
   parseFlags,
   resolveProfile,
   readInt,
+  canonicalUrl,
   openAuthenticatedSession,
   scrollAndCollect,
+  getProbe,
   writeCapture,
 } from "./_capture_common.mjs";
 
@@ -59,19 +61,18 @@ const { context, page } = await openAuthenticatedSession({
     "ResearchLedger LinkedIn capture is running in the authenticated profile. Complete login if prompted.",
 });
 
+const probe = getProbe({ mode: "linkedin-article" });
+
+const build = ({ href, text }) => ({ url: canonicalUrl(href), text });
+
 const posts = await scrollAndCollect({
   page,
   selector: "a[href*='feed/update/urn:li:activity:']",
+  probe,
+  build,
   minLength,
   maxRounds,
   waitMs,
-  extractorBody: `
-    const href = canonicalUrl(link.href);
-    if (!/urn:li:activity:/.test(href)) return null;
-    const article = closestAncestor(link, ["article"]);
-    const text = flattenText(article || link.parentElement);
-    return { url: href, text };
-  `,
 });
 
 const payload = {
