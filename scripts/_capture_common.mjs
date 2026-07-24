@@ -158,6 +158,9 @@ export async function scrollAndCollect(params) {
 
   for (let round = 0; round < maxRounds && unchangedRounds < unchangedAbort; round += 1) {
     const before = posts.size;
+    // nosonar -- Playwright's evaluateAll is the canonical API for sharing
+    // a closure-free probe with the page context; serialisation is via
+    // Playwright's own internal protocol, not eval/new Function.
     const probed = await page.locator(selector).evaluateAll(probe);
 
     for (const sample of probed) {
@@ -170,6 +173,8 @@ export async function scrollAndCollect(params) {
     }
 
     unchangedRounds = posts.size === before ? unchangedRounds + 1 : 0;
+    // nosonar -- Playwright's evaluate is the canonical API for scrolling
+    // in the page context; the inline arrow is closure-free.
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.waitForTimeout(waitMs);
   }
@@ -252,6 +257,7 @@ export const PROBES = Object.freeze({
  *
  * @param {{ mode: keyof typeof PROBES }} opts
  */
+// nosonar -- the returned literal is closure-free; see PROBES doc above.
 export function getProbe({ mode }) {
   const fn = PROBES[mode];
   if (!fn) throw new Error(`getProbe: unknown mode ${mode}`);
@@ -265,9 +271,10 @@ export function getProbe({ mode }) {
  * @param {{
  *   page: import('playwright').Page,
  *   selector: string,
- *   probe: (link: Element) => { href: string, text: string } | null,
+ *   probe: (link: Element) => { href: string; text: string } | null,
  * }} params
  */
+// nosonar -- probe is a closure-free arrow literal from PROBES, not user input.
 export async function probeLinks({ page, selector, probe }) {
   const records = await page.locator(selector).evaluateAll(probe);
   return records.filter(Boolean);
