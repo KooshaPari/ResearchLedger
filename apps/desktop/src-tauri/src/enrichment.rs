@@ -2,7 +2,8 @@ use std::collections::BTreeSet;
 
 pub fn extract_urls(content: &str) -> Vec<String> {
     let mut urls = BTreeSet::new();
-    for token in content.split_whitespace() {
+    let normalized = content.replace("](", " ");
+    for token in normalized.split_whitespace() {
         let candidate = token
             .trim_matches(|character: char| "(<\"'`".contains(character))
             .trim_end_matches(|character: char| ".,;:!?)]}>\"'`".contains(character));

@@ -1,6 +1,8 @@
 use scraper::{Html, Selector};
 use std::collections::BTreeMap;
 
+use crate::provider_html::{ancestor_text, clean_post_href};
+
 #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
 pub struct LinkedInPost {
     pub url: String,
@@ -22,38 +24,16 @@ pub fn parse_activity_html(html: &str) -> Vec<LinkedInPost> {
     let article_selector = Selector::parse("article").unwrap();
     let mut posts = BTreeMap::new();
     for link in document.select(&link_selector) {
-        let Some(url) = link.value().attr("href") else {
-            continue;
-        };
-        let url = url
-            .split('?')
-            .next()
-            .unwrap_or(url)
-            .trim_end_matches('/')
-            .to_string();
-        let text = link
-            .ancestors()
-            .find_map(|ancestor| {
-                let element = scraper::ElementRef::wrap(ancestor)?;
-                let value = element
-                    .text()
-                    .collect::<Vec<_>>()
-                    .join(" ")
-                    .split_whitespace()
-                    .collect::<Vec<_>>()
-                    .join(" ");
-                (value.len() > 40 && value.len() < 20_000).then_some(value)
-            })
-            .or_else(|| {
-                document
-                    .select(&article_selector)
-                    .next()
-                    .map(|node| node.text().collect::<Vec<_>>().join(" "))
-            })
-            .unwrap_or_default();
-        posts
-            .entry(url.clone())
-            .or_insert(LinkedInPost { url, text });
+        let Some(raw_href) = link.value().attr("href") else { continue };
+        let Some(url) = clean_post_href(raw_href, "feed/update/urn:li:activity:", "") else { continue };
+        let text = ancestor_text(link, 40, 20_000).unwrap_or_else(|| {
+            document
+                .select(&article_selector)
+                .next()
+                .map(|node| node.text().collect::<Vec<_>>().join(" "))
+                .unwrap_or_default()
+        });
+        posts.entry(url.clone()).or_insert(LinkedInPost { url, text });
     }
     posts.into_values().collect()
 }
