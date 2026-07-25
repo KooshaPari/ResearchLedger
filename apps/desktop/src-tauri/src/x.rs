@@ -1,7 +1,7 @@
 use scraper::{Html, Selector};
 use std::collections::BTreeMap;
 
-use crate::provider_html::{ancestor_text, clean_post_href};
+use crate::provider_html::{ancestor_text, clean_post_href, is_x_post_path};
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub struct XSavedPost {
@@ -30,6 +30,9 @@ pub fn parse_bookmarks_html(html: &str) -> Vec<XSavedPost> {
     for link in document.select(&status_selector) {
         let Some(raw_href) = link.value().attr("href") else { continue };
         let Some(url) = clean_post_href(raw_href, "/status/", "https://x.com") else { continue };
+        if !is_x_post_path(&url) {
+            continue;
+        }
         let text = match ancestor_text(link, 40, 20_000) {
             Some(value) if !value.is_empty() => value,
             _ => continue,
@@ -74,5 +77,26 @@ mod tests {
         assert_eq!(posts.len(), 1);
         assert_eq!(posts[0].author, "someone");
         assert!(posts[0].text.starts_with("A thoughtful"));
+    }
+
+    #[test]
+    fn rejects_non_status_permalink_shapes() {
+        // /i/status/... is X-internal share format — not a real permalink.
+        let html = r#"<article><a href="/i/status/1100000000000000099">share</a><div><span>@someone</span><p>noise that looks like a real post but isn't a permalink anchor.</p></div></article>"#;
+        let posts = parse_bookmarks_html(html);
+        assert!(
+            posts.is_empty(),
+            "expected zero posts; got {posts:?}"
+        );
+
+        // /intent/... (web intent URLs) must be filtered out.
+        let html = r#"<article><a href="/intent/like?tweet_id=1100000000000000099">like</a><div><span>@someone</span><p>intent URL noise that must not slip into the bookmarks vault.</p></div></article>"#;
+        let posts = parse_bookmarks_html(html);
+        assert!(posts.is_empty());
+
+        // /messages/... is a DM thread, not a bookmarked post.
+        let html = r#"<article><a href="/messages/1234-5678">DM</a><div><span>@someone</span><p>DM thread noise that must not slip into the bookmarks vault.</p></div></article>"#;
+        let posts = parse_bookmarks_html(html);
+        assert!(posts.is_empty());
     }
 }

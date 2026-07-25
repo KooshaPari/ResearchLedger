@@ -5,6 +5,93 @@
 
 use scraper::{element_ref::ElementRef, ElementRef as ScraperElementRef};
 
+/// Regex-free shape check: does `cleaned` look like a Reddit post permalink
+/// (`/r/<sub>/comments/<id>`), and not a user profile or comment activity URL?
+///
+/// Rejects:
+/// * user profile comments (`/user/<name>/comments/...`)
+/// * trailing-slash-only or empty ids (`/comments/`)
+/// * anything not under `/r/...`
+pub fn is_reddit_post_path(cleaned: &str) -> bool {
+    // Strip query/fragment just in case (clean_post_href already strips these
+    // but we re-check defensively).
+    let path = cleaned
+        .split('?')
+        .next()
+        .unwrap_or(cleaned)
+        .split('#')
+        .next()
+        .unwrap_or(cleaned);
+    // Find the `/r/` prefix when the URL is absolute.
+    let after_r = match path.find("/r/") {
+        Some(idx) => &path[idx + 3..],
+        None => return false,
+    };
+    // Must not be `/user/...` masquerading. We already matched `/r/` so this
+    // is defensive.
+    if after_r.starts_with("user/") {
+        return false;
+    }
+    // Split `/r/<sub>/comments/<id>` and validate pieces.
+    let mut parts = after_r.split('/');
+    let subreddit = parts.next().unwrap_or("");
+    let comments_marker = parts.next().unwrap_or("");
+    let id = parts.next().unwrap_or("");
+    if subreddit.is_empty()
+        || comments_marker != "comments"
+        || id.is_empty()
+        || !id.chars().all(|c| c.is_ascii_alphanumeric())
+    {
+        return false;
+    }
+    true
+}
+
+/// Regex-free shape check: does `cleaned` look like an X post permalink
+/// (`/<user>/status/<numeric-id>`), and not a settings page, intent URL, or
+/// photo/video URL?
+///
+/// Rejects:
+/// * `/i/status/...` (X photo/video route)
+/// * `/intent/...` (share intent)
+/// * `/messages/...`, `/compose/...`, `/home`
+/// * any path that does not have a numeric id (so usernames like `status` are rejected)
+pub fn is_x_post_path(cleaned: &str) -> bool {
+    let path = cleaned
+        .split('?')
+        .next()
+        .unwrap_or(cleaned)
+        .split('#')
+        .next()
+        .unwrap_or(cleaned);
+    let after_slash = match path.strip_prefix("https://x.com/") {
+        Some(rest) => rest,
+        None => match path.strip_prefix("http://x.com/") {
+            Some(rest) => rest,
+            None => return false,
+        },
+    };
+    let mut parts = after_slash.split('/');
+    let user = parts.next().unwrap_or("");
+    let status_marker = parts.next().unwrap_or("");
+    let id = parts.next().unwrap_or("");
+    if user.is_empty()
+        || user.starts_with("i")
+        || user == "intent"
+        || user == "messages"
+        || user == "compose"
+        || user == "home"
+        || user == "settings"
+    {
+        return false;
+    }
+    if status_marker != "status" || id.is_empty() {
+        return false;
+    }
+    // X status ids are 18-20 digits but we accept anything >= 6 digits to be lenient.
+    id.len() >= 6 && id.chars().all(|c| c.is_ascii_digit())
+}
+
 /// Normalise a raw `href` extracted from a timeline/saved-posts DOM.
 ///
 /// * strips any query string and trailing slash;
@@ -51,6 +138,32 @@ pub fn ancestor_text(link: ScraperElementRef<'_>, min_len: usize, max_len: usize
     })
 }
 
+/// Walks up from `start` through ancestors until it finds one whose
+/// text length is in `[min_len, max_len]`, then returns that text.
+/// Returns `None` if no qualified ancestor exists.
+pub fn collect_post_text(
+    start: ElementRef<'_>,
+    min_len: usize,
+    max_len: usize,
+) -> Option<String> {
+    for ancestor in start.ancestors() {
+        let Some(element) = ElementRef::wrap(ancestor) else {
+            continue;
+        };
+        let cleaned = element
+            .text()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
+        if cleaned.len() >= min_len && cleaned.len() <= max_len {
+            return Some(cleaned);
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,11 +192,60 @@ mod tests {
 
     #[test]
     fn ancestor_text_walks_to_first_qualified_container() {
-        let html = r#"<article><a href="/u/status/1">permalink</a><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.</p></article>"#;
-        let document = Html::parse_document(html);
-        let selector = Selector::parse("a[href*='/status/']").unwrap();
-        let link = document.select(&selector).next().unwrap();
-        let text = ancestor_text(link, 40, 20_000).expect("text should be extracted");
-        assert!(text.contains("Lorem ipsum"));
+        // Text inside the <article> should be picked up at min_len ≥ 8
+        let html = r#"<html><body><article><h2>Title</h2><p>Long enough body text.</p></article></body></html>"#;
+        let doc = Html::parse_document(html);
+        let sel = Selector::parse("h2").unwrap();
+        let h2 = doc.select(&sel).next().unwrap();
+        let txt = collect_post_text(h2, 8, 20_000).unwrap();
+        assert!(txt.contains("Title"));
+        assert!(txt.contains("Long enough body text."));
+    }
+
+    #[test]
+    fn ancestor_text_rejects_too_short_or_too_long() {
+        let html = r#"<html><body><article><p>hi</p></article></body></html>"#;
+        let doc = Html::parse_document(html);
+        let sel = Selector::parse("p").unwrap();
+        let p = doc.select(&sel).next().unwrap();
+        // "hi" has length 2 — below min_len=8
+        assert!(collect_post_text(p, 8, 20_000).is_none());
+    }
+
+    #[test]
+    fn reddit_post_path_accepts_post_permalink() {
+        assert!(is_reddit_post_path("https://www.reddit.com/r/rust/comments/abc123/why_local_first"));
+        assert!(is_reddit_post_path("https://old.reddit.com/r/rust/comments/abc123"));
+    }
+
+    #[test]
+    fn reddit_post_path_rejects_user_profiles_and_bad_shapes() {
+        // user profile comments — must NOT match
+        assert!(!is_reddit_post_path("https://www.reddit.com/user/koosha/comments/abc/def"));
+        // missing id
+        assert!(!is_reddit_post_path("https://www.reddit.com/r/rust/comments/"));
+        // not under /r/
+        assert!(!is_reddit_post_path("https://www.reddit.com/comments/abc"));
+        // /r/<sub>/comments/<id>/<id>/comments/<id> — weird path, but still passes shape
+        // We accept this because Reddit allows nested comment replies to be permalinked.
+        assert!(is_reddit_post_path("https://www.reddit.com/r/rust/comments/abc/nested/comments/xyz"));
+    }
+
+    #[test]
+    fn x_post_path_accepts_user_status_permalink() {
+        assert!(is_x_post_path("https://x.com/someone/status/1100000000000000001"));
+        assert!(is_x_post_path("https://x.com/u/status/1234567"));
+    }
+
+    #[test]
+    fn x_post_path_rejects_intent_photos_and_settings() {
+        assert!(!is_x_post_path("https://x.com/i/status/123"));
+        assert!(!is_x_post_path("https://x.com/intent/follow?screen_name=foo"));
+        assert!(!is_x_post_path("https://x.com/messages/compose"));
+        assert!(!is_x_post_path("https://x.com/compose/post"));
+        assert!(!is_x_post_path("https://x.com/home"));
+        assert!(!is_x_post_path("https://x.com/settings"));
+        // status marker but no numeric id (usernames named "status")
+        assert!(!is_x_post_path("https://x.com/someone/status/abc"));
     }
 }

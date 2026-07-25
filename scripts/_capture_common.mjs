@@ -26,7 +26,75 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { spawn } from "node:child_process";
 import { pathToFileURL } from "node:url";
+
+/**
+ * Detect Playwright's "Executable doesn't exist" / "looks like Playwright was
+ * just installed or updated" failure mode from the thrown error's message.
+ * The Chromium executable missing on disk is recoverable by running
+ * `npx playwright install chromium`, so we surface a friendlier message and
+ * fall through to auto-install rather than letting the raw stack trace reach
+ * the React UI.
+ *
+ * @param {unknown} err
+ * @returns {boolean}
+ */
+function isMissingChromium(err) {
+  const message = err instanceof Error ? err.message : String(err);
+  return /Executable doesn't exist|Looks like Playwright was just installed/i.test(message);
+}
+
+/**
+ * Run `playwright install chromium` in the project root and forward stdout to
+ * stderr so the user sees progress. Resolves on exit code 0, throws on
+ * non-zero so the caller can surface a clean failure.
+ *
+ * @param {string} modulePath
+ * @returns {Promise<void>}
+ */
+function runPlaywrightInstall(modulePath) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      process.execPath,
+      [modulePath, "install", "chromium"],
+      { stdio: ["ignore", "inherit", "inherit"] },
+    );
+    child.on("error", reject);
+    child.on("exit", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`playwright install exited with code ${code ?? "null"}`));
+    });
+  });
+}
+
+/**
+ * Detect whether the page we just navigated to is actually the saved/bookmarks
+ * view, or whether the host redirected us to a login / consent screen. The
+ * heuristic is intentionally simple — we look for either the probe's
+ * `target` selector or any element matching the supplied `loggedInMarker` CSS.
+ * If neither appears after a short grace period, we throw a typed error that
+ * the UI surfaces as a friendly "auth required" message.
+ *
+ * @param {{
+ *   page: import('playwright').Page,
+ *   target: string,
+ *   loggedInMarker: string,
+ *   timeoutMs?: number,
+ * }} params
+ */
+export async function assertAuthedPage({ page, target, loggedInMarker, timeoutMs = 5000 }) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const [targetCount, markerCount] = await Promise.all([
+      page.locator(target).count(),
+      page.locator(loggedInMarker).count(),
+    ]);
+    if (targetCount > 0 || markerCount > 0) return;
+    await page.waitForTimeout(250);
+  }
+  throw new Error(`AUTH_REQUIRED: target="${target}" marker="${loggedInMarker}"`);
+}
 
 /**
  * Load Playwright from an absolute path (when bundled as a Tauri resource) or
@@ -99,9 +167,64 @@ export function canonicalUrl(href) {
 }
 
 /**
+ * Detect whether the page we landed on is an auth gate (login / SSO / consent /
+ * cookie wall) rather than the saved-posts/bookmarks feed. We bail with a
+ * friendly, user-actionable error instead of collecting zero posts silently.
+ *
+ * @param {import('playwright').Page} page
+ * @returns {Promise<boolean>}
+ */
+export async function detectAuthGate(page) {
+  try {
+    const url = page.url().toLowerCase();
+    const path = (() => {
+      try {
+        return new URL(url).pathname;
+      } catch {
+        return "";
+      }
+    })();
+    const AUTH_HINTS = [
+      "/login",
+      "/signin",
+      "/sign-in",
+      "/signup",
+      "/sign-up",
+      "/register",
+      "/sso",
+      "/auth/",
+      "/oauth/",
+      "/consent",
+      "/checkpoint",
+      "/i/flow/login",
+      "/account/login",
+      "/user/login",
+      "/log-in",
+      "/session/new",
+    ];
+    if (AUTH_HINTS.some((hint) => path.includes(hint))) return true;
+    const AUTH_TITLE = /\b(log\s*in|sign\s*in|sign\s*up|log\s*in\s*to|join)\b/i;
+    const title = (await page.title()).trim();
+    if (AUTH_TITLE.test(title)) return true;
+    const AUTH_FORM = /<input[^>]+name=["']?(?:password|passwd|login_password)/i;
+    const body = await page.content();
+    if (AUTH_FORM.test(body)) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Open a Chromium persistent context for an authenticated session, navigate
  * to the saved/bookmarks URL, and pause briefly so the user can complete any
  * pending login in the launched window.
+ *
+ * If Playwright's Chromium browser binary is not installed, run
+ * `npx playwright install chromium` once and retry. If the post-navigation
+ * page is detected as an auth gate, the function throws a friendly
+ * `AUTH_REQUIRED` error so the UI can surface it instead of silently
+ * collecting zero posts.
  *
  * @param {{
  *   chromium: any,
@@ -109,18 +232,64 @@ export function canonicalUrl(href) {
  *   url: string,
  *   warmupMs?: number,
  *   logMessage: string,
+ *   onAuthInstall?: (msg: string) => void,
+ *   execFileSync?: (cmd: string, args: string[]) => void,
  * }} params
  */
 export async function openAuthenticatedSession(params) {
-  const { chromium, profile, url, warmupMs = 2500, logMessage } = params;
-  const context = await chromium.launchPersistentContext(profile, {
-    headless: false,
-  });
+  const { chromium, profile, url, warmupMs = 2500, logMessage, onAuthInstall, execFileSync } = params;
+  const runInstall = execFileSync ?? defaultInstallRunner;
+  let context;
+  try {
+    context = await chromium.launchPersistentContext(profile, { headless: false });
+  } catch (err) {
+    if (!isMissingBrowserError(err)) throw err;
+    const msg = `Browser not installed; running \`npx playwright install chromium\` (one-time, ~150 MB).`;
+    if (typeof onAuthInstall === "function") onAuthInstall(msg);
+    console.error(msg);
+    runInstall("npx", ["playwright", "install", "chromium"]);
+    context = await chromium.launchPersistentContext(profile, { headless: false });
+  }
   const page = context.pages()[0] ?? (await context.newPage());
   await page.goto(url, { waitUntil: "domcontentloaded" });
+  if (await detectAuthGate(page)) {
+    try {
+      await context.close();
+    } catch {
+      /* ignore */
+    }
+    const friendly = new Error(
+      "AUTH_REQUIRED: page landed on login or consent screen. Complete the login in the browser window, then re-run capture.",
+    );
+    friendly.code = "AUTH_REQUIRED";
+    throw friendly;
+  }
   console.error(logMessage);
   await page.waitForTimeout(warmupMs);
   return { context, page };
+}
+
+/**
+ * @param {unknown} err
+ * @returns {boolean}
+ */
+function isMissingBrowserError(err) {
+  const msg = err instanceof Error ? `${err.message}\n${err.stack ?? ""}` : String(err);
+  return (
+    /Executable doesn't exist/i.test(msg) ||
+    /Looks like Playwright was just installed or updated/i.test(msg) ||
+    /playwright install/i.test(msg) && /chrome|chromium/i.test(msg)
+  );
+}
+
+import { execFileSync } from "node:child_process";
+
+/**
+ * @param {string} cmd
+ * @param {string[]} args
+ */
+function defaultInstallRunner(cmd, args) {
+  execFileSync(cmd, args, { stdio: "inherit" });
 }
 
 /**

@@ -1,7 +1,7 @@
 use scraper::{Html, Selector};
 use std::collections::BTreeMap;
 
-use crate::provider_html::{ancestor_text, clean_post_href};
+use crate::provider_html::{ancestor_text, clean_post_href, is_reddit_post_path};
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub struct RedditSavedPost {
@@ -32,6 +32,7 @@ pub fn parse_saved_html(html: &str) -> Vec<RedditSavedPost> {
     for link in document.select(&link_selector) {
         let Some(raw_href) = link.value().attr("href") else { continue };
         let Some(url) = clean_post_href(raw_href, "/comments/", "https://www.reddit.com") else { continue };
+        if !is_reddit_post_path(&url) { continue };
         let title = link
             .ancestors()
             .find_map(|ancestor| {
@@ -70,6 +71,20 @@ mod tests {
         assert_eq!(posts[0].url, "https://www.reddit.com/r/rust/comments/abc123/why_local_first");
         assert!(posts[0].text.contains("local-first research ledgers"));
         assert_eq!(posts[0].subreddit.as_deref(), Some("rust"));
+    }
+
+    #[test]
+    fn rejects_user_comment_activity_urls() {
+        // Reddit users have a /user/<name>/comments/ activity feed that ALSO matches
+        // /comments/ anchors. The capture path must distinguish post permalinks from
+        // user-profile activity.
+        let html = r#"<main>
+            <article><a href="/user/koosha/comments/abc/why_local_first/">user activity</a><p>noise</p></article>
+            <article><a href="/r/rust/comments/abc/why_local_first/">post permalink</a><p>A thoughtful post about local-first research ledgers and the tradeoffs of owning your data.</p></article>
+        </main>"#;
+        let posts = parse_saved_html(html);
+        assert_eq!(posts.len(), 1, "user-comment activity must be filtered; got {:?}", posts.iter().map(|p| &p.url).collect::<Vec<_>>());
+        assert!(posts[0].url.contains("/r/rust/comments/"));
     }
 
     #[test]
