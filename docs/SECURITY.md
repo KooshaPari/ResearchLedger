@@ -44,3 +44,22 @@ remediation when Tauri/webkit2gtk bumps to the `gtk-rs` 0.20+ series.
 
 GitHub Dependabot alert #1 (medium) is dismissed with the `tolerable_risk`
 reason and the comment recorded in the alert audit trail.
+
+### Playwright browser binary download (one-time, on first capture)
+
+The LinkedIn, Reddit, and X capture scripts use Playwright's persistent
+Chromium context. Chromium is **not** bundled with the .app to keep the
+installer size small; instead, on first launch of any capture script, the
+helper runs `npx playwright install chromium` to fetch the browser binary
+into `~/Library/Caches/ms-playwright/`. This is a single ~150 MB download
+from Playwright's CDN (microsoft.com via `playwright.azureedge.net`).
+
+- The download happens automatically the first time the user clicks
+  "Capture in browser" on any provider panel.
+- The cache lives in the user's home Library; it is shared across all
+  Playwright projects on the machine.
+- No data leaves the user's machine beyond the Playwright CDN request for
+  the browser binary itself.
+- No Playwright telemetry is enabled — Playwright is invoked in
+  `headless: false` mode with no `PW_TEST_CONNECT_WS` or remote-debug
+  endpoints configured.

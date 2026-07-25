@@ -49,5 +49,17 @@ if needed, scrolls at a bounded rate, deduplicates post URLs, and writes a deter
 capture file for import into the selected vault. None of them automate posting, messaging,
 reactions, follows, votes, or other account actions.
 
+### First-run: Playwright browser install
+
+The capture scripts use Playwright’s Chromium binary. On first capture (or after a Playwright
+version bump), the app will detect a missing browser and run `npx playwright install chromium`
+automatically — one time. Subsequent runs use the cached install under
+`~/Library/Caches/ms-playwright/`. If auto-install fails (offline, restrictive network),
+re-run manually:
+
+```bash
+npx playwright install chromium
+```
+
 See [security](docs/SECURITY.md) and [testing](docs/TESTING.md) for data-handling and
 verification rules.
