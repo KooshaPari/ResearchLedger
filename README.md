@@ -51,11 +51,19 @@ reactions, follows, votes, or other account actions.
 
 ### First-run: Playwright browser install
 
-The capture scripts use Playwright’s Chromium binary. On first capture (or after a Playwright
-version bump), the app will detect a missing browser and run `npx playwright install chromium`
-automatically — one time. Subsequent runs use the cached install under
-`~/Library/Caches/ms-playwright/`. If auto-install fails (offline, restrictive network),
-re-run manually:
+The capture scripts use Playwright’s Chromium binary. `npm install` runs a
+`postinstall` hook (`scripts/postinstall.mjs`) that pre-fetches the browser so
+the first capture feels instant — there is no prompt, no spinner, and no
+~150 MB download during capture. The hook is platform-aware (Linux also pulls
+system deps via `--with-deps`), idempotent (Playwright’s install is a no-op
+when the browser is already cached at `~/Library/Caches/ms-playwright/`), and
+skipped automatically when `CI=1` or `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`.
+
+If the install-time hook fails (offline, restrictive network, missing sudo on
+Linux) the capture scripts still detect a missing browser and run
+`npx playwright install chromium` automatically — one time, as a safety net.
+Subsequent runs use the cached install under `~/Library/Caches/ms-playwright/`.
+You can also re-run manually:
 
 ```bash
 npx playwright install chromium
