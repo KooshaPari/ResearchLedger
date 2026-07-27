@@ -1,0 +1,169 @@
+---
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-test:
+    name: Rust (lib)
+    # macos-latest — until webkit2gtk pinning is settled on Linux runners.
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache cargo (registry + build artifacts)
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+          shared-key: researchledger-tauri
+
+      - name: Run cargo test --lib
+        id: capture
+        working-directory: apps/desktop/src-tauri
+        shell: bash
+        run: |
+          set -euo pipefail
+          log="$(mktemp -t rust-test.XXXXXX.log)"
+          echo "logging to ${log}"
+
+          # Run tests, capture summary even on failure
+          cargo test --lib --no-fail-fast >"${log}" 2>&1 || true
+
+          # Surface summary to GITHUB_STEP_SUMMARY
+          echo '### Rust test summary' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 30 "${log}" >> "$GITHUB_STEP_SUMMARY"
+
+          # Parse "test result: ok. N passed; M failed; ..."
+          line="$(grep -E '^test result:' "${log}" | tail -n1 || true)"
+          if [[ -z "${line}" ]]; then
+            echo "rust_pass=unknown" >> "$GITHUB_OUTPUT"
+            echo "rust_fail=unknown" >> "$GITHUB_OUTPUT"
+            echo "rust_summary='Unable to parse cargo test output'" \
+              >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          passed="$(echo "${line}" \
+            | sed -E 's/^.*\.\s*([0-9]+)\s+passed.*/\1/')"
+          failed="$(echo "${line}" \
+            | sed -E 's/^.*\s([0-9]+)\s+failed.*/\1/')"
+
+          echo "rust_pass=${passed}" >> "$GITHUB_OUTPUT"
+          echo "rust_fail=${failed}" >> "$GITHUB_OUTPUT"
+          {
+            echo 'rust_summary<<EOF'
+            echo '```'
+            cat "${log}"
+            echo '```'
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+          # Fail the step if anything failed
+          if [[ "${failed:-0}" != "0" ]]; then
+            echo "Rust tests reported ${failed} failures" >&2
+            exit 1
+          fi
+
+  frontend-test:
+    name: Frontend (vitest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+
+      - name: Run vitest
+        id: capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          log="$(mktemp -t fe-test.XXXXXX.log)"
+          echo "logging to ${log}"
+
+          npm test --silent -- --reporter=default >"${log}" 2>&1 || true
+
+          echo '### Frontend test summary' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 30 "${log}" >> "$GITHUB_STEP_SUMMARY"
+
+          # Parse "Tests  X passed (Y)" from vitest default reporter
+          tests_line="$(grep -E '^\s*Tests\s+' "${log}" | tail -n1 || true)"
+          passed="$(echo "${tests_line}" \
+            | sed -E 's/.*Tests\s+([0-9]+)\s+passed.*/\1/')"
+          [[ -z "${passed:-}" ]] && passed="unknown"
+
+          files_line="$(grep -E '^\s*Test Files\s+' "${log}" \
+            | tail -n1 || true)"
+          # count failures by scanning for FAIL markers
+          failed="$(grep -Ec '^\s*✗|^\s*❌|FAIL' "${log}" || true)"
+          [[ "${failed:-0}" =~ ^[0-9]+$ ]] || failed=0
+
+          echo "fe_pass=${passed}" >> "$GITHUB_OUTPUT"
+          echo "fe_fail=${failed}" >> "$GITHUB_OUTPUT"
+          {
+            echo 'fe_summary<<EOF'
+            echo '```'
+            cat "${log}"
+            echo '```'
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+          if [[ "${passed}" == "unknown" || "${failed:-0}" != "0" ]]; then
+            echo "Frontend test reporting incomplete or failing" >&2
+            exit 1
+          fi
+
+  post-test-counts:
+    name: Post test counts to PR
+    needs: [rust-test, frontend-test]
+    if: |
+          github.event_name == 'pull_request' &&
+          github.event.pull_request &&
+          (needs.rust-test.result == 'success' ||
+            needs.rust-test.result == 'failure') &&
+          (needs.frontend-test.result == 'success' ||
+            needs.frontend-test.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Post PR comment with test counts
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: github-actions[bot]
+          reactions: 'eyes'
+          edit-mode: replace
+          body: |
+            ## Test counts
+
+            - **Rust:** ${{ needs.rust-test.outputs.rust_pass }} passed
+              / ${{ needs.rust-test.outputs.rust_fail }} failed
+              (`${{ needs.rust-test.result }}`)
+            - **Frontend:** ${{ needs.frontend-test.outputs.fe_pass }} passed
+              / ${{ needs.frontend-test.outputs.fe_fail }} failed
+              (`${{ needs.frontend-test.result }}`)
+
+            <!-- researchledger-ci-bot/key: ${{ github.run_id }} -->
