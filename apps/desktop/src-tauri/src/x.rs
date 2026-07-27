@@ -79,6 +79,124 @@ mod tests {
         assert!(posts[0].text.starts_with("A thoughtful"));
     }
 
+    /// Round-trip every post in a realistic X bookmarks capture file through
+    /// `parse_capture_json`, asserting each row preserves the documented
+    /// fields (`url`, `author`, `text`). Reproduces the canonical 5-post
+    /// fixture used by `src/RedditXSschema.test.ts`.
+    #[test]
+    fn round_trips_realistic_five_post_capture() {
+        let json = r#"{
+            "version": 1,
+            "capturedAt": "2026-07-25T11:00:00.000Z",
+            "source": "x-playwright-authenticated-session",
+            "bookmarksUrl": "https://x.com/i/bookmarks",
+            "posts": [
+                {"user":"koosha","statusId":"1234567890","url":"https://x.com/koosha/status/1234567890","author":"@koosha","text":"A long thread about local-first provenance graphs and how each bookmark can stay durably linked to the source URL it was captured from."},
+                {"user":"daboross","statusId":"1234567891","url":"https://x.com/daboross/status/1234567891","author":"@daboross","text":"Rust async trait ergonomics keep improving; pin projects now use full dyn-safety without losing async fn in trait returns for the long term."},
+                {"user":"Meadows","statusId":"1234567892","url":"https://x.com/Meadows/status/1234567892","author":"@Meadows","text":"Deterministic enrichment passes produce stable, reviewable notes that can be diffed across runs without trusting the model output."},
+                {"user":"polyglot_otter","statusId":"1234567893","url":"https://x.com/polyglot_otter/status/1234567893","author":"@polyglot_otter","text":"A Markdown vault with per-source folders plus a single SQLite index is the easiest migration path off of any hosted note system across devices."},
+                {"user":"koosha","statusId":"1234567894","url":"https://x.com/koosha/status/1234567894","author":"@koosha","text":"Offline embedding pipelines paired with deterministic lexical index keep research fully usable without any internet connection at capture time."}
+            ]
+        }"#;
+        let posts = parse_capture_json(json).expect("fixture parses");
+        assert_eq!(posts.len(), 5, "expected 5 viable posts in fixture");
+        let urls: Vec<&str> = posts.iter().map(|p| p.url.as_str()).collect();
+        assert_eq!(
+            urls,
+            vec![
+                "https://x.com/koosha/status/1234567890",
+                "https://x.com/daboross/status/1234567891",
+                "https://x.com/Meadows/status/1234567892",
+                "https://x.com/polyglot_otter/status/1234567893",
+                "https://x.com/koosha/status/1234567894",
+            ]
+        );
+        let authors: Vec<&str> = posts.iter().map(|p| p.author.as_str()).collect();
+        assert_eq!(
+            authors,
+            vec![
+                "@koosha",
+                "@daboross",
+                "@Meadows",
+                "@polyglot_otter",
+                "@koosha",
+            ]
+        );
+        for post in &posts {
+            assert!(post.text.len() > 40, "captured text must satisfy capture min-length");
+            assert!(crate::provider_html::is_x_post_path(&post.url),
+                "all round-tripped urls must satisfy the X post-path shape guard");
+        }
+        // No post should be authored "intent", "i", "messages", "compose", "home", "settings".
+        for post in &posts {
+            let user = post.url.trim_start_matches("https://x.com/").split('/').next().unwrap_or("");
+            assert!(user != "intent" && user != "i" && user != "messages" && user != "compose"
+                && user != "home" && user != "settings",
+                "no permalink under an excluded route should round-trip; got {}", post.url);
+        }
+    }
+
+    /// X path-shape guard: posts whose URL is not under `/<user>/status/<numeric-id>`
+    /// are silently dropped from the captured set (and therefore never get a
+    /// document id). The dropped urls are not fatal — the rest of the capture
+    /// proceeds. We assert exactly the well-formed items survive.
+    #[test]
+    fn x_path_shape_guard_drops_malformed_permalinks() {
+        use crate::provider_html::is_x_post_path;
+        let urls = vec![
+            "https://x.com/koosha/status/1234567890",          // good
+            "https://x.com/i/status/1234567890",                // photo route — drop
+            "https://x.com/intent/follow?screen_name=foo",      // intent — drop
+            "https://x.com/messages/1234-5678",                 // DM — drop
+            "https://x.com/compose/post",                       // compose — drop
+            "https://x.com/home",                               // home — drop
+            "https://x.com/settings",                           // settings — drop
+            "https://x.com/someone/status/notanumber",         // non-numeric id — drop
+            "https://x.com/koosha/status/1234567891/photo/1",   // good (extra path segments ok)
+        ];
+        let kept: Vec<&str> = urls.iter().copied().filter(|u| is_x_post_path(u)).collect();
+        assert_eq!(kept.len(), 2, "only /<user>/status/<numeric-id> survive; got {kept:?}");
+        assert!(kept.contains(&"https://x.com/koosha/status/1234567890"));
+        assert!(kept.contains(&"https://x.com/koosha/status/1234567891/photo/1"));
+    }
+
+    /// `parse_capture_json` returns `Err` (and the import is abandoned) when
+    /// the top-level `posts` field is missing. This mirrors the user-visible
+    /// "X refused the capture" error path.
+    #[test]
+    fn x_capture_rejects_missing_posts_field() {
+        let result = parse_capture_json(r#"{"version":1,"capturedAt":"2026-07-25T11:00:00Z"}"#);
+        assert!(result.is_err(), "missing posts array must fail loudly; got {result:?}");
+    }
+
+    /// Empty `posts: []` is a valid capture (zero rows). We do NOT collapse
+    /// this to an error because the user may legitimately re-run after draining
+    /// the bookmarks queue.
+    #[test]
+    fn x_capture_accepts_empty_posts_array() {
+        let posts = parse_capture_json(r#"{"version":1,"posts":[]}"#).expect("empty posts parses");
+        assert!(posts.is_empty(), "empty array must yield zero rows");
+    }
+
+    /// The X post URL is the only field that determines the downstream
+    /// document id. An attacker-controlled `id` field in the captured JSON
+    /// must NOT carry through `parse_capture_json` — `XSavedPost` has no
+    /// `id` field, only the URL survives.
+    #[test]
+    fn x_id_derivation_is_url_only_not_input() {
+        let benign = r#"{"posts":[{"url":"https://x.com/koosha/status/1234567890","author":"@koosha","text":"a thoughtful body with more than forty characters of useful prose"}]}"#;
+        let poisoned = r#"{"posts":[{"url":"https://x.com/koosha/status/1234567890","author":"@koosha","text":"a thoughtful body with more than forty characters of useful prose","id":"TOTALLY_FAKE_INJECTION"}]}"#;
+        let benign_posts = parse_capture_json(benign).unwrap();
+        let poisoned_posts = parse_capture_json(poisoned).unwrap();
+        assert_eq!(benign_posts.len(), 1);
+        assert_eq!(poisoned_posts.len(), 1);
+        // The URL (and therefore the downstream id) is identical regardless of input `id` field.
+        assert_eq!(benign_posts[0].url, poisoned_posts[0].url);
+        assert!(!poisoned_posts[0].url.contains("INJECTION"));
+        assert!(!poisoned_posts[0].author.contains("INJECTION"));
+        assert!(!poisoned_posts[0].text.contains("INJECTION"));
+    }
+
     #[test]
     fn rejects_non_status_permalink_shapes() {
         // /i/status/... is X-internal share format — not a real permalink.

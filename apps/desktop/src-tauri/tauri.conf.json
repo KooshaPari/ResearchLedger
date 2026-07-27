@@ -23,6 +23,7 @@
   },
   "bundle": { "active": true, "targets": "all", "icon": ["icons/researchledger.icns"], "resources": {
     "../../../scripts/linkedin_capture.mjs": "scripts/linkedin_capture.mjs",
+    "../../../scripts/hackernews_capture.mjs": "scripts/hackernews_capture.mjs",
     "../../../node_modules/playwright": "node_modules/playwright",
     "../../../node_modules/playwright-core": "node_modules/playwright-core"
   } }

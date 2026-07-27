@@ -3,16 +3,20 @@ mod distill;
 mod embeddings;
 mod enrichment;
 mod github;
+mod hackernews;
 mod linkedin;
+mod provider_html;
 mod rag;
+mod reddit;
 mod storage;
+mod x;
 
 mod commands {
     include!("commands.rs");
 
     use super::{
-        distill, embeddings::OllamaEmbedder, github, github::GithubClient, linkedin, rag, storage,
-        VaultStatus,
+        distill, embeddings::OllamaEmbedder, github, github::GithubClient, hackernews, linkedin,
+        rag, storage, VaultStatus,
     };
     use serde::Serialize;
     use tauri::Manager;
@@ -254,6 +258,142 @@ mod commands {
     }
 
     #[tauri::command]
+    pub fn import_hackernews_html(
+        vault_path: String,
+        html_path: String,
+    ) -> Result<ImportSummary, String> {
+        let html = std::fs::read_to_string(&html_path).map_err(|error| error.to_string())?;
+        let posts = hackernews::parse_saved_html(&html);
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for post in posts {
+            let id = post.id.clone();
+            let content = format!(
+                "---\ntype: Hacker News Story\nid: hackernews:{id}\ntitle: {title}\ndescription: Captured HN saved story\nresource: {url}\ntags: [hackernews, saved]\ntimestamp: {timestamp}\nsource_kind: hackernews\nsource_uri: {url}\nauthor: {author}\n---\n\n{text}\n\n# Citations\n\n[1] [HN item {id}]({url})\n",
+                id = id,
+                title = post.title,
+                url = post.url,
+                timestamp = chrono::Utc::now().to_rfc3339(),
+                author = post.author,
+                text = post.text,
+            );
+            let document = storage::SourceDocument {
+                id: format!("hackernews:{id}"),
+                relative_path: format!("sources/hackernews/{id}.md"),
+                title: post.title.clone(),
+                source_kind: "hackernews".into(),
+                source_uri: Some(post.url.clone()),
+                content,
+                captured_at: chrono::Utc::now().to_rfc3339(),
+            };
+            match storage::upsert_document(&mut connection, &root, &document)
+                .map_err(|error| error.to_string())?
+            {
+                storage::UpsertResult::Created => summary.created += 1,
+                storage::UpsertResult::Updated => summary.updated += 1,
+                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+            }
+        }
+        Ok(summary)
+    }
+
+    #[tauri::command]
+    pub fn import_hackernews_capture(
+        vault_path: String,
+        capture_path: String,
+    ) -> Result<ImportSummary, String> {
+        let json = std::fs::read_to_string(&capture_path).map_err(|error| error.to_string())?;
+        let posts = hackernews::parse_capture_json(&json).map_err(|error| error.to_string())?;
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for post in posts {
+            let id = post.id.clone();
+            let document = storage::SourceDocument {
+                id: format!("hackernews:{id}"),
+                relative_path: format!("sources/hackernews/{id}.md"),
+                title: post.title.clone(),
+                source_kind: "hackernews".into(),
+                source_uri: Some(post.url.clone()),
+                content: format!(
+                    "---\ntype: Hacker News Story\nid: hackernews:{id}\ntitle: {title}\ndescription: Captured HN saved story\nresource: {url}\ntags: [hackernews, saved]\ntimestamp: {timestamp}\nsource_kind: hackernews\nsource_uri: {url}\nauthor: {author}\n---\n\n{text}\n\n# Citations\n\n[1] [HN item {id}]({url})\n",
+                    id = id,
+                    title = post.title,
+                    url = post.url,
+                    timestamp = chrono::Utc::now().to_rfc3339(),
+                    author = post.author,
+                    text = post.text,
+                ),
+                captured_at: chrono::Utc::now().to_rfc3339(),
+            };
+            match storage::upsert_document(&mut connection, &root, &document)
+                .map_err(|error| error.to_string())?
+            {
+                storage::UpsertResult::Created => summary.created += 1,
+                storage::UpsertResult::Updated => summary.updated += 1,
+                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+            }
+        }
+        Ok(summary)
+    }
+
+    #[tauri::command]
+    pub async fn capture_hackernews_browser(
+        app: tauri::AppHandle,
+        vault_path: String,
+        activity_url: Option<String>,
+        profile_path: Option<String>,
+    ) -> Result<ImportSummary, String> {
+        let output = std::path::PathBuf::from(&vault_path)
+            .join(".researchledger")
+            .join("hackernews-capture.json");
+        let resource_script = app
+            .path()
+            .resource_dir()
+            .map_err(|error| error.to_string())?
+            .join("scripts/hackernews_capture.mjs");
+        let script = if resource_script.exists() {
+            resource_script
+        } else {
+            std::env::current_dir()
+                .map_err(|error| error.to_string())?
+                .join("scripts/hackernews_capture.mjs")
+        };
+        let mut command = tokio::process::Command::new("node");
+        command.arg(script).arg("--output").arg(&output);
+        if let Ok(resource_dir) = app.path().resource_dir() {
+            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
+            if packaged_module.exists() {
+                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
+            }
+        }
+        if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
+            command.arg("--profile").arg(profile);
+        }
+        if let Some(url) = activity_url.filter(|value| !value.trim().is_empty()) {
+            command.arg("--url").arg(url);
+        }
+        let result = command.output().await.map_err(|error| error.to_string())?;
+        if !result.status.success() {
+            return Err(String::from_utf8_lossy(&result.stderr).trim().to_string());
+        }
+        import_hackernews_capture(vault_path, output.to_string_lossy().into_owned())
+    }
+
+    #[tauri::command]
     pub fn search_documents(
         vault_path: String,
         query: String,
@@ -430,6 +570,9 @@ pub fn run() {
             commands::import_linkedin_html,
             commands::import_linkedin_capture,
             commands::capture_linkedin_browser,
+            commands::import_hackernews_html,
+            commands::import_hackernews_capture,
+            commands::capture_hackernews_browser,
             commands::search_documents,
             commands::list_document_summaries,
             commands::list_collections,

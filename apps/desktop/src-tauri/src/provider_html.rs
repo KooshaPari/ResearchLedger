@@ -1,5 +1,5 @@
 //! Shared HTML parsing primitives for the third-party-provider connectors
-//! (LinkedIn, Reddit, X). Both the per-provider parsers and tests reuse these
+//! (LinkedIn, Reddit, X, Hacker News). Both the per-provider parsers and tests reuse these
 //! helpers to keep dedup-by-canonical-URL logic consistent and to avoid
 //! copy-pasted boilerplate across modules.
 
@@ -45,6 +45,54 @@ pub fn is_reddit_post_path(cleaned: &str) -> bool {
         return false;
     }
     true
+}
+
+/// Regex-free shape check: does `cleaned` look like a Hacker News item
+/// permalink (`/item?id=<numeric-id>`), and not a section listing, login
+/// screen, or thread aggregator?
+///
+/// Rejects:
+/// * any path that is not literally `/item`
+/// * `/item?id=<non-numeric>` (e.g. `abc`, `12abc`)
+/// * `/threads?id=...` and the section listings (`/news`, `/best`, `/show`,
+///   `/ask`, `/newcomments`, `/submit`, `/login`, `/about`, `/items`)
+/// * the bare homepage `/`
+pub fn is_hackernews_post_path(cleaned: &str) -> bool {
+    // Strip query/fragment defensively (clean_post_href already strips these
+    // but we re-check so the guard accepts either form).
+    let path = cleaned
+        .split('?')
+        .next()
+        .unwrap_or(cleaned)
+        .split('#')
+        .next()
+        .unwrap_or(cleaned);
+    // Require absolute HN origin so vaguely-shaped paths under other hosts
+    // can't slip through.
+    let after_origin = match path.strip_prefix("https://news.ycombinator.com") {
+        Some(rest) => rest,
+        None => return false,
+    };
+    // Only exactly `/item` is accepted. (`/items` is HN's bulk export route
+    // — explicitly rejected below by the empty-id fallback.)
+    if after_origin != "/item" {
+        return false;
+    }
+    // Pull the `id` query parameter. We accept either `?id=12345` or the
+    // already-cleaned canonical form `https://news.ycombinator.com/item`
+    // (in which case `cleaned` would have stripped the query — and we treat
+    // that as malformed).
+    let query = cleaned
+        .split('?')
+        .nth(1)
+        .unwrap_or("");
+    let id = query
+        .split('&')
+        .find_map(|pair| pair.strip_prefix("id="))
+        .unwrap_or("");
+    // HN item ids are 1-10 digit ints, occasionally with no upper bound. We
+    // accept any all-digit positive id — guarded by the `/item` literal match.
+    !id.is_empty() && id.chars().all(|c| c.is_ascii_digit())
 }
 
 /// Regex-free shape check: does `cleaned` look like an X post permalink
@@ -247,5 +295,44 @@ mod tests {
         assert!(!is_x_post_path("https://x.com/settings"));
         // status marker but no numeric id (usernames named "status")
         assert!(!is_x_post_path("https://x.com/someone/status/abc"));
+    }
+
+    #[test]
+    fn hackernews_post_path_accepts_item_query_pair() {
+        // Canonical form: /item with `?id=<digits>`.
+        assert!(is_hackernews_post_path("https://news.ycombinator.com/item?id=1"));
+        assert!(is_hackernews_post_path("https://news.ycombinator.com/item?id=12345"));
+        assert!(is_hackernews_post_path(
+            "https://news.ycombinator.com/item?id=42380912"
+        ));
+    }
+
+    #[test]
+    fn hackernews_post_path_rejects_listings_logins_and_bad_shapes() {
+        // Homepage and section listings.
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/"));
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/saved?id=koosha"));
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/news"));
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/best"));
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/show"));
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/ask"));
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/newcomments"));
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/submit"));
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/login"));
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/about"));
+        // Bulk export shape — must not match.
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/items"));
+        // Thread aggregator shape — must not match.
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/threads?id=12345"));
+        // /item without any query — drop.
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/item"));
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/item?"));
+        // /item?id=non-numeric — drop.
+        assert!(!is_hackernews_post_path("https://news.ycombinator.com/item?id=abc"));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/item?id=12abc"
+        ));
+        // Wrong origin — drop.
+        assert!(!is_hackernews_post_path("https://example.com/item?id=12345"));
     }
 }
