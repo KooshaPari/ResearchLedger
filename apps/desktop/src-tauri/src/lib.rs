@@ -8,6 +8,7 @@ mod linkedin;
 mod provider_html;
 mod rag;
 mod reddit;
+mod safe_paths;
 mod storage;
 mod x;
 
@@ -16,7 +17,7 @@ mod commands {
 
     use super::{
         distill, embeddings::OllamaEmbedder, github, github::GithubClient, hackernews, linkedin,
-        rag, storage, VaultStatus,
+        rag, reddit, safe_paths, storage, x, VaultStatus,
     };
     use serde::Serialize;
     use tauri::Manager;
@@ -393,6 +394,315 @@ mod commands {
         import_hackernews_capture(vault_path, output.to_string_lossy().into_owned())
     }
 
+    /// Slugify a captured URL into a filesystem-safe document id fragment.
+    /// Strips the `https?://` scheme, then replaces `/`, `?`, and any
+    /// remaining `:` characters with `-`. This guarantees the id never
+    /// contains a path separator (which would otherwise let a malicious
+    /// capture file escape the vault's per-source folder).
+    fn slug_from_url(url: &str) -> String {
+        let mut slug = url
+            .trim_start_matches("https://")
+            .trim_start_matches("http://")
+            .replace(['/', '?', ':', '#'], "-");
+        while slug.contains("--") {
+            slug = slug.replace("--", "-");
+        }
+        slug = slug.trim_matches('-').to_string();
+        if slug.is_empty() {
+            return "post".into();
+        }
+        slug
+    }
+
+    fn render_reddit_markdown(post: &reddit::RedditSavedPost) -> String {
+        let timestamp = chrono::Utc::now().to_rfc3339();
+        let subreddit = post.subreddit.clone().unwrap_or_default();
+        format!(
+            "---\ntype: Reddit Post\nid: reddit:{slug}\ntitle: {title}\ndescription: Captured Reddit saved post\nresource: {url}\ntags: [reddit, saved]\ntimestamp: {timestamp}\nsource_kind: reddit\nsource_uri: {url}\nsubreddit: {subreddit}\n---\n\n{text}\n\n# Citations\n\n[1] [Reddit post]({url})\n",
+            slug = slug_from_url(&post.url),
+            title = post.title,
+            url = post.url,
+            timestamp = timestamp,
+            text = post.text,
+            subreddit = subreddit,
+        )
+    }
+
+    fn render_x_markdown(post: &x::XSavedPost) -> String {
+        let timestamp = chrono::Utc::now().to_rfc3339();
+        format!(
+            "---\ntype: X Bookmark\nid: x:{slug}\ntitle: X bookmark by {author}\ndescription: Captured X bookmark\nresource: {url}\ntags: [x, bookmark]\ntimestamp: {timestamp}\nsource_kind: x\nsource_uri: {url}\nauthor: {author}\n---\n\n{text}\n\n# Citations\n\n[1] [X post]({url})\n",
+            slug = slug_from_url(&post.url),
+            url = post.url,
+            timestamp = timestamp,
+            text = post.text,
+            author = post.author,
+        )
+    }
+
+    #[tauri::command]
+    pub fn import_reddit_html(
+        vault_path: String,
+        html_path: String,
+    ) -> Result<ImportSummary, String> {
+        let html = std::fs::read_to_string(&html_path).map_err(|error| error.to_string())?;
+        let posts = reddit::parse_saved_html(&html);
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for post in posts {
+            let slug = slug_from_url(&post.url);
+            let content = render_reddit_markdown(&post);
+            let document = storage::SourceDocument {
+                id: format!("reddit:{slug}"),
+                relative_path: format!("sources/reddit/{slug}.md"),
+                title: post.title.clone(),
+                source_kind: "reddit".into(),
+                source_uri: Some(post.url.clone()),
+                content,
+                captured_at: chrono::Utc::now().to_rfc3339(),
+            };
+            match storage::upsert_document(&mut connection, &root, &document)
+                .map_err(|error| error.to_string())?
+            {
+                storage::UpsertResult::Created => summary.created += 1,
+                storage::UpsertResult::Updated => summary.updated += 1,
+                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+            }
+        }
+        Ok(summary)
+    }
+
+    #[tauri::command]
+    pub fn import_reddit_capture(
+        vault_path: String,
+        capture_path: String,
+    ) -> Result<ImportSummary, String> {
+        let json = std::fs::read_to_string(&capture_path).map_err(|error| error.to_string())?;
+        let posts = reddit::parse_capture_json(&json).map_err(|error| error.to_string())?;
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for post in posts {
+            let slug = slug_from_url(&post.url);
+            let content = render_reddit_markdown(&post);
+            let document = storage::SourceDocument {
+                id: format!("reddit:{slug}"),
+                relative_path: format!("sources/reddit/{slug}.md"),
+                title: post.title.clone(),
+                source_kind: "reddit".into(),
+                source_uri: Some(post.url.clone()),
+                content,
+                captured_at: chrono::Utc::now().to_rfc3339(),
+            };
+            match storage::upsert_document(&mut connection, &root, &document)
+                .map_err(|error| error.to_string())?
+            {
+                storage::UpsertResult::Created => summary.created += 1,
+                storage::UpsertResult::Updated => summary.updated += 1,
+                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+            }
+        }
+        Ok(summary)
+    }
+
+    #[tauri::command]
+    pub async fn capture_reddit_browser(
+        app: tauri::AppHandle,
+        vault_path: String,
+        activity_url: Option<String>,
+        profile_path: Option<String>,
+    ) -> Result<ImportSummary, String> {
+        // Validate the URL is on the Reddit allow-list before shelling out so a
+        // crafted activity_url can't redirect the user's authenticated profile
+        // to a different host.
+        if let Some(url) = activity_url.as_deref().filter(|value| !value.trim().is_empty()) {
+            safe_paths::ensure_safe_provider_url(url, &["reddit.com", "www.reddit.com", "old.reddit.com"])
+                .map_err(|error| error.to_string())?;
+        }
+        let output = std::path::PathBuf::from(&vault_path)
+            .join(".researchledger")
+            .join("reddit-capture.json");
+        let resource_script = app
+            .path()
+            .resource_dir()
+            .map_err(|error| error.to_string())?
+            .join("scripts/reddit_capture.mjs");
+        let script = if resource_script.exists() {
+            resource_script
+        } else {
+            std::env::current_dir()
+                .map_err(|error| error.to_string())?
+                .join("scripts/reddit_capture.mjs")
+        };
+        let mut command = tokio::process::Command::new("node");
+        command.arg(script).arg("--output").arg(&output);
+        if let Ok(resource_dir) = app.path().resource_dir() {
+            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
+            if packaged_module.exists() {
+                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
+            }
+        }
+        if let Some(profile) = profile_path
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
+            let safe_profile = safe_paths::ensure_safe_command_arg(profile, "profile")
+                .map_err(|error| error.to_string())?;
+            command.arg("--profile").arg(safe_profile);
+        }
+        if let Some(url) = activity_url.filter(|value| !value.trim().is_empty()) {
+            command.arg("--url").arg(url);
+        }
+        let result = command.output().await.map_err(|error| error.to_string())?;
+        if !result.status.success() {
+            return Err(String::from_utf8_lossy(&result.stderr).trim().to_string());
+        }
+        import_reddit_capture(vault_path, output.to_string_lossy().into_owned())
+    }
+
+    #[tauri::command]
+    pub fn import_x_html(
+        vault_path: String,
+        html_path: String,
+    ) -> Result<ImportSummary, String> {
+        let html = std::fs::read_to_string(&html_path).map_err(|error| error.to_string())?;
+        let posts = x::parse_bookmarks_html(&html);
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for post in posts {
+            let slug = slug_from_url(&post.url);
+            let content = render_x_markdown(&post);
+            let document = storage::SourceDocument {
+                id: format!("x:{slug}"),
+                relative_path: format!("sources/x/{slug}.md"),
+                title: format!("X bookmark by {}", post.author),
+                source_kind: "x".into(),
+                source_uri: Some(post.url.clone()),
+                content,
+                captured_at: chrono::Utc::now().to_rfc3339(),
+            };
+            match storage::upsert_document(&mut connection, &root, &document)
+                .map_err(|error| error.to_string())?
+            {
+                storage::UpsertResult::Created => summary.created += 1,
+                storage::UpsertResult::Updated => summary.updated += 1,
+                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+            }
+        }
+        Ok(summary)
+    }
+
+    #[tauri::command]
+    pub fn import_x_capture(
+        vault_path: String,
+        capture_path: String,
+    ) -> Result<ImportSummary, String> {
+        let json = std::fs::read_to_string(&capture_path).map_err(|error| error.to_string())?;
+        let posts = x::parse_capture_json(&json).map_err(|error| error.to_string())?;
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for post in posts {
+            let slug = slug_from_url(&post.url);
+            let content = render_x_markdown(&post);
+            let document = storage::SourceDocument {
+                id: format!("x:{slug}"),
+                relative_path: format!("sources/x/{slug}.md"),
+                title: format!("X bookmark by {}", post.author),
+                source_kind: "x".into(),
+                source_uri: Some(post.url.clone()),
+                content,
+                captured_at: chrono::Utc::now().to_rfc3339(),
+            };
+            match storage::upsert_document(&mut connection, &root, &document)
+                .map_err(|error| error.to_string())?
+            {
+                storage::UpsertResult::Created => summary.created += 1,
+                storage::UpsertResult::Updated => summary.updated += 1,
+                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+            }
+        }
+        Ok(summary)
+    }
+
+    #[tauri::command]
+    pub async fn capture_x_browser(
+        app: tauri::AppHandle,
+        vault_path: String,
+        activity_url: Option<String>,
+        profile_path: Option<String>,
+    ) -> Result<ImportSummary, String> {
+        if let Some(url) = activity_url.as_deref().filter(|value| !value.trim().is_empty()) {
+            safe_paths::ensure_safe_provider_url(url, &["x.com", "twitter.com"])
+                .map_err(|error| error.to_string())?;
+        }
+        let output = std::path::PathBuf::from(&vault_path)
+            .join(".researchledger")
+            .join("x-capture.json");
+        let resource_script = app
+            .path()
+            .resource_dir()
+            .map_err(|error| error.to_string())?
+            .join("scripts/x_capture.mjs");
+        let script = if resource_script.exists() {
+            resource_script
+        } else {
+            std::env::current_dir()
+                .map_err(|error| error.to_string())?
+                .join("scripts/x_capture.mjs")
+        };
+        let mut command = tokio::process::Command::new("node");
+        command.arg(script).arg("--output").arg(&output);
+        if let Ok(resource_dir) = app.path().resource_dir() {
+            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
+            if packaged_module.exists() {
+                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
+            }
+        }
+        if let Some(profile) = profile_path
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
+            let safe_profile = safe_paths::ensure_safe_command_arg(profile, "profile")
+                .map_err(|error| error.to_string())?;
+            command.arg("--profile").arg(safe_profile);
+        }
+        if let Some(url) = activity_url.filter(|value| !value.trim().is_empty()) {
+            command.arg("--url").arg(url);
+        }
+        let result = command.output().await.map_err(|error| error.to_string())?;
+        if !result.status.success() {
+            return Err(String::from_utf8_lossy(&result.stderr).trim().to_string());
+        }
+        import_x_capture(vault_path, output.to_string_lossy().into_owned())
+    }
+
     #[tauri::command]
     pub fn search_documents(
         vault_path: String,
@@ -573,6 +883,12 @@ pub fn run() {
             commands::import_hackernews_html,
             commands::import_hackernews_capture,
             commands::capture_hackernews_browser,
+            commands::import_reddit_html,
+            commands::import_reddit_capture,
+            commands::capture_reddit_browser,
+            commands::import_x_html,
+            commands::import_x_capture,
+            commands::capture_x_browser,
             commands::search_documents,
             commands::list_document_summaries,
             commands::list_collections,
