@@ -35,6 +35,12 @@ pub struct SearchResult {
     pub snippet: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReferenceJob {
+    pub source_document_id: String,
+    pub target_url: String,
+}
+
 pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     fs::create_dir_all(root).map_err(|_| rusqlite::Error::InvalidPath(root.to_path_buf()))?;
     let database = root.join(".researchledger.db");
@@ -156,6 +162,10 @@ pub fn upsert_document(
             "INSERT OR IGNORE INTO document_links (source_document_id, target_url, discovered_at) VALUES (?1, ?2, ?3)",
             params![document.id, crate::enrichment::canonical_url(&url), document.captured_at],
         )?;
+        tx.execute(
+            "INSERT OR IGNORE INTO reference_fetches (source_document_id, target_url, status) VALUES (?1, ?2, 'pending')",
+            params![document.id, crate::enrichment::canonical_url(&url)],
+        )?;
     }
     tx.execute(
         "DELETE FROM provenance WHERE document_id = ?1",
@@ -223,6 +233,71 @@ pub fn pending_enrichment_ids(connection: &Connection, limit: u32) -> SqlResult<
     )?;
     let rows = statement.query_map(params![limit], |row| row.get(0))?;
     rows.collect()
+}
+
+/// Backfill fetch rows for links created before the reference worker existed,
+/// then return a deterministic, bounded batch for the worker to process.
+pub fn pending_reference_jobs(connection: &Connection, limit: u32) -> SqlResult<Vec<ReferenceJob>> {
+    connection.execute(
+        "INSERT OR IGNORE INTO reference_fetches (source_document_id, target_url, status)
+         SELECT source_document_id, target_url, 'pending' FROM document_links",
+        [],
+    )?;
+    let mut statement = connection.prepare(
+        "SELECT source_document_id, target_url FROM reference_fetches
+         WHERE status = 'pending' ORDER BY id LIMIT ?1",
+    )?;
+    let rows = statement.query_map(params![limit], |row| {
+        Ok(ReferenceJob {
+            source_document_id: row.get(0)?,
+            target_url: row.get(1)?,
+        })
+    })?;
+    rows.collect()
+}
+
+pub fn mark_reference_fetch_started(
+    connection: &Connection,
+    job: &ReferenceJob,
+) -> SqlResult<()> {
+    connection.execute(
+        "UPDATE reference_fetches SET status = 'running', error = NULL
+         WHERE source_document_id = ?1 AND target_url = ?2",
+        params![job.source_document_id, job.target_url],
+    )?;
+    Ok(())
+}
+
+pub fn record_reference_fetch(
+    connection: &Connection,
+    job: &ReferenceJob,
+    status: &str,
+    artifact_path: Option<&str>,
+    content_type: Option<&str>,
+    http_status: Option<u16>,
+    byte_count: Option<usize>,
+    content_hash: Option<&str>,
+    fetched_at: Option<&str>,
+    error: Option<&str>,
+) -> SqlResult<()> {
+    connection.execute(
+        "UPDATE reference_fetches SET status = ?3, artifact_path = ?4, content_type = ?5,
+         http_status = ?6, byte_count = ?7, content_hash = ?8, fetched_at = ?9, error = ?10
+         WHERE source_document_id = ?1 AND target_url = ?2",
+        params![
+            job.source_document_id,
+            job.target_url,
+            status,
+            artifact_path,
+            content_type,
+            http_status.map(i64::from),
+            byte_count.map(|value| value as i64),
+            content_hash,
+            fetched_at,
+            error,
+        ],
+    )?;
+    Ok(())
 }
 
 pub fn search(connection: &Connection, query: &str, limit: u32) -> SqlResult<Vec<SearchResult>> {
