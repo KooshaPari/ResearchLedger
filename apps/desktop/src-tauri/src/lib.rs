@@ -941,6 +941,16 @@ mod tests {
             UpsertResult::Unchanged
         );
         assert_eq!(document_count(&db).unwrap(), 1);
+        let provenance: (String, String, String) = db
+            .query_row(
+                "SELECT source_uri, locator, quote FROM provenance WHERE document_id = ?1",
+                [&document.id],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            )
+            .unwrap();
+        assert_eq!(provenance.0, "https://github.com/octo/hello");
+        assert_eq!(provenance.1, document.relative_path);
+        assert_eq!(provenance.2, "hello");
         let results = search(&db, "hello", 10).unwrap();
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].document_id, "github:octo/hello");

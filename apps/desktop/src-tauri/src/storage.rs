@@ -94,6 +94,27 @@ pub fn upsert_document(
         )
         .optional()?;
     if previous.as_deref() == Some(hash.as_str()) {
+        if let Some(source_uri) = document.source_uri.as_deref() {
+            let quote = document
+                .content
+                .lines()
+                .map(str::trim)
+                .find(|line| !line.is_empty() && !line.starts_with("---"))
+                .unwrap_or("")
+                .trim_start_matches('#')
+                .trim()
+                .chars()
+                .take(280)
+                .collect::<String>();
+            connection.execute(
+                "DELETE FROM provenance WHERE document_id = ?1",
+                params![document.id],
+            )?;
+            connection.execute(
+                "INSERT INTO provenance(document_id, source_uri, locator, quote, captured_at) VALUES(?1, ?2, ?3, ?4, ?5)",
+                params![document.id, source_uri, document.relative_path, quote, document.captured_at],
+            )?;
+        }
         return Ok(UpsertResult::Unchanged);
     }
 
@@ -134,6 +155,27 @@ pub fn upsert_document(
         tx.execute(
             "INSERT OR IGNORE INTO document_links (source_document_id, target_url, discovered_at) VALUES (?1, ?2, ?3)",
             params![document.id, crate::enrichment::canonical_url(&url), document.captured_at],
+        )?;
+    }
+    tx.execute(
+        "DELETE FROM provenance WHERE document_id = ?1",
+        params![document.id],
+    )?;
+    if let Some(source_uri) = document.source_uri.as_deref() {
+        let quote = document
+            .content
+            .lines()
+            .map(str::trim)
+            .find(|line| !line.is_empty() && !line.starts_with("---"))
+            .unwrap_or("")
+            .trim_start_matches('#')
+            .trim()
+            .chars()
+            .take(280)
+            .collect::<String>();
+        tx.execute(
+            "INSERT INTO provenance(document_id, source_uri, locator, quote, captured_at) VALUES(?1, ?2, ?3, ?4, ?5)",
+            params![document.id, source_uri, document.relative_path, quote, document.captured_at],
         )?;
     }
     if document.source_kind != "distillation" {
