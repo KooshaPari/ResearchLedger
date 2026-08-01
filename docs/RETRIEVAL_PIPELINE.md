@@ -8,18 +8,22 @@ The Markdown interchange target is [Open Knowledge Format (OKF) v0.1](https://gi
 
 ## Deterministic stages
 
+Stages 1-3 are implemented in the current desktop build. Stages 4-8 are the target
+architecture and remain release gates; the scorecard must not treat them as shipped.
+
 1. Capture the source payload and immutable provenance.
 2. Normalize Markdown, canonical URLs, titles, and timestamps.
 3. Extract outbound references into `document_links`, deduplicated by canonical URL.
-4. Schedule bounded reference fetches with per-domain limits, robots/terms checks, and
-   content-size/time budgets.
-5. Distill each fetched source into claims, definitions, alternatives, and open questions;
-   retain the raw source and cite every distilled claim.
-6. Index chunks in lexical FTS5/BM25 and, when enabled, a vector backend.
-7. Retrieve with reciprocal-rank fusion across lexical and vector results, then rerank with
-   a configured local or remote model.
-8. Build answer context with stable citation IDs, source URLs, capture timestamps, and
-   confidence/coverage metadata.
+4. [Planned] Schedule bounded reference fetches with per-domain limits, robots/terms checks,
+   and content-size/time budgets.
+5. [Planned] Distill each fetched source into claims, definitions, alternatives, and open
+   questions; retain the raw source and cite every distilled claim.
+6. [Partial] Index chunks in lexical FTS5/BM25 and, when enabled, a vector backend; current
+   embeddings still use one chunk per document.
+7. [Partial] Retrieve with reciprocal-rank fusion across lexical and vector results; a
+   configured reranker and model-version invalidation are still pending.
+8. [Partial] Build answer context with stable citation IDs, source URLs, and capture
+   timestamps; confidence/coverage metadata is pending.
 
 ## Storage choices
 
