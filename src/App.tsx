@@ -7,15 +7,29 @@ function formatCommandError(command: string, error: unknown): string {
   const raw = String(error ?? "");
   const stripped = raw.replace(/\x1b\[[0-9;]*m/g, "");
   const safe = stripped.replace(/\/Users\/[^\s'"]+/g, "[path]").replace(/\/home\/[^\s'"]+/g, "[path]");
-  if (/Executable doesn'?t exist/i.test(safe)) return `Could not run ${command}: Playwright Chromium not installed. Run npx playwright install chromium, then retry.`;
-  if (/AUTH[_ ]REQUIRED/i.test(safe)) return `Could not run ${command}: not signed in.`;
-  return `Could not run ${command}: ${safe}`;
+  if (/Executable doesn'?t exist|ERR_MODULE_NOT_FOUND|Cannot find package ['"]?playwright|chromium.*not installed/i.test(safe)) {
+    return `Could not run ${command}: Playwright Chromium is not installed. Install the bundled browser runtime, then retry.`;
+  }
+  if (/AUTH[_ ]REQUIRED|not authenticated|sign(?:ed)? in|login required|login page/i.test(safe)) {
+    return `Could not run ${command}: this provider needs an authenticated browser profile. Sign in, then retry.`;
+  }
+  if (/timed? ?out|timeout|deadline/i.test(safe)) {
+    return `Could not run ${command}: the provider timed out. Check your connection and retry.`;
+  }
+  if (/rate limit|too many requests/i.test(safe)) {
+    return `Could not run ${command}: the provider rate-limited this request. Wait a moment and retry.`;
+  }
+  if (/ENOENT|no such file|cannot find the path/i.test(safe)) {
+    return `Could not run ${command}: the selected capture file or profile path could not be found.`;
+  }
+  return `Could not run ${command}: ${safe || "unknown provider error"}`;
 }
 
 type VaultStatus = { selected: boolean; path: string | null; documentCount: number };
 type PrimaryView = "inbox" | "library" | "collections" | "graph";
 type Result = { documentId: string; title: string; snippet: string; sourceUri: string | null };
 type ImportResult = { created: number; updated: number; unchanged: number; failed: number };
+type DeviceAuthorization = { deviceCode: string; userCode: string; verificationUri: string; expiresIn: number; interval: number };
 const views: Array<{ id: PrimaryView; label: string; hint: string }> = [
   { id: "inbox", label: "Inbox", hint: "Capture, review, and move sources forward" },
   { id: "library", label: "Library", hint: "Browse the indexed research corpus" },
@@ -57,7 +71,30 @@ export function App() {
 }
 
 function Inbox({ vaultPath, status, setVaultPath, chooseVault, run, message, setMessage }: { vaultPath: string; status: VaultStatus | null; setVaultPath: (path: string) => void; chooseVault: () => Promise<void>; run: (command: string, args: Record<string, unknown>, success: (value: any) => string) => Promise<void>; message: string; setMessage: (value: string) => void }) {
-  const [token, setToken] = useState(""); const [hackernewsProfile, setHackernewsProfile] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.hackernewsProfile") ?? ""); const [hackernewsUsername, setHackernewsUsername] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.hackernewsUsername") ?? ""); const [linkedinPath, setLinkedinPath] = useState(""); const [linkedinProfile, setLinkedinProfile] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.linkedinProfile") ?? ""); const [githubClientId, setGithubClientId] = useState(""); const [deviceAuth, setDeviceAuth] = useState<any>(null); const [query, setQuery] = useState(""); const [results, setResults] = useState<Result[]>([]); const [linkedinState, setLinkedinState] = useState<"needs-auth" | "ready" | "capturing">("needs-auth"); const [hnState, setHnState] = useState<"needs-auth" | "ready" | "capturing">("needs-auth"); const [redditState, setRedditState] = useState<"needs-auth" | "ready" | "capturing">("needs-auth"); const [xState, setXState] = useState<"needs-auth" | "ready" | "capturing">("needs-auth"); const [redditPath, setRedditPath] = useState(""); const [redditProfile, setRedditProfile] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.redditProfile") ?? ""); const [redditUsername, setRedditUsername] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.redditUsername") ?? ""); const [xPath, setXPath] = useState(""); const [xProfile, setXProfile] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.xProfile") ?? "");
+  const [token, setToken] = useState(""); const [hackernewsProfile, setHackernewsProfile] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.hackernewsProfile") ?? ""); const [hackernewsUsername, setHackernewsUsername] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.hackernewsUsername") ?? ""); const [linkedinPath, setLinkedinPath] = useState(""); const [linkedinProfile, setLinkedinProfile] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.linkedinProfile") ?? ""); const [githubClientId, setGithubClientId] = useState(""); const [deviceAuth, setDeviceAuth] = useState<DeviceAuthorization | null>(null); const [githubState, setGithubState] = useState<"needs-config" | "waiting" | "ready">("needs-config"); const [query, setQuery] = useState(""); const [results, setResults] = useState<Result[]>([]); const [linkedinState, setLinkedinState] = useState<"needs-auth" | "ready" | "capturing">("needs-auth"); const [hnState, setHnState] = useState<"needs-auth" | "ready" | "capturing">("needs-auth"); const [redditState, setRedditState] = useState<"needs-auth" | "ready" | "capturing">("needs-auth"); const [xState, setXState] = useState<"needs-auth" | "ready" | "capturing">("needs-auth"); const [redditPath, setRedditPath] = useState(""); const [redditProfile, setRedditProfile] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.redditProfile") ?? ""); const [redditUsername, setRedditUsername] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.redditUsername") ?? ""); const [xPath, setXPath] = useState(""); const [xProfile, setXProfile] = useState(() => typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.xProfile") ?? "");
+  useEffect(() => {
+    if (!deviceAuth || !githubClientId.trim()) return;
+    let cancelled = false;
+    setGithubState("waiting");
+    void invoke<string>("github_device_poll", {
+      clientId: githubClientId.trim(),
+      deviceCode: deviceAuth.deviceCode,
+      interval: deviceAuth.interval,
+      expiresIn: deviceAuth.expiresIn,
+    }).then((githubToken) => {
+      if (cancelled) return;
+      setToken(githubToken);
+      setGithubState("ready");
+      setDeviceAuth(null);
+      setMessage("GitHub connected. Import starred repositories when ready.");
+    }).catch((error) => {
+      if (cancelled) return;
+      setGithubState("needs-config");
+      setDeviceAuth(null);
+      setMessage(formatCommandError("github_device_poll", error));
+    });
+    return () => { cancelled = true; };
+  }, [deviceAuth, githubClientId, setMessage]);
   const captureHackerNews = async () => { if (hackernewsProfile && typeof localStorage !== "undefined") localStorage.setItem("researchledger.hackernewsProfile", hackernewsProfile); const username = hackernewsUsername ? hackernewsUsername.trim() : ""; if (!username) { setHnState("needs-auth"); setMessage("Sign in to news.ycombinator.com first, then enter your Hacker News username."); return; } setHnState("capturing"); const url = "https://news.ycombinator.com/saved?id=" + encodeURIComponent(username); try { const value = await invoke("capture_hackernews_browser", { vaultPath, activityUrl: url, profilePath: hackernewsProfile || null } as any); setMessage("Captured " + ((value as any).created + (value as any).updated) + " Hacker News stories; " + (value as any).unchanged + " unchanged."); } catch (error) { setMessage(formatCommandError("capture_hackernews_browser", error)); } setHnState("ready"); }; const captureLinkedIn = async () => { if (linkedinProfile && typeof localStorage !== "undefined") localStorage.setItem("researchledger.linkedinProfile", linkedinProfile); setLinkedinState("capturing"); await run("capture_linkedin_browser", { vaultPath, activityUrl: null, profilePath: linkedinProfile || null }, (value: ImportResult) => `Captured ${value.created + value.updated} LinkedIn posts; ${value.unchanged} unchanged.`); setLinkedinState("ready"); }; const captureReddit = async () => { if (redditProfile) localStorage.setItem("researchledger.redditProfile", redditProfile); const username = redditUsername.trim(); if (!username) { setRedditState("needs-auth"); setMessage("Enter your Reddit username first."); return; } setRedditState("capturing"); try { const value = await invoke("capture_reddit_browser", { vaultPath, activityUrl: `https://www.reddit.com/user/${encodeURIComponent(username)}/saved`, profilePath: redditProfile || null } as any); setMessage("Captured " + ((value as any).created + (value as any).updated) + " Reddit posts; " + (value as any).unchanged + " unchanged."); } catch (error) { setMessage(formatCommandError("capture_reddit_browser", error)); } setRedditState("ready"); }; const captureX = async () => { if (xProfile) localStorage.setItem("researchledger.xProfile", xProfile); setXState("capturing"); try { const value = await invoke("capture_x_browser", { vaultPath, activityUrl: "https://x.com/i/bookmarks", profilePath: xProfile || null } as any); setMessage("Captured " + ((value as any).created + (value as any).updated) + " X bookmarks; " + (value as any).unchanged + " unchanged."); } catch (error) { setMessage(formatCommandError("capture_x_browser", error)); } setXState("ready"); };
   const search = async () => { if (!vaultPath || !query) return; try { setResults(await invoke<Result[]>("search_documents", { vaultPath, query, limit: 20 })); } catch { setResults([]); } };
   return <>
@@ -68,7 +105,7 @@ function Inbox({ vaultPath, status, setVaultPath, chooseVault, run, message, set
     <HackerNewsPanel vaultPath={vaultPath} setMessage={setMessage} />
     <section className="vault-strip"><div><p className="eyebrow">VAULT</p><strong>{vaultPath || "No local vault selected"}</strong><span>{status ? `${status.documentCount} documents indexed` : "Choose a Markdown vault to begin"}</span></div><button className="button secondary" type="button" onClick={() => void chooseVault()}>Choose vault</button><input aria-label="Vault path" placeholder="/Users/you/ResearchVault" title={vaultPath || "No vault selected"} value={vaultPath} onChange={(event) => setVaultPath(event.target.value)} /></section>
     <section className="search-panel" aria-label="Search"><input aria-label="Search research" placeholder="Search your ledger…" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} /><button className="button secondary" type="button" onClick={() => void search()}>Search</button>{results.length > 0 && <div className="results">{results.map((result) => <article className="result" key={result.documentId}><strong>{result.title}</strong><p><HighlightedSnippet value={result.snippet} /></p></article>)}</div>}</section>
-    <section className="export-row"><input aria-label="GitHub App client ID" placeholder="GitHub App client ID (optional OAuth)" value={githubClientId} onChange={(event) => setGithubClientId(event.target.value)} /><button className="button secondary" type="button" onClick={async () => { try { setDeviceAuth(await invoke("github_device_start", { clientId: githubClientId })); setMessage("GitHub verification code ready."); } catch (error) { setMessage(String(error)); } }}>Connect GitHub</button><input aria-label="GitHub token" type="password" placeholder="GitHub token (never stored)" value={token} onChange={(event) => setToken(event.target.value)} /><button className="button secondary" type="button" onClick={() => void run("export_obsidian", { vaultPath, destination: "" }, (count: number) => `Exported ${count} Markdown documents.`)}>Export Markdown</button></section>{deviceAuth && <p className="import-message" role="status">Open {deviceAuth.verificationUri} and enter <strong>{deviceAuth.userCode}</strong>, then import starred repositories.</p>}{message && <p className="import-message" role="status">{message}</p>}
+    <section className="export-row"><input aria-label="GitHub App client ID" placeholder="GitHub App client ID (required for OAuth)" value={githubClientId} onChange={(event) => { setGithubClientId(event.target.value); if (!event.target.value.trim()) setGithubState("needs-config"); }} /><button className="button secondary" type="button" disabled={githubState === "waiting"} onClick={async () => { const clientId = githubClientId.trim(); if (!clientId) { setMessage("Enter your GitHub App client ID to start device sign-in."); setGithubState("needs-config"); return; } try { setGithubState("waiting"); setDeviceAuth(await invoke<DeviceAuthorization>("github_device_start", { clientId })); setMessage("GitHub verification code ready. Finish sign-in in your browser; ResearchLedger will poll automatically."); } catch (error) { setGithubState("needs-config"); setMessage(formatCommandError("github_device_start", error)); } }}>{githubState === "waiting" ? "Waiting for GitHub…" : githubState === "ready" ? "GitHub connected" : "Connect GitHub"}</button><input aria-label="GitHub token" type="password" placeholder="GitHub token (never stored)" value={token} onChange={(event) => setToken(event.target.value)} /><button className="button secondary" type="button" onClick={async () => { const destination = await open({ directory: true, multiple: false, title: "Choose Markdown export folder", defaultPath: vaultPath || undefined }); if (typeof destination !== "string") { setMessage("Markdown export canceled; no destination was selected."); return; } await run("export_obsidian", { vaultPath, destination }, (count: number) => `Exported ${count} Markdown documents to ${destination}.`); }}>Export Markdown</button></section>{deviceAuth && <p className="import-message" role="status">Open <a href={deviceAuth.verificationUri} target="_blank" rel="noreferrer">{deviceAuth.verificationUri}</a> and enter <strong>{deviceAuth.userCode}</strong>. The app will poll until GitHub approves or the code expires.</p>}{message && <p className="import-message" role="status">{message}</p>}
   </>;
 }
 

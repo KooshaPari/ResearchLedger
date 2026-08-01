@@ -24,6 +24,10 @@
   "bundle": { "active": true, "targets": "all", "icon": ["icons/researchledger.icns"], "resources": {
     "../../../scripts/linkedin_capture.mjs": "scripts/linkedin_capture.mjs",
     "../../../scripts/hackernews_capture.mjs": "scripts/hackernews_capture.mjs",
+    "../../../scripts/reddit_capture.mjs": "scripts/reddit_capture.mjs",
+    "../../../scripts/x_capture.mjs": "scripts/x_capture.mjs",
+    "../../../scripts/_capture_common.mjs": "scripts/_capture_common.mjs",
+    "../../../scripts/_path_shapes.mjs": "scripts/_path_shapes.mjs",
     "../../../node_modules/playwright": "node_modules/playwright",
     "../../../node_modules/playwright-core": "node_modules/playwright-core"
   } }
