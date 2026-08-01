@@ -22,6 +22,7 @@ pub struct RetrievalContext {
 pub struct VectorHit {
     pub document_id: String,
     pub score: f32,
+    pub result: Option<SearchResult>,
 }
 
 /// Reciprocal-rank fusion seam for a future local/cloud vector provider.
@@ -40,8 +41,11 @@ pub fn fuse_ranked(
             .0 += score;
     }
     for (rank, hit) in vector.into_iter().enumerate() {
+        let contribution = hit.score.max(0.0) / (60.0 + rank as f32 + 1.0);
         if let Some((score, _)) = scores.get_mut(&hit.document_id) {
-            *score += hit.score.max(0.0) / (60.0 + rank as f32 + 1.0);
+            *score += contribution;
+        } else if let Some(result) = hit.result {
+            scores.insert(hit.document_id, (contribution, result));
         }
     }
     let mut ranked = scores.into_values().collect::<Vec<_>>();
@@ -109,5 +113,21 @@ mod tests {
             snippet: "text".into(),
         };
         assert_eq!(fuse_ranked(vec![result], vec![], 10).len(), 1);
+    }
+
+    #[test]
+    fn vector_only_results_are_not_dropped() {
+        let result = SearchResult {
+            document_id: "vector-doc".into(),
+            title: "Vector doc".into(),
+            source_uri: None,
+            snippet: "semantic match".into(),
+        };
+        let hits = vec![VectorHit {
+            document_id: result.document_id.clone(),
+            score: 0.9,
+            result: Some(result),
+        }];
+        assert_eq!(fuse_ranked(vec![], hits, 10)[0].document_id, "vector-doc");
     }
 }

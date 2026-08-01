@@ -88,3 +88,24 @@ CREATE TABLE IF NOT EXISTS chunk_embeddings (
   vector_json TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+
+-- One durable row per discovered URL.  Raw responses live under the vault's
+-- `.researchledger/references` directory; SQLite keeps the resumable job
+-- state and the artifact fingerprint so a failed fetch never looks complete.
+CREATE TABLE IF NOT EXISTS reference_fetches (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  target_url TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  artifact_path TEXT,
+  content_type TEXT,
+  http_status INTEGER,
+  byte_count INTEGER,
+  content_hash TEXT,
+  fetched_at TEXT,
+  error TEXT,
+  UNIQUE(source_document_id, target_url)
+);
+
+CREATE INDEX IF NOT EXISTS idx_reference_fetches_status
+  ON reference_fetches(status, id);

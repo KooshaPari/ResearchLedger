@@ -753,8 +753,9 @@ mod commands {
         let vector_hits = vector_hits
             .into_iter()
             .map(|(result, score)| rag::VectorHit {
-                document_id: result.document_id,
+                document_id: result.document_id.clone(),
                 score,
+                result: Some(result),
             })
             .collect();
         Ok(rag::build_context(
