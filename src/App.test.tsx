@@ -1,10 +1,59 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
-vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
+const { invokeMock, openMock } = vi.hoisted(() => ({ invokeMock: vi.fn(), openMock: vi.fn() }));
+vi.mock("@tauri-apps/api/core", () => ({ invoke: invokeMock }));
+vi.mock("@tauri-apps/plugin-dialog", () => ({ open: openMock }));
+
+function resetTauriMocks() {
+  invokeMock.mockReset().mockResolvedValue({ selected: false, path: null, documentCount: 0 });
+  openMock.mockReset().mockResolvedValue(null);
+}
+
+beforeEach(() => {
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    value: { getItem: vi.fn(() => null), setItem: vi.fn(), removeItem: vi.fn() },
+  });
+});
 
 describe("ResearchLedger shell", () => {
+  it("starts GitHub device polling after showing the verification code", async () => {
+    resetTauriMocks();
+    invokeMock.mockImplementation((command: string) => {
+      if (command === "github_device_start") {
+        return Promise.resolve({ deviceCode: "device", userCode: "ABCD-1234", verificationUri: "https://github.com/login/device", expiresIn: 600, interval: 5 });
+      }
+      if (command === "github_device_poll") return Promise.resolve("gh-token");
+      return Promise.resolve({ selected: false, path: null, documentCount: 0 });
+    });
+    render(<App />);
+    fireEvent.change(screen.getByRole("textbox", { name: "GitHub App client ID" }), { target: { value: "client-id" } });
+    fireEvent.click(screen.getByRole("button", { name: "Connect GitHub" }));
+    expect(await screen.findByText("ABCD-1234")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: "GitHub connected" })).toBeInTheDocument());
+    expect(invokeMock).toHaveBeenCalledWith("github_device_poll", expect.objectContaining({ clientId: "client-id", deviceCode: "device" }));
+  });
+
+  it("requires a GitHub client id instead of issuing a broken OAuth request", () => {
+    resetTauriMocks();
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Connect GitHub" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Enter your GitHub App client ID");
+    expect(invokeMock).not.toHaveBeenCalledWith("github_device_start", expect.anything());
+  });
+
+  it("uses a directory picker before exporting Markdown", async () => {
+    resetTauriMocks();
+    openMock.mockResolvedValue("/tmp/researchledger-export");
+    render(<App />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Vault path" }), { target: { value: "/tmp/research-vault" } });
+    fireEvent.click(screen.getByRole("button", { name: "Export Markdown" }));
+    await waitFor(() => expect(invokeMock).toHaveBeenCalledWith("export_obsidian", { vaultPath: "/tmp/research-vault", destination: "/tmp/researchledger-export" }));
+    expect(openMock).toHaveBeenCalledWith(expect.objectContaining({ directory: true, title: "Choose Markdown export folder" }));
+  });
+
   it("shows the local-first vault setup", () => {
     render(<App />);
     expect(screen.getByRole("heading", { name: "ResearchLedger" })).toBeInTheDocument();
