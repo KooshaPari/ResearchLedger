@@ -1,4 +1,5 @@
 use serde::Serialize;
+mod chunking;
 mod distill;
 mod embeddings;
 mod enrichment;
@@ -8,6 +9,7 @@ mod linkedin;
 mod provider_html;
 mod rag;
 mod reddit;
+mod reference_fetch;
 mod safe_paths;
 mod storage;
 mod x;
@@ -17,9 +19,10 @@ mod commands {
 
     use super::{
         distill, embeddings::OllamaEmbedder, github, github::GithubClient, hackernews, linkedin,
-        rag, reddit, safe_paths, storage, x, VaultStatus,
+        rag, reddit, reference_fetch, safe_paths, storage, x, VaultStatus,
     };
     use serde::Serialize;
+    use sha2::{Digest, Sha256};
     use tauri::Manager;
 
     #[derive(Debug, Serialize)]
@@ -528,9 +531,15 @@ mod commands {
         // Validate the URL is on the Reddit allow-list before shelling out so a
         // crafted activity_url can't redirect the user's authenticated profile
         // to a different host.
-        if let Some(url) = activity_url.as_deref().filter(|value| !value.trim().is_empty()) {
-            safe_paths::ensure_safe_provider_url(url, &["reddit.com", "www.reddit.com", "old.reddit.com"])
-                .map_err(|error| error.to_string())?;
+        if let Some(url) = activity_url
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
+            safe_paths::ensure_safe_provider_url(
+                url,
+                &["reddit.com", "www.reddit.com", "old.reddit.com"],
+            )
+            .map_err(|error| error.to_string())?;
         }
         let output = std::path::PathBuf::from(&vault_path)
             .join(".researchledger")
@@ -574,10 +583,7 @@ mod commands {
     }
 
     #[tauri::command]
-    pub fn import_x_html(
-        vault_path: String,
-        html_path: String,
-    ) -> Result<ImportSummary, String> {
+    pub fn import_x_html(vault_path: String, html_path: String) -> Result<ImportSummary, String> {
         let html = std::fs::read_to_string(&html_path).map_err(|error| error.to_string())?;
         let posts = x::parse_bookmarks_html(&html);
         let root = std::path::PathBuf::from(vault_path);
@@ -658,7 +664,10 @@ mod commands {
         activity_url: Option<String>,
         profile_path: Option<String>,
     ) -> Result<ImportSummary, String> {
-        if let Some(url) = activity_url.as_deref().filter(|value| !value.trim().is_empty()) {
+        if let Some(url) = activity_url
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
             safe_paths::ensure_safe_provider_url(url, &["x.com", "twitter.com"])
                 .map_err(|error| error.to_string())?;
         }
@@ -758,10 +767,8 @@ mod commands {
                 result: Some(result),
             })
             .collect();
-        Ok(rag::build_context(
-            &query,
-            rag::fuse_ranked(lexical, vector_hits, limit as usize),
-        ))
+        let fused = rag::fuse_ranked(lexical, vector_hits, limit as usize);
+        Ok(rag::build_context(&query, rag::rerank(&query, fused)))
     }
 
     #[tauri::command]
@@ -832,6 +839,149 @@ mod commands {
     }
 
     #[tauri::command]
+    pub async fn fetch_pending_references(
+        vault_path: String,
+        limit: Option<u32>,
+    ) -> Result<ImportSummary, String> {
+        let root = std::path::PathBuf::from(&vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let jobs = storage::pending_reference_jobs(&connection, limit.unwrap_or(10).min(25))
+            .map_err(|error| error.to_string())?;
+        drop(connection);
+        let client = reference_fetch::client().map_err(|error| error.to_string())?;
+        let mut domain_budget = reference_fetch::DomainConcurrency::new(2);
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for job in jobs {
+            if !domain_budget.try_acquire(&job.target_url) {
+                continue;
+            }
+            let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+            let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+            storage::mark_reference_fetch_started(&connection, &job)
+                .map_err(|error| error.to_string())?;
+            drop(connection);
+
+            let fetched_result = reference_fetch::fetch_with_retry(&client, &job.target_url).await;
+            domain_budget.release(&job.target_url);
+            match fetched_result {
+                Ok(fetched) => {
+                    let result = reference_fetch::write_artifact(&root, &fetched);
+                    match result {
+                        Ok(_) => {
+                            let reference_document = storage::SourceDocument {
+                                id: format!("reference:{}", fetched.content_hash),
+                                relative_path: format!(
+                                    "sources/references/{}.md",
+                                    fetched.content_hash
+                                ),
+                                title: format!("Fetched reference: {}", job.target_url),
+                                source_kind: "reference".into(),
+                                source_uri: Some(job.target_url.clone()),
+                                content: reference_fetch::render_markdown(
+                                    &job.target_url,
+                                    &fetched,
+                                ),
+                                captured_at: chrono::Utc::now().to_rfc3339(),
+                            };
+                            let paths =
+                                storage::initialize(&root).map_err(|error| error.to_string())?;
+                            let mut connection =
+                                storage::open(&paths).map_err(|error| error.to_string())?;
+                            let upsert_result = match storage::upsert_document(
+                                &mut connection,
+                                &root,
+                                &reference_document,
+                            ) {
+                                Ok(result) => result,
+                                Err(error) => {
+                                    storage::record_reference_fetch(
+                                        &connection,
+                                        &job,
+                                        "failed",
+                                        None,
+                                        None,
+                                        None,
+                                        None,
+                                        None,
+                                        Some(&chrono::Utc::now().to_rfc3339()),
+                                        Some(&error.to_string()),
+                                    )
+                                    .map_err(|error| error.to_string())?;
+                                    summary.failed += 1;
+                                    continue;
+                                }
+                            };
+                            match upsert_result {
+                                storage::UpsertResult::Created => summary.created += 1,
+                                storage::UpsertResult::Updated => summary.updated += 1,
+                                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+                            }
+                            storage::record_reference_fetch(
+                                &connection,
+                                &job,
+                                "done",
+                                Some(&fetched.artifact_path),
+                                Some(&fetched.content_type),
+                                Some(fetched.http_status),
+                                Some(fetched.byte_count),
+                                Some(&fetched.content_hash),
+                                Some(&chrono::Utc::now().to_rfc3339()),
+                                None,
+                            )
+                            .map_err(|error| error.to_string())?;
+                        }
+                        Err(error) => {
+                            let paths =
+                                storage::initialize(&root).map_err(|error| error.to_string())?;
+                            let connection =
+                                storage::open(&paths).map_err(|error| error.to_string())?;
+                            storage::record_reference_fetch(
+                                &connection,
+                                &job,
+                                "failed",
+                                None,
+                                None,
+                                None,
+                                None,
+                                None,
+                                Some(&chrono::Utc::now().to_rfc3339()),
+                                Some(&error.to_string()),
+                            )
+                            .map_err(|error| error.to_string())?;
+                            summary.failed += 1;
+                        }
+                    }
+                }
+                Err(error) => {
+                    let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+                    let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+                    storage::record_reference_fetch(
+                        &connection,
+                        &job,
+                        "failed",
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        Some(&chrono::Utc::now().to_rfc3339()),
+                        Some(&error.to_string()),
+                    )
+                    .map_err(|error| error.to_string())?;
+                    summary.failed += 1;
+                }
+            }
+        }
+        Ok(summary)
+    }
+
+    #[tauri::command]
     pub async fn embed_document(
         vault_path: String,
         document_id: String,
@@ -840,25 +990,53 @@ mod commands {
         let root = std::path::PathBuf::from(&vault_path);
         let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
         let connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let document = storage::load_document(&connection, &root, &document_id)
+        storage::load_document(&connection, &root, &document_id)
             .map_err(|error| error.to_string())?
             .ok_or_else(|| "source document not found".to_string())?;
         let model = model.unwrap_or_else(|| "embeddinggemma".into());
-        let vectors = OllamaEmbedder::new(model.clone())
-            .embed_batch(&[document.content])
-            .await?;
-        let Some(vector) = vectors.into_iter().next() else {
-            return Err("embedding service returned no vector".into());
+        let chunks = {
+            let mut statement = connection
+                .prepare("SELECT id, text FROM chunks WHERE document_id=?1 ORDER BY ordinal")
+                .map_err(|error| error.to_string())?;
+            let rows = statement
+                .query_map(rusqlite::params![document_id], |row| {
+                    Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+                })
+                .map_err(|error| error.to_string())?;
+            rows.collect::<Result<Vec<_>, _>>()
+                .map_err(|error| error.to_string())?
         };
-        let chunk_id: i64 = connection
-            .query_row(
-                "SELECT id FROM chunks WHERE document_id=?1 ORDER BY ordinal LIMIT 1",
-                rusqlite::params![document_id],
-                |row| row.get(0),
-            )
-            .map_err(|error| error.to_string())?;
-        connection.execute("INSERT INTO chunk_embeddings (chunk_id, model, dimensions, vector_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT(chunk_id) DO UPDATE SET model=excluded.model, dimensions=excluded.dimensions, vector_json=excluded.vector_json, created_at=excluded.created_at", rusqlite::params![chunk_id, model, vector.len(), serde_json::to_string(&vector).map_err(|error| error.to_string())?, chrono::Utc::now().to_rfc3339()]).map_err(|error| error.to_string())?;
-        Ok(vector.len())
+        if chunks.is_empty() {
+            return Err("source document has no chunks".into());
+        }
+        let texts = chunks
+            .iter()
+            .map(|(_, text)| text.clone())
+            .collect::<Vec<_>>();
+        let vectors = OllamaEmbedder::new(model.clone())
+            .embed_batch(&texts)
+            .await?;
+        if vectors.len() != chunks.len() {
+            return Err("embedding service returned an incomplete batch".into());
+        }
+        for ((chunk_id, text), vector) in chunks.iter().zip(vectors.iter()) {
+            let input_hash = format!("{:x}", Sha256::digest(text.as_bytes()));
+            connection
+                .execute(
+                    "INSERT INTO chunk_embeddings (chunk_id, model, embedding_version, input_hash, dimensions, vector_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) ON CONFLICT(chunk_id) DO UPDATE SET model=excluded.model, embedding_version=excluded.embedding_version, input_hash=excluded.input_hash, dimensions=excluded.dimensions, vector_json=excluded.vector_json, created_at=excluded.created_at",
+                    rusqlite::params![
+                        chunk_id,
+                        model,
+                        "v1",
+                        input_hash,
+                        vector.len(),
+                        serde_json::to_string(vector).map_err(|error| error.to_string())?,
+                        chrono::Utc::now().to_rfc3339()
+                    ],
+                )
+                .map_err(|error| error.to_string())?;
+        }
+        Ok(vectors.len())
     }
 }
 
@@ -894,10 +1072,12 @@ pub fn run() {
             commands::list_document_summaries,
             commands::list_collections,
             commands::list_document_links,
+            commands::list_document_claims,
             commands::export_obsidian,
             commands::retrieve_context,
             commands::distill_document,
             commands::process_pending_enrichment,
+            commands::fetch_pending_references,
             commands::embed_document
         ])
         .run(tauri::generate_context!())
@@ -975,6 +1155,20 @@ mod tests {
             std::io::ErrorKind::PermissionDenied
         );
         assert!(!outside.exists());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn load_document_rejects_database_path_traversal() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let db = open(&paths).unwrap();
+        db.execute(
+            "INSERT INTO documents(id, canonical_path, title, source_kind, content_hash, captured_at, updated_at) VALUES('unsafe', '../outside.md', 'Unsafe', 'test', 'hash', 'now', 'now')",
+            [],
+        )
+        .unwrap();
+        assert!(load_document(&db, &root, "unsafe").is_err());
         let _ = std::fs::remove_dir_all(root);
     }
 }

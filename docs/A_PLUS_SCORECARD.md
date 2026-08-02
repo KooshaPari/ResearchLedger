@@ -1,8 +1,9 @@
 # ResearchLedger release scorecard
 
-Status as of 2026-08-01: **release candidate, not A+ yet**. The local-first shell and
-packaging path are healthy; the knowledge-quality pipeline still needs bounded reference
-fetching, claim-level distillation, and retrieval hardening before an A+ claim is honest.
+Status as of 2026-08-02: **release candidate, not A+ yet**. The local-first shell,
+packaging path, bounded reference worker, structured deterministic distillation, persisted
+claims/provenance UX, and chunked/versioned retrieval substrate are healthy; local
+cross-encoder quality and live-account smoke remain.
 
 | Requirement | Evidence | Status |
 |---|---|---|
@@ -11,23 +12,18 @@ fetching, claim-level distillation, and retrieval hardening before an A+ claim i
 | GitHub starred repositories and READMEs | GitHub client, device OAuth, importer tests | PASS |
 | LinkedIn, Reddit, X, and Hacker News capture | Persistent Playwright connectors, bounded scroll, JSON import, packaged resource parity | READY / live-account unverified |
 | GitHub auth and Markdown export UX | Device-flow polling, client-id validation, native destination picker; frontend suite 7/7 | PASS |
-| Provenance | `provenance` rows now write on create, update, and unchanged re-import; Rust suite 57/57 | PASS |
-| Search/RAG | SQLite FTS5 lexical search, optional Ollama vectors, rank fusion, citation context | PARTIAL: no reranker or versioned embedding invalidation |
+| Provenance | `provenance` rows and claim rows write on create, update, and unchanged re-import; fetched references become source documents; Library exposes claim citations | PASS |
+| Search/RAG | SQLite FTS5 lexical search, deterministic heading/size chunking, optional Ollama vectors with model/version/input hashes, rank fusion including vector-only hits, deterministic overlap reranker fallback | PARTIAL: no local cross-encoder reranker |
 | Frontend workflows | Workspace tabs, provider actions, vault/import/search/distill/export flows | PASS |
 | Interoperable knowledge format | OKF-style frontmatter, citations, generated index | PASS: schema coverage still needs fixture validation |
-| Enrichment | URL extraction, queued deterministic distillation, persisted provenance | PARTIAL: no bounded reference fetch or claim-level evidence graph |
-| Privacy/security | In-memory auth, provider profiles, URL/path guards, login redirect detection | PARTIAL: audit `load_document` and export symlink behavior |
-| Verification | `npm run verify:resources`, `npm test` (65/65), `npm run build`, Rust (57/57) | PASS |
+| Enrichment | URL queue with resumable status, bounded exponential retry for transient HTTP failures, host-keyed concurrency budget, public-HTTP worker with robots/private-host/redirect/byte/time guards, atomic artifacts, fetched source documents, structured deterministic claims, persisted claim rows | PASS |
+| Privacy/security | In-memory auth, provider profiles, URL/path guards, login redirect detection, load-path traversal rejection, symlink-safe Markdown export | PASS |
+| Verification | `npm run verify:resources`, `npm test` (65/65), `npm run build`, Rust (69/69), packaged parity, installed app smoke | PASS |
 
 ## Remaining A+ gates
 
-1. Add a bounded, robots/terms-aware reference fetch worker with retries and content limits.
-2. Replace the one-line deterministic summary with structured claims, definitions,
-   alternatives, open questions, and claim-to-source citations.
-3. Chunk documents for embeddings, record model/version and input hash, and fix vector-only
-   retrieval fusion coverage; add a local reranker contract.
-4. Add document-detail/provenance inspection and persisted collection/graph views.
-5. Re-run an authenticated LinkedIn capture and a GitHub starred-repository import on the
+1. Add a local cross-encoder reranker contract and persisted retrieval-quality fixtures.
+2. Re-run an authenticated LinkedIn capture and a GitHub starred-repository import on the
    installed app, recording counts and hashes without retaining credentials.
 
 Operational prerequisite: packaged browser connectors require Node.js and Playwright

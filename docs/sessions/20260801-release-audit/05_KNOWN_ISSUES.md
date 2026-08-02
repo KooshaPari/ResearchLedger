@@ -4,6 +4,12 @@
 - `cargo fmt --check` currently reports pre-existing formatting drift across provider files;
   the provenance patch itself compiles and its focused/full tests pass.
 - Frontend tests emit React `act(...)` warnings; they do not fail the suite.
-- Installed app must be rebuilt after the provenance patch before it is treated as current.
-- Reference fetch, structured claims, reranking, and persisted graph/collection views remain
-  unimplemented.
+- Installed app now matches the latest bundle (resource parity passed; executable hash is
+  recorded in the release handoff). Rebuild after future source changes remains required.
+- Reference fetch, structured claims, fetched source documents, versioned chunk embeddings,
+  and persisted Library claim/provenance inspection are implemented; the worker now has
+  bounded retry/backoff and host-keyed concurrency accounting.
+- Deterministic overlap reranking is implemented; a local cross-encoder contract and
+  retrieval-quality fixtures remain for the A+ gate.
+- Path traversal and symlink export checks are now guarded in storage; the remaining
+  security caveat is the lack of an authenticated live-provider smoke record.

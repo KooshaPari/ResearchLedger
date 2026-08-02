@@ -82,6 +82,31 @@ pub fn build_context(query: &str, results: Vec<SearchResult>) -> RetrievalContex
     }
 }
 
+/// Deterministic reranker fallback used when no local cross-encoder is configured.
+/// It rewards query-token overlap in the title and snippet while preserving the
+/// fused order for ties, so retrieval remains explainable and offline-safe.
+pub fn rerank(query: &str, results: Vec<SearchResult>) -> Vec<SearchResult> {
+    let tokens = query
+        .split_whitespace()
+        .map(|token| token.to_ascii_lowercase())
+        .filter(|token| token.len() > 2)
+        .collect::<Vec<_>>();
+    let mut ranked = results
+        .into_iter()
+        .enumerate()
+        .map(|(index, result)| {
+            let haystack = format!("{} {}", result.title, result.snippet).to_ascii_lowercase();
+            let score = tokens
+                .iter()
+                .filter(|token| haystack.contains(token.as_str()))
+                .count();
+            (score, index, result)
+        })
+        .collect::<Vec<_>>();
+    ranked.sort_by(|left, right| right.0.cmp(&left.0).then(left.1.cmp(&right.1)));
+    ranked.into_iter().map(|(_, _, result)| result).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -129,5 +154,23 @@ mod tests {
             result: Some(result),
         }];
         assert_eq!(fuse_ranked(vec![], hits, 10)[0].document_id, "vector-doc");
+    }
+
+    #[test]
+    fn deterministic_reranker_preserves_ties() {
+        let first = SearchResult {
+            document_id: "first".into(),
+            title: "Agents and ledgers".into(),
+            source_uri: None,
+            snippet: "local research".into(),
+        };
+        let second = SearchResult {
+            document_id: "second".into(),
+            title: "Other note".into(),
+            source_uri: None,
+            snippet: "unrelated".into(),
+        };
+        let ranked = rerank("agents", vec![second, first]);
+        assert_eq!(ranked[0].document_id, "first");
     }
 }

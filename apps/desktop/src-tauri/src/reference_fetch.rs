@@ -1,0 +1,374 @@
+use reqwest::{Client, StatusCode};
+use scraper::Html;
+use sha2::{Digest, Sha256};
+use std::collections::HashMap;
+use std::net::{IpAddr, ToSocketAddrs};
+use std::path::{Path, PathBuf};
+use std::time::Duration;
+
+pub const MAX_BYTES: usize = 1_000_000;
+const TIMEOUT: Duration = Duration::from_secs(15);
+const USER_AGENT: &str = "ResearchLedger/0.1 (+local-first research capture)";
+const RETRY_BASE: Duration = Duration::from_secs(1);
+const RETRY_MAX: Duration = Duration::from_secs(8);
+const MAX_ATTEMPTS: usize = 3;
+
+#[derive(Debug, Clone)]
+pub struct FetchedReference {
+    pub artifact_path: String,
+    pub content_type: String,
+    pub http_status: u16,
+    pub byte_count: usize,
+    pub content_hash: String,
+    pub body: String,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum FetchError {
+    #[error("unsafe reference URL: {0}")]
+    UnsafeUrl(String),
+    #[error("robots.txt disallows this URL")]
+    RobotsDenied,
+    #[error("reference request failed: {0}")]
+    Request(#[from] reqwest::Error),
+    #[error("reference returned unsupported content type: {0}")]
+    UnsupportedContentType(String),
+    #[error("reference exceeded {MAX_BYTES} byte limit")]
+    TooLarge,
+    #[error("reference body was not valid UTF-8")]
+    InvalidUtf8,
+    #[error("reference artifact write failed: {0}")]
+    Io(#[from] std::io::Error),
+}
+
+/// Small in-process domain budget. The worker is currently deliberately
+/// bounded, but keeping this accounting at the fetch boundary makes it safe
+/// to add parallel jobs without changing the SSRF/robots policy.
+#[derive(Debug, Default)]
+pub struct DomainConcurrency {
+    active: HashMap<String, usize>,
+    limit: usize,
+}
+
+impl DomainConcurrency {
+    pub fn new(limit: usize) -> Self {
+        Self {
+            active: HashMap::new(),
+            limit: limit.max(1),
+        }
+    }
+
+    pub fn try_acquire(&mut self, raw_url: &str) -> bool {
+        let Ok(url) = url::Url::parse(raw_url) else {
+            return false;
+        };
+        let Some(domain) = url.host_str() else {
+            return false;
+        };
+        let active = self.active.entry(domain.to_ascii_lowercase()).or_default();
+        if *active >= self.limit {
+            return false;
+        }
+        *active += 1;
+        true
+    }
+
+    pub fn release(&mut self, raw_url: &str) {
+        let Ok(url) = url::Url::parse(raw_url) else {
+            return;
+        };
+        let Some(domain) = url.host_str() else { return };
+        let key = domain.to_ascii_lowercase();
+        if let Some(active) = self.active.get_mut(&key) {
+            *active = active.saturating_sub(1);
+            if *active == 0 {
+                self.active.remove(&key);
+            }
+        }
+    }
+
+    pub fn active_for(&self, raw_url: &str) -> usize {
+        let Ok(url) = url::Url::parse(raw_url) else {
+            return 0;
+        };
+        url.host_str()
+            .and_then(|host| self.active.get(&host.to_ascii_lowercase()).copied())
+            .unwrap_or(0)
+    }
+}
+
+pub fn retry_delay(attempt: u32) -> Duration {
+    let exponent = attempt.min(3);
+    (RETRY_BASE * 2u32.pow(exponent)).min(RETRY_MAX)
+}
+
+pub fn retryable(error: &FetchError) -> bool {
+    matches!(error, FetchError::Request(_))
+}
+
+pub fn validate_public_url(raw: &str) -> Result<url::Url, FetchError> {
+    let url = url::Url::parse(raw).map_err(|error| FetchError::UnsafeUrl(error.to_string()))?;
+    if !matches!(url.scheme(), "http" | "https") {
+        return Err(FetchError::UnsafeUrl(
+            "only http and https are allowed".into(),
+        ));
+    }
+    if url.username() != "" || url.password().is_some() {
+        return Err(FetchError::UnsafeUrl("userinfo is not allowed".into()));
+    }
+    let host = url
+        .host_str()
+        .ok_or_else(|| FetchError::UnsafeUrl("host is required".into()))?;
+    if host.eq_ignore_ascii_case("localhost") || host.ends_with(".localhost") {
+        return Err(FetchError::UnsafeUrl("localhost is not allowed".into()));
+    }
+    if let Ok(ip) = host.parse::<IpAddr>() {
+        if is_private_or_local(ip) {
+            return Err(FetchError::UnsafeUrl(
+                "private or local address is not allowed".into(),
+            ));
+        }
+    } else if let Ok(addresses) =
+        (host, url.port_or_known_default().unwrap_or(443)).to_socket_addrs()
+    {
+        if addresses
+            .into_iter()
+            .any(|address| is_private_or_local(address.ip()))
+        {
+            return Err(FetchError::UnsafeUrl(
+                "host resolves to a private address".into(),
+            ));
+        }
+    }
+    Ok(url)
+}
+
+fn is_private_or_local(ip: IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(ip) => {
+            ip.is_loopback() || ip.is_private() || ip.is_link_local() || ip.is_unspecified()
+        }
+        IpAddr::V6(ip) => {
+            ip.is_loopback()
+                || ip.is_unspecified()
+                || ip.is_unique_local()
+                || ip.is_unicast_link_local()
+        }
+    }
+}
+
+pub fn robots_allows(body: &str, path: &str) -> bool {
+    let mut applies = false;
+    let mut allowed = true;
+    for line in body.lines() {
+        let line = line.split('#').next().unwrap_or("").trim();
+        let Some((field, value)) = line.split_once(':') else {
+            continue;
+        };
+        match field.trim().to_ascii_lowercase().as_str() {
+            "user-agent" => applies = value.trim() == "*",
+            "disallow" if applies => {
+                let rule = value.trim();
+                if !rule.is_empty() && path.starts_with(rule) {
+                    allowed = false;
+                }
+            }
+            "allow" if applies => {
+                let rule = value.trim();
+                if !rule.is_empty() && path.starts_with(rule) {
+                    allowed = true;
+                }
+            }
+            _ => {}
+        }
+    }
+    allowed
+}
+
+async fn read_bounded(mut response: reqwest::Response) -> Result<Vec<u8>, FetchError> {
+    if response
+        .content_length()
+        .is_some_and(|length| length > MAX_BYTES as u64)
+    {
+        return Err(FetchError::TooLarge);
+    }
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response.chunk().await? {
+        if bytes.len().saturating_add(chunk.len()) > MAX_BYTES {
+            return Err(FetchError::TooLarge);
+        }
+        bytes.extend_from_slice(&chunk);
+    }
+    Ok(bytes)
+}
+
+pub async fn fetch(client: &Client, raw_url: &str) -> Result<FetchedReference, FetchError> {
+    let url = validate_public_url(raw_url)?;
+    let robots_url = url
+        .join("/robots.txt")
+        .map_err(|error| FetchError::UnsafeUrl(error.to_string()))?;
+    let robots = client.get(robots_url).send().await?;
+    if robots.status().is_success() {
+        let robots_body =
+            String::from_utf8(read_bounded(robots).await?).map_err(|_| FetchError::InvalidUtf8)?;
+        if !robots_allows(&robots_body, url.path()) {
+            return Err(FetchError::RobotsDenied);
+        }
+    } else if robots.status() != StatusCode::NOT_FOUND {
+        return Err(FetchError::Request(robots.error_for_status().unwrap_err()));
+    }
+
+    let response = client.get(url.clone()).send().await?.error_for_status()?;
+    let status = response.status().as_u16();
+    let content_type = response
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or("text/plain")
+        .split(';')
+        .next()
+        .unwrap_or("text/plain")
+        .trim()
+        .to_string();
+    if !(content_type.starts_with("text/")
+        || matches!(
+            content_type.as_str(),
+            "application/json" | "application/xml" | "application/xhtml+xml"
+        ))
+    {
+        return Err(FetchError::UnsupportedContentType(content_type));
+    }
+    let bytes = read_bounded(response).await?;
+    let body = String::from_utf8(bytes.clone()).map_err(|_| FetchError::InvalidUtf8)?;
+    let content_hash = format!("{:x}", Sha256::digest(&bytes));
+    Ok(FetchedReference {
+        artifact_path: format!(".researchledger/references/{content_hash}.txt"),
+        content_type,
+        http_status: status,
+        byte_count: bytes.len(),
+        content_hash,
+        body,
+    })
+}
+
+/// Retry transient request failures with bounded exponential backoff. Policy,
+/// robots, content-type, and byte-limit failures remain deterministic.
+pub async fn fetch_with_retry(
+    client: &Client,
+    raw_url: &str,
+) -> Result<FetchedReference, FetchError> {
+    let mut last_error = None;
+    for attempt in 0..MAX_ATTEMPTS {
+        match fetch(client, raw_url).await {
+            Ok(result) => return Ok(result),
+            Err(error) if retryable(&error) && attempt + 1 < MAX_ATTEMPTS => {
+                last_error = Some(error);
+                tokio::time::sleep(retry_delay(attempt as u32)).await;
+            }
+            Err(error) => return Err(error),
+        }
+    }
+    Err(last_error.expect("retry loop records a transient failure"))
+}
+
+pub fn client() -> Result<Client, FetchError> {
+    Client::builder()
+        .user_agent(USER_AGENT)
+        .timeout(TIMEOUT)
+        .redirect(reqwest::redirect::Policy::custom(|attempt| {
+            if attempt.previous().len() >= 3 || validate_public_url(attempt.url().as_str()).is_err()
+            {
+                attempt.stop()
+            } else {
+                attempt.follow()
+            }
+        }))
+        .build()
+        .map_err(FetchError::Request)
+}
+
+pub fn write_artifact(root: &Path, fetched: &FetchedReference) -> Result<PathBuf, FetchError> {
+    let path = root.join(&fetched.artifact_path);
+    let parent = path
+        .parent()
+        .ok_or_else(|| std::io::Error::other("artifact has no parent"))?;
+    std::fs::create_dir_all(parent)?;
+    let temp = path.with_extension("tmp");
+    std::fs::write(&temp, fetched.body.as_bytes())?;
+    std::fs::rename(&temp, &path)?;
+    Ok(path)
+}
+
+pub fn extract_text(body: &str, content_type: &str) -> String {
+    if content_type == "text/html" || content_type == "application/xhtml+xml" {
+        Html::parse_document(body)
+            .root_element()
+            .text()
+            .collect::<Vec<_>>()
+            .join(" ")
+    } else {
+        body.to_string()
+    }
+}
+
+pub fn render_markdown(url: &str, fetched: &FetchedReference) -> String {
+    let text = extract_text(&fetched.body, &fetched.content_type);
+    format!(
+        "---\ntype: \"Fetched Reference\"\ntitle: \"Fetched reference\"\nresource: {url}\ntimestamp: {}\ntags: [reference, fetched]\n---\n\n# Captured Reference\n\n{text}\n\n# Citations\n\n[1] [Original reference]({url})\n",
+        chrono::Utc::now().to_rfc3339()
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_private_and_credentialed_urls() {
+        assert!(validate_public_url("http://127.0.0.1:8000/a").is_err());
+        assert!(validate_public_url("https://user:pass@example.com/a").is_err());
+        assert!(validate_public_url("file:///tmp/a").is_err());
+    }
+
+    #[test]
+    fn robots_rules_are_deterministic() {
+        let robots = "User-agent: *\nDisallow: /private\nAllow: /private/public";
+        assert!(!robots_allows(robots, "/private/secret"));
+        assert!(robots_allows(robots, "/private/public/item"));
+        assert!(robots_allows(robots, "/public"));
+    }
+
+    #[test]
+    fn html_is_reduced_to_readable_text() {
+        assert_eq!(
+            extract_text("<h1>Hello</h1><p>World</p>", "text/html"),
+            "Hello World"
+        );
+    }
+
+    #[test]
+    fn retry_policy_only_retries_transient_requests() {
+        assert!(retryable(&FetchError::Request(
+            reqwest::Client::new().get("http://[").build().unwrap_err()
+        )));
+        assert!(!retryable(&FetchError::RobotsDenied));
+        assert!(!retryable(&FetchError::TooLarge));
+    }
+
+    #[test]
+    fn domain_budget_is_accounted_and_bounded() {
+        let mut budget = DomainConcurrency::new(1);
+        assert!(budget.try_acquire("https://Example.com/a"));
+        assert_eq!(budget.active_for("https://example.com/b"), 1);
+        assert!(!budget.try_acquire("https://example.com/c"));
+        budget.release("https://example.com/a");
+        assert!(budget.try_acquire("https://example.com/c"));
+    }
+
+    #[test]
+    fn retry_backoff_is_exponential_and_bounded() {
+        assert_eq!(retry_delay(0), Duration::from_secs(1));
+        assert_eq!(retry_delay(1), Duration::from_secs(2));
+        assert_eq!(retry_delay(99), RETRY_MAX);
+    }
+}

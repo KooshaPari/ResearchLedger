@@ -24,8 +24,12 @@ pub fn parse_activity_html(html: &str) -> Vec<LinkedInPost> {
     let article_selector = Selector::parse("article").unwrap();
     let mut posts = BTreeMap::new();
     for link in document.select(&link_selector) {
-        let Some(raw_href) = link.value().attr("href") else { continue };
-        let Some(url) = clean_post_href(raw_href, "feed/update/urn:li:activity:", "") else { continue };
+        let Some(raw_href) = link.value().attr("href") else {
+            continue;
+        };
+        let Some(url) = clean_post_href(raw_href, "feed/update/urn:li:activity:", "") else {
+            continue;
+        };
         let text = ancestor_text(link, 40, 20_000).unwrap_or_else(|| {
             document
                 .select(&article_selector)
@@ -33,7 +37,9 @@ pub fn parse_activity_html(html: &str) -> Vec<LinkedInPost> {
                 .map(|node| node.text().collect::<Vec<_>>().join(" "))
                 .unwrap_or_default()
         });
-        posts.entry(url.clone()).or_insert(LinkedInPost { url, text });
+        posts
+            .entry(url.clone())
+            .or_insert(LinkedInPost { url, text });
     }
     posts.into_values().collect()
 }

@@ -85,6 +85,7 @@ describe("ResearchLedger shell", () => {
     expect(connectButtons.length).toBeGreaterThanOrEqual(2);
     // The source rail should expose LinkedIn + Hacker News + GitHub + Enrichment actions.
     expect(screen.getByRole("button", { name: "Import starred repos" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fetch linked sources" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Distill pending notes" })).toBeInTheDocument();
   });
 });

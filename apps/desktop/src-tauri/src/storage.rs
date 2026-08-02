@@ -46,6 +46,22 @@ pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     let database = root.join(".researchledger.db");
     let connection = Connection::open(&database)?;
     connection.execute_batch(include_str!("../migrations/001_initial.sql"))?;
+    for (name, definition) in [
+        ("embedding_version", "TEXT NOT NULL DEFAULT 'v1'"),
+        ("input_hash", "TEXT NOT NULL DEFAULT ''"),
+    ] {
+        let exists: bool = connection.query_row(
+            "SELECT EXISTS(SELECT 1 FROM pragma_table_info('chunk_embeddings') WHERE name = ?1)",
+            params![name],
+            |row| row.get(0),
+        )?;
+        if !exists {
+            connection.execute(
+                &format!("ALTER TABLE chunk_embeddings ADD COLUMN {name} {definition}"),
+                [],
+            )?;
+        }
+    }
     Ok(LedgerPaths { database })
 }
 
@@ -121,6 +137,19 @@ pub fn upsert_document(
                 params![document.id, source_uri, document.relative_path, quote, document.captured_at],
             )?;
         }
+        connection.execute(
+            "DELETE FROM claims WHERE document_id = ?1",
+            params![document.id],
+        )?;
+        for (ordinal, claim) in crate::distill::extract_claims(&document.content)
+            .into_iter()
+            .enumerate()
+        {
+            connection.execute(
+                "INSERT INTO claims(document_id, ordinal, claim, source_uri, citation_id, created_at) VALUES(?1, ?2, ?3, ?4, '1', ?5)",
+                params![document.id, ordinal as i64, claim, document.source_uri, document.captured_at],
+            )?;
+        }
         return Ok(UpsertResult::Unchanged);
     }
 
@@ -144,15 +173,20 @@ pub fn upsert_document(
     )?;
     tx.execute("INSERT OR IGNORE INTO document_versions(document_id, content_hash, raw_content, captured_at) VALUES(?1, ?2, ?3, ?4)",
         params![document.id, hash, document.content, document.captured_at])?;
-    tx.execute(
-        "INSERT INTO chunks(document_id, ordinal, heading_path, text) VALUES(?1, 0, NULL, ?2)",
-        params![document.id, document.content],
-    )?;
-    let rowid = tx.last_insert_rowid();
-    tx.execute(
-        "INSERT INTO chunk_fts(rowid, text, heading_path) VALUES(?1, ?2, NULL)",
-        params![rowid, document.content],
-    )?;
+    for (ordinal, (heading, text)) in crate::chunking::split_document(&document.content)
+        .into_iter()
+        .enumerate()
+    {
+        tx.execute(
+            "INSERT INTO chunks(document_id, ordinal, heading_path, text) VALUES(?1, ?2, ?3, ?4)",
+            params![document.id, ordinal as i64, heading, text],
+        )?;
+        let rowid = tx.last_insert_rowid();
+        tx.execute(
+            "INSERT INTO chunk_fts(rowid, text, heading_path) VALUES(?1, ?2, ?3)",
+            params![rowid, text, heading],
+        )?;
+    }
     tx.execute(
         "DELETE FROM document_links WHERE source_document_id = ?1",
         params![document.id],
@@ -162,13 +196,19 @@ pub fn upsert_document(
             "INSERT OR IGNORE INTO document_links (source_document_id, target_url, discovered_at) VALUES (?1, ?2, ?3)",
             params![document.id, crate::enrichment::canonical_url(&url), document.captured_at],
         )?;
-        tx.execute(
-            "INSERT OR IGNORE INTO reference_fetches (source_document_id, target_url, status) VALUES (?1, ?2, 'pending')",
-            params![document.id, crate::enrichment::canonical_url(&url)],
-        )?;
+        if document.source_kind != "reference" {
+            tx.execute(
+                "INSERT OR IGNORE INTO reference_fetches (source_document_id, target_url, status) VALUES (?1, ?2, 'pending')",
+                params![document.id, crate::enrichment::canonical_url(&url)],
+            )?;
+        }
     }
     tx.execute(
         "DELETE FROM provenance WHERE document_id = ?1",
+        params![document.id],
+    )?;
+    tx.execute(
+        "DELETE FROM claims WHERE document_id = ?1",
         params![document.id],
     )?;
     if let Some(source_uri) = document.source_uri.as_deref() {
@@ -186,6 +226,15 @@ pub fn upsert_document(
         tx.execute(
             "INSERT INTO provenance(document_id, source_uri, locator, quote, captured_at) VALUES(?1, ?2, ?3, ?4, ?5)",
             params![document.id, source_uri, document.relative_path, quote, document.captured_at],
+        )?;
+    }
+    for (ordinal, claim) in crate::distill::extract_claims(&document.content)
+        .into_iter()
+        .enumerate()
+    {
+        tx.execute(
+            "INSERT INTO claims(document_id, ordinal, claim, source_uri, citation_id, created_at) VALUES(?1, ?2, ?3, ?4, '1', ?5)",
+            params![document.id, ordinal as i64, claim, document.source_uri, document.captured_at],
         )?;
     }
     if document.source_kind != "distillation" {
@@ -223,7 +272,19 @@ pub fn load_document(
     let Some(mut document) = result else {
         return Ok(None);
     };
-    document.content = fs::read_to_string(root.join(&document.relative_path)).unwrap_or_default();
+    let relative = Path::new(&document.relative_path);
+    if relative.is_absolute()
+        || relative
+            .components()
+            .any(|component| matches!(component, std::path::Component::ParentDir))
+    {
+        return Err(rusqlite::Error::InvalidPath(relative.to_path_buf()));
+    }
+    let path = root.join(relative);
+    if !path.starts_with(root) {
+        return Err(rusqlite::Error::InvalidPath(path));
+    }
+    document.content = fs::read_to_string(path).unwrap_or_default();
     Ok(Some(document))
 }
 
@@ -256,10 +317,7 @@ pub fn pending_reference_jobs(connection: &Connection, limit: u32) -> SqlResult<
     rows.collect()
 }
 
-pub fn mark_reference_fetch_started(
-    connection: &Connection,
-    job: &ReferenceJob,
-) -> SqlResult<()> {
+pub fn mark_reference_fetch_started(connection: &Connection, job: &ReferenceJob) -> SqlResult<()> {
     connection.execute(
         "UPDATE reference_fetches SET status = 'running', error = NULL
          WHERE source_document_id = ?1 AND target_url = ?2",
@@ -367,6 +425,9 @@ pub fn export_markdown(vault: &Path, destination: &Path) -> std::io::Result<u64>
         fs::create_dir_all(destination)?;
         for entry in fs::read_dir(source)? {
             let entry = entry?;
+            if entry.file_type()?.is_symlink() {
+                continue;
+            }
             let path = entry.path();
             let target = destination.join(entry.file_name());
             if path
@@ -389,7 +450,11 @@ pub fn export_markdown(vault: &Path, destination: &Path) -> std::io::Result<u64>
     let mut index = String::from("# ResearchLedger Knowledge Bundle\n\n");
     fn append_index(root: &Path, current: &Path, output: &mut String) -> std::io::Result<()> {
         for entry in fs::read_dir(current)? {
-            let path = entry?.path();
+            let entry = entry?;
+            if entry.file_type()?.is_symlink() {
+                continue;
+            }
+            let path = entry.path();
             if path.is_dir() {
                 append_index(root, &path, output)?;
             } else if path.extension().is_some_and(|extension| extension == "md")

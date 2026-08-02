@@ -2,26 +2,28 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { pathToFileURL } from "node:url";
+import {
+  loadPlaywright,
+  openAuthenticatedSession,
+  parseFlags,
+  readInt,
+  resolveProfile,
+} from "./_capture_common.mjs";
 
-const playwrightModule = process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE ?? "playwright";
-const { chromium } = await import(
-  playwrightModule.startsWith("/") ? pathToFileURL(playwrightModule).href : playwrightModule,
-);
-
-const args = new Map();
-for (let index = 2; index < process.argv.length; index += 2) args.set(process.argv[index], process.argv[index + 1]);
-const profile = args.get("--profile") ?? `${process.env.HOME}/Library/Application Support/ResearchLedger/linkedin-profile`;
-const output = args.get("--output") ?? "linkedin-capture.json";
-const url = args.get("--url") ?? "https://www.linkedin.com/in/me/recent-activity/reactions/";
-const maxRounds = Number(args.get("--max-rounds") ?? 240);
-const waitMs = Number(args.get("--wait-ms") ?? 1200);
-
-const context = await chromium.launchPersistentContext(profile, { headless: false });
-const page = context.pages()[0] ?? await context.newPage();
-await page.goto(url, { waitUntil: "domcontentloaded" });
-console.error("ResearchLedger LinkedIn capture is running in the authenticated profile. Complete login if prompted.");
-await page.waitForTimeout(2500);
+const flags = parseFlags(process.argv);
+const profile = resolveProfile(flags, "linkedin-profile");
+const output = flags.get("--output") ?? "linkedin-capture.json";
+const url = flags.get("--url") ?? "https://www.linkedin.com/in/me/recent-activity/reactions/";
+const maxRounds = readInt(flags, "--max-rounds", 240);
+const waitMs = readInt(flags, "--wait-ms", 1200);
+const { chromium } = await loadPlaywright();
+const { context, page } = await openAuthenticatedSession({
+  chromium,
+  profile,
+  url,
+  logMessage:
+    "ResearchLedger LinkedIn capture is running in the authenticated profile. Complete login if prompted.",
+});
 
 const posts = new Map();
 let unchangedRounds = 0;
