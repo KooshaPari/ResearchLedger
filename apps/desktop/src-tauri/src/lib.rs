@@ -1,4 +1,5 @@
 use serde::Serialize;
+mod chunking;
 mod distill;
 mod embeddings;
 mod enrichment;
@@ -758,10 +759,8 @@ mod commands {
                 result: Some(result),
             })
             .collect();
-        Ok(rag::build_context(
-            &query,
-            rag::fuse_ranked(lexical, vector_hits, limit as usize),
-        ))
+        let fused = rag::fuse_ranked(lexical, vector_hits, limit as usize);
+        Ok(rag::build_context(&query, rag::rerank(&query, fused)))
     }
 
     #[tauri::command]
@@ -961,6 +960,36 @@ mod tests {
         assert!(export.join("sources/github/octo--hello.md").exists());
         let _ = std::fs::remove_dir_all(root);
         let _ = std::fs::remove_dir_all(export);
+    }
+
+    #[test]
+    fn upsert_indexes_heading_aware_chunks() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        let document = SourceDocument {
+            id: "article:chunked".into(),
+            relative_path: "sources/article/chunked.md".into(),
+            title: "Chunked article".into(),
+            source_kind: "article".into(),
+            source_uri: Some("https://example.com/chunked".into()),
+            content: format!("# Intro\n{}\n\n# Next\nsecond", "a".repeat(1_300)),
+            captured_at: "2026-07-20T00:00:00Z".into(),
+        };
+        upsert_document(&mut db, &root, &document).unwrap();
+        let chunks: Vec<(i64, Option<String>, String)> = db
+            .prepare("SELECT ordinal, heading_path, text FROM chunks WHERE document_id = ?1 ORDER BY ordinal")
+            .unwrap()
+            .query_map([&document.id], |row| {
+                Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+            })
+            .unwrap()
+            .collect::<Result<_, _>>()
+            .unwrap();
+        assert!(chunks.len() >= 2);
+        assert_eq!(chunks[0].1.as_deref(), Some("Intro"));
+        assert!(chunks.iter().all(|(_, _, text)| text.len() <= 1_301));
+        let _ = std::fs::remove_dir_all(root);
     }
 
     #[test]

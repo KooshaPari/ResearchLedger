@@ -144,15 +144,20 @@ pub fn upsert_document(
     )?;
     tx.execute("INSERT OR IGNORE INTO document_versions(document_id, content_hash, raw_content, captured_at) VALUES(?1, ?2, ?3, ?4)",
         params![document.id, hash, document.content, document.captured_at])?;
-    tx.execute(
-        "INSERT INTO chunks(document_id, ordinal, heading_path, text) VALUES(?1, 0, NULL, ?2)",
-        params![document.id, document.content],
-    )?;
-    let rowid = tx.last_insert_rowid();
-    tx.execute(
-        "INSERT INTO chunk_fts(rowid, text, heading_path) VALUES(?1, ?2, NULL)",
-        params![rowid, document.content],
-    )?;
+    for (ordinal, (heading, text)) in crate::chunking::split_document(&document.content)
+        .into_iter()
+        .enumerate()
+    {
+        tx.execute(
+            "INSERT INTO chunks(document_id, ordinal, heading_path, text) VALUES(?1, ?2, ?3, ?4)",
+            params![document.id, ordinal as i64, heading, text],
+        )?;
+        let rowid = tx.last_insert_rowid();
+        tx.execute(
+            "INSERT INTO chunk_fts(rowid, text, heading_path) VALUES(?1, ?2, ?3)",
+            params![rowid, text, heading],
+        )?;
+    }
     tx.execute(
         "DELETE FROM document_links WHERE source_document_id = ?1",
         params![document.id],
