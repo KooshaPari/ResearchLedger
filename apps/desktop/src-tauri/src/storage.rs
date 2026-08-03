@@ -86,6 +86,40 @@ pub fn write_markdown_atomic(
     Ok(path)
 }
 
+fn write_chunks(
+    transaction: &rusqlite::Transaction<'_>,
+    document_id: &str,
+    chunks: &[(Option<String>, String)],
+) -> SqlResult<()> {
+    for (ordinal, (heading, text)) in chunks.iter().enumerate() {
+        transaction.execute(
+            "INSERT INTO chunks(document_id, ordinal, heading_path, text) VALUES(?1, ?2, ?3, ?4)",
+            params![document_id, ordinal as i64, heading, text],
+        )?;
+        let rowid = transaction.last_insert_rowid();
+        transaction.execute(
+            "INSERT INTO chunk_fts(rowid, text, heading_path) VALUES(?1, ?2, ?3)",
+            params![rowid, text, heading],
+        )?;
+    }
+    Ok(())
+}
+
+fn chunk_index_matches(
+    connection: &Connection,
+    document_id: &str,
+    expected: &[(Option<String>, String)],
+) -> SqlResult<bool> {
+    let mut statement = connection.prepare(
+        "SELECT heading_path, text FROM chunks WHERE document_id = ?1 ORDER BY ordinal",
+    )?;
+    let rows = statement.query_map(params![document_id], |row| {
+        Ok((row.get::<_, Option<String>>(0)?, row.get::<_, String>(1)?))
+    })?;
+    let actual = rows.collect::<SqlResult<Vec<_>>>()?;
+    Ok(actual == expected)
+}
+
 pub fn upsert_document(
     connection: &mut Connection,
     root: &Path,
@@ -100,6 +134,24 @@ pub fn upsert_document(
         )
         .optional()?;
     if previous.as_deref() == Some(hash.as_str()) {
+        let expected_chunks = crate::chunking::split_document(&document.content);
+        if !chunk_index_matches(connection, &document.id, &expected_chunks)? {
+            let transaction = connection.transaction()?;
+            transaction.execute(
+                "DELETE FROM chunk_fts WHERE rowid IN (SELECT id FROM chunks WHERE document_id = ?1)",
+                params![document.id],
+            )?;
+            transaction.execute(
+                "DELETE FROM chunk_embeddings WHERE chunk_id IN (SELECT id FROM chunks WHERE document_id = ?1)",
+                params![document.id],
+            )?;
+            transaction.execute(
+                "DELETE FROM chunks WHERE document_id = ?1",
+                params![document.id],
+            )?;
+            write_chunks(&transaction, &document.id, &expected_chunks)?;
+            transaction.commit()?;
+        }
         if let Some(source_uri) = document.source_uri.as_deref() {
             let quote = document
                 .content
@@ -148,20 +200,8 @@ pub fn upsert_document(
     )?;
     tx.execute("INSERT OR IGNORE INTO document_versions(document_id, content_hash, raw_content, captured_at) VALUES(?1, ?2, ?3, ?4)",
         params![document.id, hash, document.content, document.captured_at])?;
-    for (ordinal, (heading, text)) in crate::chunking::split_document(&document.content)
-        .into_iter()
-        .enumerate()
-    {
-        tx.execute(
-            "INSERT INTO chunks(document_id, ordinal, heading_path, text) VALUES(?1, ?2, ?3, ?4)",
-            params![document.id, ordinal as i64, heading, text],
-        )?;
-        let rowid = tx.last_insert_rowid();
-        tx.execute(
-            "INSERT INTO chunk_fts(rowid, text, heading_path) VALUES(?1, ?2, ?3)",
-            params![rowid, text, heading],
-        )?;
-    }
+    let chunks = crate::chunking::split_document(&document.content);
+    write_chunks(&tx, &document.id, &chunks)?;
     tx.execute(
         "DELETE FROM document_links WHERE source_document_id = ?1",
         params![document.id],

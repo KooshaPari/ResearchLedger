@@ -1037,6 +1037,22 @@ mod tests {
             )
             .unwrap();
         assert_eq!(stale_vectors, 0);
+        db.execute(
+            "DELETE FROM chunk_fts WHERE rowid IN (SELECT id FROM chunks WHERE document_id = ?1)",
+            [&updated.id],
+        )
+        .unwrap();
+        db.execute("DELETE FROM chunks WHERE document_id = ?1", [&updated.id])
+            .unwrap();
+        upsert_document(&mut db, &root, &updated).unwrap();
+        let restored_chunks: i64 = db
+            .query_row(
+                "SELECT COUNT(*) FROM chunks WHERE document_id = ?1",
+                [&updated.id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(restored_chunks, 1);
         let _ = std::fs::remove_dir_all(root);
     }
 
