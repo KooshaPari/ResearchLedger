@@ -107,8 +107,13 @@ pub fn rerank(query: &str, results: Vec<SearchResult>) -> Vec<SearchResult> {
 fn normalized_tokens(value: &str) -> HashSet<String> {
     value
         .split(|character: char| !character.is_alphanumeric())
-        .map(str::to_ascii_lowercase)
-        .filter(|token| token.len() > 2)
+        .map(|token| {
+            token
+                .chars()
+                .flat_map(char::to_lowercase)
+                .collect::<String>()
+        })
+        .filter(|token| token.chars().count() > 2)
         .collect()
 }
 
@@ -201,6 +206,27 @@ mod tests {
         };
         let ranked = rerank("art", vec![cart, art]);
         assert_eq!(ranked[0].document_id, "art");
+    }
+
+    #[test]
+    fn reranker_normalizes_unicode_case_and_character_length() {
+        assert!(normalized_tokens("éx").is_empty());
+        assert!(normalized_tokens("ÉTUDES").contains("études"));
+
+        let unicode = SearchResult {
+            document_id: "unicode".into(),
+            title: "ÉTUDES sur les agents".into(),
+            source_uri: None,
+            snippet: "recherche locale".into(),
+        };
+        let unrelated = SearchResult {
+            document_id: "unrelated".into(),
+            title: "Agents".into(),
+            source_uri: None,
+            snippet: "other material".into(),
+        };
+        let ranked = rerank("études", vec![unrelated, unicode]);
+        assert_eq!(ranked[0].document_id, "unicode");
     }
 
     #[test]
