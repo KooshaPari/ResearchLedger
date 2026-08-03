@@ -1,5 +1,5 @@
 use crate::storage::SearchResult;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -49,7 +49,12 @@ pub fn fuse_ranked(
         }
     }
     let mut ranked = scores.into_values().collect::<Vec<_>>();
-    ranked.sort_by(|left, right| right.0.total_cmp(&left.0));
+    ranked.sort_by(|left, right| {
+        right
+            .0
+            .total_cmp(&left.0)
+            .then_with(|| left.1.document_id.cmp(&right.1.document_id))
+    });
     ranked
         .into_iter()
         .take(limit)
@@ -85,25 +90,26 @@ pub fn build_context(query: &str, results: Vec<SearchResult>) -> RetrievalContex
 /// Deterministic lexical reranker used after reciprocal-rank fusion. It
 /// rewards query-token overlap while preserving fused order for ties.
 pub fn rerank(query: &str, results: Vec<SearchResult>) -> Vec<SearchResult> {
-    let tokens = query
-        .split_whitespace()
-        .map(|token| token.to_ascii_lowercase())
-        .filter(|token| token.len() > 2)
-        .collect::<Vec<_>>();
+    let tokens = normalized_tokens(query);
     let mut ranked = results
         .into_iter()
         .enumerate()
         .map(|(index, result)| {
-            let haystack = format!("{} {}", result.title, result.snippet).to_ascii_lowercase();
-            let score = tokens
-                .iter()
-                .filter(|token| haystack.contains(token.as_str()))
-                .count();
+            let haystack = normalized_tokens(&format!("{} {}", result.title, result.snippet));
+            let score = tokens.intersection(&haystack).count();
             (score, index, result)
         })
         .collect::<Vec<_>>();
     ranked.sort_by(|left, right| right.0.cmp(&left.0).then(left.1.cmp(&right.1)));
     ranked.into_iter().map(|(_, _, result)| result).collect()
+}
+
+fn normalized_tokens(value: &str) -> HashSet<String> {
+    value
+        .split(|character: char| !character.is_alphanumeric())
+        .map(str::to_ascii_lowercase)
+        .filter(|token| token.len() > 2)
+        .collect()
 }
 
 #[cfg(test)]
@@ -165,11 +171,68 @@ mod tests {
         };
         let second = SearchResult {
             document_id: "second".into(),
-            title: "Other note".into(),
+            title: "Agents other note".into(),
             source_uri: None,
             snippet: "unrelated".into(),
         };
         let ranked = rerank("agents", vec![second, first]);
-        assert_eq!(ranked[0].document_id, "first");
+        assert_eq!(
+            ranked
+                .iter()
+                .map(|result| result.document_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["second", "first"]
+        );
+    }
+
+    #[test]
+    fn reranker_matches_complete_tokens_only() {
+        let cart = SearchResult {
+            document_id: "cart".into(),
+            title: "Cart article".into(),
+            source_uri: None,
+            snippet: "contains artistry as a substring".into(),
+        };
+        let art = SearchResult {
+            document_id: "art".into(),
+            title: "Art notes".into(),
+            source_uri: None,
+            snippet: "exact token".into(),
+        };
+        let ranked = rerank("art", vec![cart, art]);
+        assert_eq!(ranked[0].document_id, "art");
+    }
+
+    #[test]
+    fn fused_ties_are_sorted_by_document_id() {
+        let result = |document_id: &str| SearchResult {
+            document_id: document_id.into(),
+            title: document_id.into(),
+            source_uri: None,
+            snippet: String::new(),
+        };
+        let ranked = fuse_ranked(
+            vec![],
+            vec![
+                VectorHit {
+                    document_id: "b".into(),
+                    score: 0.0,
+                    result: Some(result("b")),
+                },
+                VectorHit {
+                    document_id: "a".into(),
+                    score: 0.0,
+                    result: Some(result("a")),
+                },
+            ],
+            10,
+        );
+        assert_eq!(
+            ranked
+                .iter()
+                .map(|result| result.document_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["a", "b"]
+        );
     }
 }

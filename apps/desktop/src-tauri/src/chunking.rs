@@ -9,16 +9,39 @@ pub fn split_document(content: &str) -> Vec<(Option<String>, String)> {
     for line in content.lines() {
         let trimmed = line.trim();
         if let Some(value) = trimmed.strip_prefix('#') {
+            if !current.trim().is_empty() {
+                chunks.push((heading.clone(), current.trim().to_string()));
+                current.clear();
+            }
             heading = Some(value.trim().to_string());
         }
-        let would_overflow = !current.is_empty() && current.len() + line.len() + 1 > MAX_CHARS;
-        if would_overflow || (trimmed.is_empty() && current.len() > 200) {
-            chunks.push((heading.clone(), current.trim().to_string()));
-            current.clear();
+        if trimmed.is_empty() {
+            if current.len() > 200 {
+                chunks.push((heading.clone(), current.trim().to_string()));
+                current.clear();
+            }
+            continue;
         }
-        if !trimmed.is_empty() {
-            current.push_str(line);
-            current.push('\n');
+
+        let mut remaining = line;
+        while !remaining.is_empty() {
+            let separator = usize::from(!current.is_empty());
+            let available = MAX_CHARS.saturating_sub(current.len() + separator);
+            let end = utf8_prefix_len(remaining, available);
+            if end == 0 {
+                chunks.push((heading.clone(), current.trim().to_string()));
+                current.clear();
+                continue;
+            }
+            if !current.is_empty() {
+                current.push('\n');
+            }
+            current.push_str(&remaining[..end]);
+            remaining = &remaining[end..];
+            if !remaining.is_empty() {
+                chunks.push((heading.clone(), current.trim().to_string()));
+                current.clear();
+            }
         }
     }
     if !current.trim().is_empty() {
@@ -31,6 +54,21 @@ pub fn split_document(content: &str) -> Vec<(Option<String>, String)> {
     }
 }
 
+fn utf8_prefix_len(value: &str, max_bytes: usize) -> usize {
+    if value.len() <= max_bytes {
+        return value.len();
+    }
+    let mut end = 0;
+    for (index, character) in value.char_indices() {
+        let candidate = index + character.len_utf8();
+        if candidate > max_bytes {
+            break;
+        }
+        end = candidate;
+    }
+    end
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -41,7 +79,27 @@ mod tests {
         let chunks = split_document(&content);
         assert!(chunks.len() >= 2);
         assert_eq!(chunks[0].0.as_deref(), Some("Intro"));
-        assert!(chunks.iter().all(|(_, text)| text.len() <= 1_301));
+        assert!(chunks.iter().all(|(_, text)| text.len() <= MAX_CHARS));
+    }
+
+    #[test]
+    fn preserves_each_heading_for_consecutive_short_sections() {
+        let chunks = split_document("# First\none\n# Second\ntwo");
+        assert_eq!(chunks.len(), 2);
+        assert_eq!(chunks[0].0.as_deref(), Some("First"));
+        assert_eq!(chunks[1].0.as_deref(), Some("Second"));
+    }
+
+    #[test]
+    fn splits_oversized_utf8_lines_at_safe_boundaries() {
+        let chunks = split_document(&"é".repeat(1_000));
+        assert!(chunks.len() > 1);
+        assert!(chunks.iter().all(|(_, text)| text.len() <= MAX_CHARS));
+        let rebuilt = chunks
+            .iter()
+            .map(|(_, text)| text.as_str())
+            .collect::<String>();
+        assert_eq!(rebuilt.chars().count(), 1_000);
     }
 
     #[test]

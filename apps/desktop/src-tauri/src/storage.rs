@@ -139,6 +139,10 @@ pub fn upsert_document(
         params![document.id],
     )?;
     tx.execute(
+        "DELETE FROM chunk_embeddings WHERE chunk_id IN (SELECT id FROM chunks WHERE document_id = ?1)",
+        params![document.id],
+    )?;
+    tx.execute(
         "DELETE FROM chunks WHERE document_id = ?1",
         params![document.id],
     )?;
