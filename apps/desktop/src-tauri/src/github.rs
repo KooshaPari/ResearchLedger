@@ -229,4 +229,9 @@ mod tests {
             .unwrap();
         assert_eq!(String::from_utf8(decoded).unwrap(), "# Hello\n");
     }
+
+    #[test]
+    fn device_flow_requests_scope_that_allows_starred_repositories() {
+        assert_eq!(device_flow_scope(), "public_repo");
+    }
 }
