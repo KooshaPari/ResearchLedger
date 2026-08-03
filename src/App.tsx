@@ -60,11 +60,17 @@ export function App() {
     </aside>
     <section className="content">
       <header className="topbar"><div><p className="eyebrow">{activeView.toUpperCase()}</p><h2>{views[index].hint}</h2></div><button className="button secondary" type="button" onClick={() => void chooseVault()}>Select vault</button></header>
-      <section id={`panel-${activeView}`} role="tabpanel" aria-labelledby={`tab-${activeView}`} className="view-panel">
-        {activeView === "inbox" && <Inbox vaultPath={vaultPath} status={status} setVaultPath={setVaultPath} chooseVault={chooseVault} run={run} message={message} setMessage={setMessage} />}
-        {activeView === "library" && <Library vaultPath={vaultPath} />}
-        {activeView === "collections" && <Collections vaultPath={vaultPath} />}
-        {activeView === "graph" && <Graph vaultPath={vaultPath} />}
+      <section id="panel-inbox" role="tabpanel" aria-labelledby="tab-inbox" className="view-panel" hidden={activeView !== "inbox"}>
+        <Inbox vaultPath={vaultPath} status={status} setVaultPath={setVaultPath} chooseVault={chooseVault} run={run} message={message} setMessage={setMessage} />
+      </section>
+      <section id="panel-library" role="tabpanel" aria-labelledby="tab-library" className="view-panel" hidden={activeView !== "library"}>
+        <Library vaultPath={vaultPath} />
+      </section>
+      <section id="panel-collections" role="tabpanel" aria-labelledby="tab-collections" className="view-panel" hidden={activeView !== "collections"}>
+        <Collections vaultPath={vaultPath} />
+      </section>
+      <section id="panel-graph" role="tabpanel" aria-labelledby="tab-graph" className="view-panel" hidden={activeView !== "graph"}>
+        <Graph vaultPath={vaultPath} />
       </section>
     </section>
   </main>;

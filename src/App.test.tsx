@@ -69,6 +69,15 @@ describe("ResearchLedger shell", () => {
     expect(screen.queryByRole("button", { name: "Import GitHub stars" })).not.toBeInTheDocument();
   });
 
+  it("keeps provider form state when switching workspaces", () => {
+    render(<App />);
+    const profile = screen.getByRole("textbox", { name: "LinkedIn browser profile" });
+    fireEvent.change(profile, { target: { value: "/tmp/researchledger-linkedin" } });
+    fireEvent.click(screen.getByRole("tab", { name: /Library/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /Inbox/ }));
+    expect(screen.getByRole("textbox", { name: "LinkedIn browser profile" })).toHaveValue("/tmp/researchledger-linkedin");
+  });
+
   it("exposes a Hacker News saved-stories capture pathway", () => {
     render(<App />);
     expect(screen.getByText("HACKER NEWS CONNECTION")).toBeInTheDocument();
