@@ -54,6 +54,36 @@ mod read_model_tests {
         assert_eq!(result[0].source_document_id, "a");
         assert_eq!(result[0].target_url, "https://example.com/b");
     }
+
+    #[test]
+    fn claims_return_stable_source_citations() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut connection = open(&paths).unwrap();
+        upsert_document(
+            &mut connection,
+            &root,
+            &SourceDocument {
+                id: "claim-source".into(),
+                relative_path: "claim.md".into(),
+                title: "Claim source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/claim".into()),
+                content: "A durable ledger is local and reviewable.".into(),
+                captured_at: "2026-07-20T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        let claims = super::list_document_claims(
+            root.to_string_lossy().into_owned(),
+            "claim-source".into(),
+        )
+        .unwrap();
+        assert_eq!(claims.len(), 1);
+        assert_eq!(claims[0].citation_id, "1");
+        assert_eq!(claims[0].source_uri.as_deref(), Some("https://example.com/claim"));
+        let _ = std::fs::remove_dir_all(root);
+    }
 }
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -83,6 +113,16 @@ pub struct DocumentLink {
     pub target_url: String,
     pub relation: String,
     pub discovered_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ClaimRecord {
+    pub document_id: String,
+    pub ordinal: u32,
+    pub claim: String,
+    pub source_uri: Option<String>,
+    pub citation_id: String,
 }
 
 fn connection(vault_path: &str) -> Result<rusqlite::Connection, String> {
@@ -133,4 +173,31 @@ pub fn list_document_links(vault_path: String) -> Result<Vec<DocumentLink>, Stri
     let rows = statement.query_map([], |row| Ok(DocumentLink { source_document_id: row.get(0)?, source_title: row.get(1)?, target_url: row.get(2)?, relation: row.get(3)?, discovered_at: row.get(4)? }))
         .map_err(|e| e.to_string())?;
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn list_document_claims(
+    vault_path: String,
+    document_id: String,
+) -> Result<Vec<ClaimRecord>, String> {
+    let db = connection(&vault_path)?;
+    let mut statement = db
+        .prepare(
+            "SELECT document_id, ordinal, claim, source_uri, citation_id FROM claims
+             WHERE document_id = ?1 ORDER BY ordinal",
+        )
+        .map_err(|error| error.to_string())?;
+    let rows = statement
+        .query_map(rusqlite::params![document_id], |row| {
+            Ok(ClaimRecord {
+                document_id: row.get(0)?,
+                ordinal: row.get::<_, i64>(1)? as u32,
+                claim: row.get(2)?,
+                source_uri: row.get(3)?,
+                citation_id: row.get(4)?,
+            })
+        })
+        .map_err(|error| error.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>()
+        .map_err(|error| error.to_string())
 }

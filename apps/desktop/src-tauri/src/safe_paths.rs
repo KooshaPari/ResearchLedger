@@ -79,7 +79,10 @@ pub fn ensure_safe_provider_url(url: &str, allowed_hosts: &[&str]) -> Result<Str
     if contains_control_chars(host) || contains_control_chars(trimmed) {
         return Err("URL contains control characters".into());
     }
-    if !allowed_hosts.iter().any(|allowed| host.eq_ignore_ascii_case(allowed)) {
+    if !allowed_hosts
+        .iter()
+        .any(|allowed| host.eq_ignore_ascii_case(allowed))
+    {
         return Err(format!(
             "URL host `{host}` is not on the allow-list for this provider"
         ));
@@ -88,7 +91,9 @@ pub fn ensure_safe_provider_url(url: &str, allowed_hosts: &[&str]) -> Result<Str
 }
 
 fn contains_parent_dir_component(path: &str) -> bool {
-    Path::new(path).components().any(|component| matches!(component, Component::ParentDir))
+    Path::new(path)
+        .components()
+        .any(|component| matches!(component, Component::ParentDir))
 }
 
 fn contains_control_chars(value: &str) -> bool {
@@ -129,11 +134,8 @@ mod tests {
 
     #[test]
     fn rejects_path_outside_roots() {
-        let result = ensure_within_acceptable_roots(
-            "/etc/passwd",
-            "html",
-            &[PathBuf::from("/tmp/vault")],
-        );
+        let result =
+            ensure_within_acceptable_roots("/etc/passwd", "html", &[PathBuf::from("/tmp/vault")]);
         assert!(result.is_err());
     }
 
@@ -144,7 +146,9 @@ mod tests {
             "html",
             &[PathBuf::from("/tmp/vault")],
         );
-        assert!(matches!(result, Ok(path) if path == PathBuf::from("/tmp/vault/imports/post.html")));
+        assert!(
+            matches!(result, Ok(path) if path == PathBuf::from("/tmp/vault/imports/post.html"))
+        );
     }
 
     #[test]
@@ -161,7 +165,8 @@ mod tests {
 
     #[test]
     fn accepts_known_host() {
-        let result = ensure_safe_provider_url("https://x.com/someone/status/123", &["x.com", "reddit.com"]);
+        let result =
+            ensure_safe_provider_url("https://x.com/someone/status/123", &["x.com", "reddit.com"]);
         assert_eq!(result.unwrap(), "https://x.com/someone/status/123");
     }
 

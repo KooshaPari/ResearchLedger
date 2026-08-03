@@ -69,6 +69,8 @@ h3 { font-size: 26px; letter-spacing: -.035em; margin-bottom: 10px; }
 .workspace-intro .muted { flex: 1; margin-bottom: 0; }
 .data-surface, .graph-surface { overflow: hidden; }
 .data-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 18px; border-bottom: 1px solid #303746; }
+.data-row[type="button"] { width: 100%; color: inherit; text-align: left; font: inherit; background: transparent; cursor: pointer; }
+.data-row[type="button"]:hover, .data-row.selected { background: rgba(96, 165, 250, .12); }
 .data-row:last-child { border-bottom: 0; }
 .data-row span { color: #8f9aac; font-size: 12px; text-align: right; }
 .empty-state { display: grid; place-items: center; gap: 8px; min-height: 250px; padding: 30px; color: #9ca7b8; text-align: center; }

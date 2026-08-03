@@ -25,22 +25,31 @@ pub fn parse_capture_json(json: &str) -> Result<Vec<RedditSavedPost>, serde_json
 /// nearest heading and body text from the closest post container.
 pub fn parse_saved_html(html: &str) -> Vec<RedditSavedPost> {
     let document = Html::parse_document(html);
-    let link_selector =
-        Selector::parse("a[href*='/comments/']").expect("static selector parses");
+    let link_selector = Selector::parse("a[href*='/comments/']").expect("static selector parses");
     let heading_selector = Selector::parse("h3, h2").expect("static selector parses");
     let mut posts = BTreeMap::new();
     for link in document.select(&link_selector) {
-        let Some(raw_href) = link.value().attr("href") else { continue };
-        let Some(url) = clean_post_href(raw_href, "/comments/", "https://www.reddit.com") else { continue };
-        if !is_reddit_post_path(&url) { continue };
+        let Some(raw_href) = link.value().attr("href") else {
+            continue;
+        };
+        let Some(url) = clean_post_href(raw_href, "/comments/", "https://www.reddit.com") else {
+            continue;
+        };
+        if !is_reddit_post_path(&url) {
+            continue;
+        };
         let title = link
             .ancestors()
             .find_map(|ancestor| {
                 let element = scraper::ElementRef::wrap(ancestor)?;
-                element
-                    .select(&heading_selector)
-                    .next()
-                    .map(|node| node.text().collect::<Vec<_>>().join(" ").split_whitespace().collect::<Vec<_>>().join(" "))
+                element.select(&heading_selector).next().map(|node| {
+                    node.text()
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                        .split_whitespace()
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                })
             })
             .unwrap_or_default();
         let text = match ancestor_text(link, 40, 20_000) {
@@ -52,9 +61,12 @@ pub fn parse_saved_html(html: &str) -> Vec<RedditSavedPost> {
             .nth(1)
             .and_then(|rest| rest.split('/').next())
             .map(|value| value.to_string());
-        posts
-            .entry(url.clone())
-            .or_insert(RedditSavedPost { url, title, text, subreddit });
+        posts.entry(url.clone()).or_insert(RedditSavedPost {
+            url,
+            title,
+            text,
+            subreddit,
+        });
     }
     posts.into_values().collect()
 }
@@ -68,7 +80,10 @@ mod tests {
         let html = r#"<main><article><a href="/r/rust/comments/abc123/why_local_first/">title</a><h3>Why local first?</h3><p>This is a deeply thoughtful post about local-first research ledgers and their tradeoffs.</p></article><a href="/r/rust/comments/abc123/why_local_first/">again</a></main>"#;
         let posts = parse_saved_html(html);
         assert_eq!(posts.len(), 1);
-        assert_eq!(posts[0].url, "https://www.reddit.com/r/rust/comments/abc123/why_local_first");
+        assert_eq!(
+            posts[0].url,
+            "https://www.reddit.com/r/rust/comments/abc123/why_local_first"
+        );
         assert!(posts[0].text.contains("local-first research ledgers"));
         assert_eq!(posts[0].subreddit.as_deref(), Some("rust"));
     }
@@ -83,7 +98,12 @@ mod tests {
             <article><a href="/r/rust/comments/abc/why_local_first/">post permalink</a><p>A thoughtful post about local-first research ledgers and the tradeoffs of owning your data.</p></article>
         </main>"#;
         let posts = parse_saved_html(html);
-        assert_eq!(posts.len(), 1, "user-comment activity must be filtered; got {:?}", posts.iter().map(|p| &p.url).collect::<Vec<_>>());
+        assert_eq!(
+            posts.len(),
+            1,
+            "user-comment activity must be filtered; got {:?}",
+            posts.iter().map(|p| &p.url).collect::<Vec<_>>()
+        );
         assert!(posts[0].url.contains("/r/rust/comments/"));
     }
 
@@ -127,8 +147,7 @@ mod tests {
                 "Vault layout",
             ]
         );
-        let subreddits: Vec<Option<&str>> =
-            posts.iter().map(|p| p.subreddit.as_deref()).collect();
+        let subreddits: Vec<Option<&str>> = posts.iter().map(|p| p.subreddit.as_deref()).collect();
         assert_eq!(
             subreddits,
             vec![
@@ -140,11 +159,20 @@ mod tests {
             ]
         );
         let urls: Vec<&str> = posts.iter().map(|p| p.url.as_str()).collect();
-        assert_eq!(urls[0], "https://www.reddit.com/r/rust/comments/a1b2c3d/why_local_first/");
-        assert!(urls.iter().all(|url| crate::provider_html::is_reddit_post_path(url)),
-            "all round-tripped urls must satisfy the Reddit post-path shape guard");
+        assert_eq!(
+            urls[0],
+            "https://www.reddit.com/r/rust/comments/a1b2c3d/why_local_first/"
+        );
+        assert!(
+            urls.iter()
+                .all(|url| crate::provider_html::is_reddit_post_path(url)),
+            "all round-tripped urls must satisfy the Reddit post-path shape guard"
+        );
         for post in &posts {
-            assert!(post.text.len() > 40, "captured text length must satisfy capture min-length");
+            assert!(
+                post.text.len() > 40,
+                "captured text length must satisfy capture min-length"
+            );
             assert!(!post.url.is_empty(), "url must survive capture");
             assert!(!post.title.is_empty(), "title must survive capture");
         }
@@ -164,8 +192,16 @@ mod tests {
             "https://www.reddit.com/comments/abc",
             "https://www.reddit.com/r/rust/comments/def/another_well_formed",
         ];
-        let kept: Vec<&str> = urls.iter().copied().filter(|u| is_reddit_post_path(u)).collect();
-        assert_eq!(kept.len(), 2, "only /r/<sub>/comments/<id> posts survive; got {kept:?}");
+        let kept: Vec<&str> = urls
+            .iter()
+            .copied()
+            .filter(|u| is_reddit_post_path(u))
+            .collect();
+        assert_eq!(
+            kept.len(),
+            2,
+            "only /r/<sub>/comments/<id> posts survive; got {kept:?}"
+        );
         assert!(kept.contains(&"https://www.reddit.com/r/rust/comments/abc/well_formed"));
         assert!(kept.contains(&"https://www.reddit.com/r/rust/comments/def/another_well_formed"));
         assert_eq!(urls.iter().filter(|u| is_reddit_post_path(**u)).count(), 2);
@@ -180,7 +216,10 @@ mod tests {
     #[test]
     fn reddit_capture_rejects_missing_posts_field() {
         let result = parse_capture_json(r#"{"version":1,"capturedAt":"2026-07-25T10:00:00Z"}"#);
-        assert!(result.is_err(), "missing posts array must fail loudly; got {result:?}");
+        assert!(
+            result.is_err(),
+            "missing posts array must fail loudly; got {result:?}"
+        );
     }
 
     /// Empty `posts: []` is a valid capture (zero rows). We do NOT collapse
