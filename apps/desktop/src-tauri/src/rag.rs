@@ -1,5 +1,5 @@
 use crate::storage::SearchResult;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -49,7 +49,12 @@ pub fn fuse_ranked(
         }
     }
     let mut ranked = scores.into_values().collect::<Vec<_>>();
-    ranked.sort_by(|left, right| right.0.total_cmp(&left.0));
+    ranked.sort_by(|left, right| {
+        right
+            .0
+            .total_cmp(&left.0)
+            .then_with(|| left.1.document_id.cmp(&right.1.document_id))
+    });
     ranked
         .into_iter()
         .take(limit)
@@ -80,6 +85,36 @@ pub fn build_context(query: &str, results: Vec<SearchResult>) -> RetrievalContex
         context,
         citations,
     }
+}
+
+/// Deterministic lexical reranker used after reciprocal-rank fusion. It
+/// rewards query-token overlap while preserving fused order for ties.
+pub fn rerank(query: &str, results: Vec<SearchResult>) -> Vec<SearchResult> {
+    let tokens = normalized_tokens(query);
+    let mut ranked = results
+        .into_iter()
+        .enumerate()
+        .map(|(index, result)| {
+            let haystack = normalized_tokens(&format!("{} {}", result.title, result.snippet));
+            let score = tokens.intersection(&haystack).count();
+            (score, index, result)
+        })
+        .collect::<Vec<_>>();
+    ranked.sort_by(|left, right| right.0.cmp(&left.0).then(left.1.cmp(&right.1)));
+    ranked.into_iter().map(|(_, _, result)| result).collect()
+}
+
+fn normalized_tokens(value: &str) -> HashSet<String> {
+    value
+        .split(|character: char| !character.is_alphanumeric())
+        .map(|token| {
+            token
+                .chars()
+                .flat_map(char::to_lowercase)
+                .collect::<String>()
+        })
+        .filter(|token| token.chars().count() > 2)
+        .collect()
 }
 
 #[cfg(test)]
@@ -129,5 +164,101 @@ mod tests {
             result: Some(result),
         }];
         assert_eq!(fuse_ranked(vec![], hits, 10)[0].document_id, "vector-doc");
+    }
+
+    #[test]
+    fn deterministic_reranker_preserves_ties() {
+        let first = SearchResult {
+            document_id: "first".into(),
+            title: "Agents and ledgers".into(),
+            source_uri: None,
+            snippet: "local research".into(),
+        };
+        let second = SearchResult {
+            document_id: "second".into(),
+            title: "Agents other note".into(),
+            source_uri: None,
+            snippet: "unrelated".into(),
+        };
+        let ranked = rerank("agents", vec![second, first]);
+        assert_eq!(
+            ranked
+                .iter()
+                .map(|result| result.document_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["second", "first"]
+        );
+    }
+
+    #[test]
+    fn reranker_matches_complete_tokens_only() {
+        let cart = SearchResult {
+            document_id: "cart".into(),
+            title: "Cart article".into(),
+            source_uri: None,
+            snippet: "contains artistry as a substring".into(),
+        };
+        let art = SearchResult {
+            document_id: "art".into(),
+            title: "Art notes".into(),
+            source_uri: None,
+            snippet: "exact token".into(),
+        };
+        let ranked = rerank("art", vec![cart, art]);
+        assert_eq!(ranked[0].document_id, "art");
+    }
+
+    #[test]
+    fn reranker_normalizes_unicode_case_and_character_length() {
+        assert!(normalized_tokens("éx").is_empty());
+        assert!(normalized_tokens("ÉTUDES").contains("études"));
+
+        let unicode = SearchResult {
+            document_id: "unicode".into(),
+            title: "ÉTUDES sur les agents".into(),
+            source_uri: None,
+            snippet: "recherche locale".into(),
+        };
+        let unrelated = SearchResult {
+            document_id: "unrelated".into(),
+            title: "Agents".into(),
+            source_uri: None,
+            snippet: "other material".into(),
+        };
+        let ranked = rerank("études", vec![unrelated, unicode]);
+        assert_eq!(ranked[0].document_id, "unicode");
+    }
+
+    #[test]
+    fn fused_ties_are_sorted_by_document_id() {
+        let result = |document_id: &str| SearchResult {
+            document_id: document_id.into(),
+            title: document_id.into(),
+            source_uri: None,
+            snippet: String::new(),
+        };
+        let ranked = fuse_ranked(
+            vec![],
+            vec![
+                VectorHit {
+                    document_id: "b".into(),
+                    score: 0.0,
+                    result: Some(result("b")),
+                },
+                VectorHit {
+                    document_id: "a".into(),
+                    score: 0.0,
+                    result: Some(result("a")),
+                },
+            ],
+            10,
+        );
+        assert_eq!(
+            ranked
+                .iter()
+                .map(|result| result.document_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["a", "b"]
+        );
     }
 }

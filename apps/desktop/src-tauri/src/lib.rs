@@ -1,4 +1,5 @@
 use serde::Serialize;
+mod chunking;
 mod distill;
 mod embeddings;
 mod enrichment;
@@ -758,10 +759,8 @@ mod commands {
                 result: Some(result),
             })
             .collect();
-        Ok(rag::build_context(
-            &query,
-            rag::fuse_ranked(lexical, vector_hits, limit as usize),
-        ))
+        let fused = rag::fuse_ranked(lexical, vector_hits, limit as usize);
+        Ok(rag::build_context(&query, rag::rerank(&query, fused)))
     }
 
     #[tauri::command]
@@ -839,26 +838,55 @@ mod commands {
     ) -> Result<usize, String> {
         let root = std::path::PathBuf::from(&vault_path);
         let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
-        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let document = storage::load_document(&connection, &root, &document_id)
+        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        storage::load_document(&connection, &root, &document_id)
             .map_err(|error| error.to_string())?
             .ok_or_else(|| "source document not found".to_string())?;
         let model = model.unwrap_or_else(|| "embeddinggemma".into());
-        let vectors = OllamaEmbedder::new(model.clone())
-            .embed_batch(&[document.content])
-            .await?;
-        let Some(vector) = vectors.into_iter().next() else {
-            return Err("embedding service returned no vector".into());
+        let chunks = {
+            let mut statement = connection
+                .prepare("SELECT id, text FROM chunks WHERE document_id=?1 ORDER BY ordinal")
+                .map_err(|error| error.to_string())?;
+            let rows = statement
+                .query_map(rusqlite::params![document_id], |row| {
+                    Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+                })
+                .map_err(|error| error.to_string())?;
+            rows.collect::<Result<Vec<_>, _>>()
+                .map_err(|error| error.to_string())?
         };
-        let chunk_id: i64 = connection
-            .query_row(
-                "SELECT id FROM chunks WHERE document_id=?1 ORDER BY ordinal LIMIT 1",
-                rusqlite::params![document_id],
-                |row| row.get(0),
-            )
+        if chunks.is_empty() {
+            return Err("source document has no chunks".into());
+        }
+        let texts = chunks
+            .iter()
+            .map(|(_, text)| text.clone())
+            .collect::<Vec<_>>();
+        let vectors = OllamaEmbedder::new(model.clone())
+            .embed_batch(&texts)
+            .await?;
+        if vectors.len() != chunks.len() {
+            return Err("embedding service returned an incomplete batch".into());
+        }
+        let transaction = connection
+            .transaction()
             .map_err(|error| error.to_string())?;
-        connection.execute("INSERT INTO chunk_embeddings (chunk_id, model, dimensions, vector_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT(chunk_id) DO UPDATE SET model=excluded.model, dimensions=excluded.dimensions, vector_json=excluded.vector_json, created_at=excluded.created_at", rusqlite::params![chunk_id, model, vector.len(), serde_json::to_string(&vector).map_err(|error| error.to_string())?, chrono::Utc::now().to_rfc3339()]).map_err(|error| error.to_string())?;
-        Ok(vector.len())
+        for ((chunk_id, _), vector) in chunks.iter().zip(vectors.iter()) {
+            transaction
+                .execute(
+                    "INSERT INTO chunk_embeddings (chunk_id, model, dimensions, vector_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT(chunk_id) DO UPDATE SET model=excluded.model, dimensions=excluded.dimensions, vector_json=excluded.vector_json, created_at=excluded.created_at",
+                    rusqlite::params![
+                        chunk_id,
+                        model,
+                        vector.len(),
+                        serde_json::to_string(vector).map_err(|error| error.to_string())?,
+                        chrono::Utc::now().to_rfc3339()
+                    ],
+                )
+                .map_err(|error| error.to_string())?;
+        }
+        transaction.commit().map_err(|error| error.to_string())?;
+        Ok(vectors.len())
     }
 }
 
@@ -961,6 +989,71 @@ mod tests {
         assert!(export.join("sources/github/octo--hello.md").exists());
         let _ = std::fs::remove_dir_all(root);
         let _ = std::fs::remove_dir_all(export);
+    }
+
+    #[test]
+    fn upsert_indexes_heading_aware_chunks() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        let document = SourceDocument {
+            id: "article:chunked".into(),
+            relative_path: "sources/article/chunked.md".into(),
+            title: "Chunked article".into(),
+            source_kind: "article".into(),
+            source_uri: Some("https://example.com/chunked".into()),
+            content: format!("# Intro\n{}\n\n# Next\nsecond", "a".repeat(1_300)),
+            captured_at: "2026-07-20T00:00:00Z".into(),
+        };
+        upsert_document(&mut db, &root, &document).unwrap();
+        let chunks: Vec<(i64, i64, Option<String>, String)> = db
+            .prepare("SELECT id, ordinal, heading_path, text FROM chunks WHERE document_id = ?1 ORDER BY ordinal")
+            .unwrap()
+            .query_map([&document.id], |row| {
+                Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+            })
+            .unwrap()
+            .collect::<Result<_, _>>()
+            .unwrap();
+        assert!(chunks.len() >= 2);
+        assert_eq!(chunks[0].2.as_deref(), Some("Intro"));
+        assert!(chunks.iter().all(|(_, _, _, text)| text.len() <= 1_200));
+        let first_chunk_id = chunks[0].0;
+        db.execute(
+            "INSERT INTO chunk_embeddings(chunk_id, model, dimensions, vector_json, created_at) VALUES(?1, 'test', 1, '[1.0]', 'now')",
+            [first_chunk_id],
+        )
+        .unwrap();
+        let updated = SourceDocument {
+            content: "# Replacement\nshort".into(),
+            ..document.clone()
+        };
+        upsert_document(&mut db, &root, &updated).unwrap();
+        let stale_vectors: i64 = db
+            .query_row(
+                "SELECT COUNT(*) FROM chunk_embeddings WHERE chunk_id IN (SELECT id FROM chunks WHERE document_id = ?1)",
+                [&document.id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(stale_vectors, 0);
+        db.execute(
+            "DELETE FROM chunk_fts WHERE rowid IN (SELECT id FROM chunks WHERE document_id = ?1)",
+            [&updated.id],
+        )
+        .unwrap();
+        db.execute("DELETE FROM chunks WHERE document_id = ?1", [&updated.id])
+            .unwrap();
+        upsert_document(&mut db, &root, &updated).unwrap();
+        let restored_chunks: i64 = db
+            .query_row(
+                "SELECT COUNT(*) FROM chunks WHERE document_id = ?1",
+                [&updated.id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(restored_chunks, 1);
+        let _ = std::fs::remove_dir_all(root);
     }
 
     #[test]
