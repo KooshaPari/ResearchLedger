@@ -12,6 +12,9 @@
   source documents with provenance.
 - Documents are split into bounded heading-aware chunks; embeddings persist model,
   embedding-version, and input-hash metadata, and vector-only RRF hits are retained.
-- Retrieval combines FTS5 and optional Ollama vectors with a deterministic overlap reranker;
-  a local cross-encoder remains an explicit future seam. Library exposes persisted claims,
-  source URIs, and citation IDs for document inspection.
+- Retrieval combines FTS5 and optional Ollama vectors. Ollama does not provide a native rerank
+  API, so the cross-encoder implementation uses the existing `reqwest` dependency against an
+  opt-in, loopback-only OpenAI-compatible `/v1/rerank` endpoint (for example, local
+  `llama-server --rerank` with a separately installed BGE GGUF). It refuses remote endpoints,
+  has a three-second timeout and strict response validation, and falls back deterministically.
+  The persisted cross-encoder contract fixture verifies semantic order without a model download.

@@ -61,12 +61,40 @@ describe("ResearchLedger shell", () => {
     expect(screen.getByRole("button", { name: "Capture reactions in browser" })).toBeInTheDocument();
   });
 
+  it("opens LinkedIn sign-in with the selected persistent profile", async () => {
+    resetTauriMocks();
+    invokeMock.mockResolvedValue(
+      "LinkedIn sign-in browser opened; close it when authentication is complete.",
+    );
+    render(<App />);
+
+    fireEvent.change(screen.getByRole("textbox", { name: "LinkedIn browser profile" }), {
+      target: { value: "/tmp/researchledger-linkedin" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Open LinkedIn sign-in" }));
+
+    await waitFor(() =>
+      expect(invokeMock).toHaveBeenCalledWith("open_linkedin_signin", {
+        profilePath: "/tmp/researchledger-linkedin",
+      }),
+    );
+  });
+
   it("switches accessible primary workspaces", () => {
     render(<App />);
     fireEvent.click(screen.getByRole("tab", { name: /Library/ }));
     expect(screen.getByRole("tab", { name: /Library/ })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tabpanel")).toHaveTextContent("Your indexed corpus");
     expect(screen.queryByRole("button", { name: "Import GitHub stars" })).not.toBeInTheDocument();
+  });
+
+  it("keeps provider form state when switching workspaces", () => {
+    render(<App />);
+    const profile = screen.getByRole("textbox", { name: "LinkedIn browser profile" });
+    fireEvent.change(profile, { target: { value: "/tmp/researchledger-linkedin" } });
+    fireEvent.click(screen.getByRole("tab", { name: /Library/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /Inbox/ }));
+    expect(screen.getByRole("textbox", { name: "LinkedIn browser profile" })).toHaveValue("/tmp/researchledger-linkedin");
   });
 
   it("exposes a Hacker News saved-stories capture pathway", () => {

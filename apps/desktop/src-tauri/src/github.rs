@@ -28,10 +28,15 @@ struct ReadmeResponse {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceAuthorization {
+    #[serde(alias = "device_code")]
     pub device_code: String,
+    #[serde(alias = "user_code")]
     pub user_code: String,
+    #[serde(alias = "verification_uri")]
     pub verification_uri: String,
+    #[serde(alias = "expires_in")]
     pub expires_in: u64,
+    #[serde(alias = "interval")]
     pub interval: u64,
 }
 
@@ -39,6 +44,13 @@ pub struct DeviceAuthorization {
 struct DeviceTokenResponse {
     access_token: Option<String>,
     error: Option<String>,
+    error_description: Option<String>,
+}
+
+const DEVICE_FLOW_SCOPE: &str = "public_repo";
+
+fn device_flow_scope() -> &'static str {
+    DEVICE_FLOW_SCOPE
 }
 
 #[derive(Debug)]
@@ -162,12 +174,18 @@ impl GithubClient {
         let response = self
             .client
             .post("https://github.com/login/device/code")
-            .form(&[("client_id", client_id), ("scope", "read:user")])
+            // GitHub returns form-encoded data unless this endpoint is
+            // explicitly negotiated as JSON. The shared API default is not
+            // sufficient for the OAuth host.
+            .header(header::ACCEPT, "application/json")
+            .form(&[("client_id", client_id), ("scope", device_flow_scope())])
             .send()
             .await
             .map_err(GithubError::Http)?;
         if !response.status().is_success() {
-            return Err(GithubError::InvalidResponse(response.status().to_string()));
+            let status = response.status();
+            let detail = response.text().await.unwrap_or_default();
+            return Err(GithubError::InvalidResponse(format!("{status}: {detail}")));
         }
         response.json().await.map_err(GithubError::Http)
     }
@@ -186,6 +204,7 @@ impl GithubClient {
             let response = self
                 .client
                 .post("https://github.com/login/oauth/access_token")
+                .header(header::ACCEPT, "application/json")
                 .form(&[
                     ("client_id", client_id),
                     ("device_code", device_code),
@@ -194,6 +213,7 @@ impl GithubClient {
                 .send()
                 .await
                 .map_err(GithubError::Http)?;
+            let status = response.status();
             let payload: DeviceTokenResponse = response.json().await.map_err(GithubError::Http)?;
             if let Some(token) = payload.access_token {
                 return Ok(token);
@@ -204,11 +224,16 @@ impl GithubClient {
             if payload.error.as_deref() != Some("authorization_pending")
                 && payload.error.as_deref() != Some("slow_down")
             {
-                return Err(GithubError::InvalidResponse(
-                    payload
-                        .error
-                        .unwrap_or_else(|| "authorization failed".into()),
-                ));
+                let error = payload
+                    .error
+                    .unwrap_or_else(|| "authorization failed".into());
+                let description = payload.error_description.unwrap_or_default();
+                let detail = if description.is_empty() {
+                    error
+                } else {
+                    format!("{error}: {description}")
+                };
+                return Err(GithubError::InvalidResponse(format!("{status}: {detail}")));
             }
         }
         Err(GithubError::InvalidResponse(
@@ -228,5 +253,30 @@ mod tests {
             .decode(value)
             .unwrap();
         assert_eq!(String::from_utf8(decoded).unwrap(), "# Hello\n");
+    }
+
+    #[test]
+    fn device_flow_requests_scope_that_allows_starred_repositories() {
+        assert_eq!(device_flow_scope(), "public_repo");
+    }
+
+    #[test]
+    fn decodes_github_snake_case_device_authorization_json() {
+        let value: DeviceAuthorization = serde_json::from_str(
+            r#"{"device_code":"device","user_code":"ABCD-1234","verification_uri":"https://github.com/login/device","expires_in":600,"interval":5}"#,
+        )
+        .unwrap();
+        assert_eq!(value.verification_uri, "https://github.com/login/device");
+        assert_eq!(value.expires_in, 600);
+    }
+
+    #[test]
+    fn decodes_device_error_description() {
+        let value: DeviceTokenResponse = serde_json::from_str(
+            r#"{"error":"authorization_pending","error_description":"The user has not yet completed"}"#,
+        )
+        .unwrap();
+        assert_eq!(value.error.as_deref(), Some("authorization_pending"));
+        assert!(value.error_description.unwrap().contains("not yet"));
     }
 }

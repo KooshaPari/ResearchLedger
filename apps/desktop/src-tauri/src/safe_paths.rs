@@ -112,6 +112,9 @@ pub fn ensure_safe_command_arg(value: &str, label: &str) -> Result<String, Strin
             "{label} must not start with `-` (rejected to prevent flag injection)"
         ));
     }
+    if contains_parent_dir_component(value) {
+        return Err(format!("{label} must not contain `..` traversal segments"));
+    }
     if contains_control_chars(value) {
         return Err(format!("{label} must not contain control characters"));
     }
@@ -175,5 +178,24 @@ mod tests {
         assert!(ensure_safe_command_arg("--eval=evil", "profile").is_err());
         assert!(ensure_safe_command_arg("", "profile").is_err());
         assert!(ensure_safe_command_arg("/normal/path", "profile").is_ok());
+    }
+
+    #[test]
+    fn rejects_profile_path_traversal() {
+        assert!(ensure_safe_command_arg("/tmp/../private-profile", "profile").is_err());
+    }
+
+    #[test]
+    fn allows_hacker_news_host_but_rejects_redirect_target() {
+        assert!(ensure_safe_provider_url(
+            "https://news.ycombinator.com/saved?id=koosha",
+            &["news.ycombinator.com"],
+        )
+        .is_ok());
+        assert!(ensure_safe_provider_url(
+            "https://evil.example/saved?id=koosha",
+            &["news.ycombinator.com"],
+        )
+        .is_err());
     }
 }

@@ -107,6 +107,32 @@ pub fn rerank(query: &str, results: Vec<SearchResult>) -> Vec<SearchResult> {
     ranked.into_iter().map(|(_, _, result)| result).collect()
 }
 
+/// Applies verified cross-encoder scores and appends any unscored candidates in their fused
+/// order. The latter keeps partial provider responses deterministic and citation-safe.
+pub fn rerank_with_cross_encoder(
+    results: Vec<SearchResult>,
+    scores: Vec<crate::embeddings::CrossEncoderScore>,
+) -> Vec<SearchResult> {
+    let mut score_by_index = HashMap::new();
+    for score in scores {
+        score_by_index.insert(score.index, score.relevance_score);
+    }
+    let mut ranked = results
+        .into_iter()
+        .enumerate()
+        .map(|(index, result)| (score_by_index.get(&index).copied(), index, result))
+        .collect::<Vec<_>>();
+    ranked.sort_by(|left, right| match (left.0, right.0) {
+        (Some(left_score), Some(right_score)) => right_score
+            .total_cmp(&left_score)
+            .then(left.1.cmp(&right.1)),
+        (Some(_), None) => std::cmp::Ordering::Less,
+        (None, Some(_)) => std::cmp::Ordering::Greater,
+        (None, None) => left.1.cmp(&right.1),
+    });
+    ranked.into_iter().map(|(_, _, result)| result).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -172,5 +198,39 @@ mod tests {
         };
         let ranked = rerank("agents", vec![second, first]);
         assert_eq!(ranked[0].document_id, "first");
+    }
+
+    #[test]
+    fn cross_encoder_scores_reorder_the_fixture_candidates() {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../tests/fixtures/retrieval/cross_encoder_contract.json"
+        ))
+        .unwrap();
+        let scores = crate::embeddings::LocalCrossEncoder::parse_response(
+            &fixture["response"].to_string(),
+            fixture["documents"].as_array().unwrap().len(),
+        )
+        .unwrap();
+        let results = fixture["documents"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .enumerate()
+            .map(|(index, document)| SearchResult {
+                document_id: index.to_string(),
+                title: document.as_str().unwrap().to_string(),
+                source_uri: None,
+                snippet: document.as_str().unwrap().to_string(),
+            })
+            .collect();
+
+        let ranked = rerank_with_cross_encoder(results, scores);
+        assert_eq!(
+            ranked
+                .into_iter()
+                .map(|result| result.document_id)
+                .collect::<Vec<_>>(),
+            ["2", "1", "0"]
+        );
     }
 }
