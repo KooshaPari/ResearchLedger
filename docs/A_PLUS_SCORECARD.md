@@ -13,7 +13,7 @@ cross-encoder quality and live-account smoke remain.
 | LinkedIn, Reddit, X, and Hacker News capture | Persistent Playwright connectors, bounded scroll, JSON import, packaged resource parity | READY / live-account unverified |
 | GitHub auth and Markdown export UX | Device-flow polling, client-id validation, native destination picker; frontend suite 7/7 | PASS |
 | Provenance | `provenance` rows and claim rows write on create, update, and unchanged re-import; fetched references become source documents; Library exposes claim citations | PASS |
-| Search/RAG | SQLite FTS5 lexical search, deterministic heading/size chunking, optional Ollama vectors with model/version/input hashes, rank fusion including vector-only hits, deterministic overlap reranker fallback | PARTIAL: no local cross-encoder reranker |
+| Search/RAG | SQLite FTS5 lexical search, deterministic heading/size chunking, optional Ollama vectors with model/version/input hashes, rank fusion including vector-only hits, loopback-only local `/v1/rerank` cross-encoder adapter, versioned ranking fixture, deterministic overlap fallback | PARTIAL: installed local-model smoke pending |
 | Frontend workflows | Workspace tabs, provider actions, vault/import/search/distill/export flows | PASS |
 | Interoperable knowledge format | OKF-style frontmatter, citations, generated index | PASS: schema coverage still needs fixture validation |
 | Enrichment | URL queue with resumable status, bounded exponential retry for transient HTTP failures, host-keyed concurrency budget, public-HTTP worker with robots/private-host/redirect/byte/time guards, atomic artifacts, fetched source documents, structured deterministic claims, persisted claim rows | PASS |
@@ -22,7 +22,8 @@ cross-encoder quality and live-account smoke remain.
 
 ## Remaining A+ gates
 
-1. Add a local cross-encoder reranker contract and persisted retrieval-quality fixtures.
+1. Run the configured local cross-encoder against the persisted retrieval-quality fixture and
+   record model identifier plus fixture result (without bundling or downloading a model).
 2. Re-run an authenticated LinkedIn capture and a GitHub starred-repository import on the
    installed app, recording counts and hashes without retaining credentials.
 
