@@ -10,6 +10,7 @@
     "linkedin:capture": "node scripts/linkedin_capture.mjs",
     "reddit:capture": "node scripts/reddit_capture.mjs",
     "x:capture": "node scripts/x_capture.mjs",
+    "verify:csp": "node scripts/verify_csp.mjs",
     "hackernews:capture": "node scripts/hackernews_capture.mjs",
     "verify:resources": "node scripts/verify_resources.mjs",
     "postinstall": "node ./scripts/postinstall.mjs",
