@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "capturedAt": "2026-08-03T07:59:17.708Z",
+  "source": "linkedin-playwright-authenticated-session",
+  "activityUrl": "https://www.linkedin.com/in/me/recent-activity/reactions/",
+  "posts": [
+    {
+      "url": "https://www.linkedin.com/feed/update/urn:li:activity:7480784744989818881",
+      "text": "We published AUTO on arXiv Every LLM agent still runs like an interpreter: expensive, token by token, re-deriving behavior it already learned yesterday Auto is the compiler layer for agents You point it at a live agent. It records prompts, tool calls, branch decisions, and results, measures what is actually deterministic, and compiles the stable parts into fast, sandboxed binaries At runtime: known input -> run the compiled fast path novel input -> fall back to the frontier agent, capture the trace, recompile Nothing is figured out twice On AUTO-BENCH: - 87.1% of frontier-agent behavior was provably deterministic - ~30x cheaper per call on those paths, 6.4x cheaper end to end - 0 errors This is not a cache A cache stores answers Auto compiles behavior And every compiled path has to replay recorded reality under a contract before it ships. If it can't be verified, Auto refuses to compile it If your agent bill scales linearly with usage, it doesn't have to arxiv: arxiv.org/abs/2607.04542 github: https://lnkd.in/dS56kbFU …more"
+    },
+    {
+      "url": "https://www.linkedin.com/feed/update/urn:li:activity:7470143287287418881",
+      "text": "Introducing North Mini Code: Cohere’s first model for developers Small, efficient, and open-source: our first agentic coding model, built for the sovereign developer ecosystem. Highlights include: • Small - A 30 billion parameter, 3 billion active model. • Efficient - North Mini Code’s benchmark scores translate to a 33.4 on the Artificial Analysis Coding Index, a competitive position among similar sized models. • Open Source - Open (Apache 2.0) so developers can experiment, test, and build their way. • Sovereign - Deploy on-prem or locally and get building. • Speed - North Mini Code achieved up to 2.8x higher output throughput than similar sized models, under identical concurrency levels and hardware configurations via internal testing. Continuing our releases under the Apache 2.0 license, North Mini Code provides developers with freedom and control for experimentation and customization. This foundational model is built for community input and collaboration, and is the starting point with our sovereign new series under the North family name. We encourage developers to share their builds with us and give feedback to shape future iterations. Let’s shape the future of sovereign AI together. Download: https://lnkd.in/ekZjgFZK Or learn more: https://lnkd.in/eAFGmYMc Watch Nick Frosst's live demo: https://lnkd.in/ehbvfssy …more"
+    },
+    {
+      "url": "https://www.linkedin.com/feed/update/urn:li:activity:7457111847813537792",
+      "text": "TinyFish just made their Search and Fetch APIs FREE! I plugged TinyFish Search and Fetch into Claude Code and ran a quick competitive analysis. Wanted to see what it actually does vs what the docs promise. Search pulled structured JSON results very fast that is like sub half a second. It gave actual structured data my agent could work with immediately. Then I ran Fetch on a few company pages. These were JS heavy sites that would normally give you 2000 lines of raw HTML with nav bars, cookie banners, ad scripts, all of it. TinyFish rendered the page in a real browser and handed back clean markdown. My agent didn't have to waste tokens parsing through junk to find the actual content. Both search and fetch have generous rate limits! It works everywhere too. MCP, REST API, Python SDK, TypeScript SDK, CLI, n8n, Dify, LangChain, CrewAI. One API key across all of them. If you're building any agent that needs to pull data from the live web, just plug this in once and stop writing scrapers. Grab your free key: https://lnkd.in/g8nUYfcg …more"
+    }
+  ]
+}

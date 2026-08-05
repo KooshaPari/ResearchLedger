@@ -23,6 +23,7 @@ import { describe, expect, it } from "vitest";
 import {
   getProbe,
   parseFlags,
+  assertNonEmptyCapture,
   writeCapture,
 } from "./_capture_common.mjs";
 import {
@@ -201,6 +202,20 @@ describe("getProbe", () => {
 
   it("throws on unknown mode names", () => {
     expect(() => getProbe({ mode: "no-such-mode" })).toThrow();
+  });
+});
+
+describe("assertNonEmptyCapture", () => {
+  it("rejects an empty LinkedIn capture instead of writing a false zero", () => {
+    expect(() => assertNonEmptyCapture({ providerName: "LinkedIn", posts: [] }))
+      .toThrow(/CAPTURE_EMPTY.*LinkedIn/i);
+  });
+
+  it("accepts a capture containing at least one post", () => {
+    expect(() => assertNonEmptyCapture({
+      providerName: "LinkedIn",
+      posts: [{ url: "https://www.linkedin.com/feed/update/urn:li:activity:1", text: "post" }],
+    })).not.toThrow();
   });
 });
 
