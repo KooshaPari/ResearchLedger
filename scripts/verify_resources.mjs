@@ -17,6 +17,7 @@ const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
 
 const requiredResources = new Map([
   ["scripts/linkedin_capture.mjs", "scripts/linkedin_capture.mjs"],
+  ["scripts/linkedin_signin.mjs", "scripts/linkedin_signin.mjs"],
   ["scripts/hackernews_capture.mjs", "scripts/hackernews_capture.mjs"],
   ["scripts/reddit_capture.mjs", "scripts/reddit_capture.mjs"],
   ["scripts/x_capture.mjs", "scripts/x_capture.mjs"],
