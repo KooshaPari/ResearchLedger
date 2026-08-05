@@ -29,6 +29,7 @@ import {
   scrollAndCollect,
   getProbe,
   writeCapture,
+  loadPlaywright,
   parseFlags,
 } from "./_capture_common.mjs";
 
@@ -58,9 +59,7 @@ if (url.includes("USERNAME")) {
   process.exit(2);
 }
 
-const { chromium } = await import(
-  process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE ?? "playwright",
-);
+const { chromium } = await loadPlaywright();
 
 const { context, page } = await openAuthenticatedSession({
   chromium,

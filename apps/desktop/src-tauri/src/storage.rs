@@ -102,11 +102,34 @@ pub fn write_markdown_atomic(
     Ok(path)
 }
 
+fn provenance_quote(content: &str) -> String {
+    let mut lines = content.lines();
+    if lines.next() == Some("---") {
+        for line in lines.by_ref() {
+            if line == "---" {
+                break;
+            }
+        }
+    }
+    lines
+        .map(str::trim)
+        .find(|line| !line.is_empty())
+        .unwrap_or("")
+        .trim_start_matches('#')
+        .trim()
+        .chars()
+        .take(280)
+        .collect()
+}
+
 pub fn upsert_document(
     connection: &mut Connection,
     root: &Path,
     document: &SourceDocument,
 ) -> SqlResult<UpsertResult> {
+    crate::okf::validate_concept(&document.content).map_err(|_| {
+        rusqlite::Error::InvalidParameterName("document is not an OKF concept".into())
+    })?;
     let hash = format!("{:x}", Sha256::digest(document.content.as_bytes()));
     let previous: Option<String> = connection
         .query_row(
@@ -117,17 +140,7 @@ pub fn upsert_document(
         .optional()?;
     if previous.as_deref() == Some(hash.as_str()) {
         if let Some(source_uri) = document.source_uri.as_deref() {
-            let quote = document
-                .content
-                .lines()
-                .map(str::trim)
-                .find(|line| !line.is_empty() && !line.starts_with("---"))
-                .unwrap_or("")
-                .trim_start_matches('#')
-                .trim()
-                .chars()
-                .take(280)
-                .collect::<String>();
+            let quote = provenance_quote(&document.content);
             connection.execute(
                 "DELETE FROM provenance WHERE document_id = ?1",
                 params![document.id],
@@ -212,17 +225,7 @@ pub fn upsert_document(
         params![document.id],
     )?;
     if let Some(source_uri) = document.source_uri.as_deref() {
-        let quote = document
-            .content
-            .lines()
-            .map(str::trim)
-            .find(|line| !line.is_empty() && !line.starts_with("---"))
-            .unwrap_or("")
-            .trim_start_matches('#')
-            .trim()
-            .chars()
-            .take(280)
-            .collect::<String>();
+        let quote = provenance_quote(&document.content);
         tx.execute(
             "INSERT INTO provenance(document_id, source_uri, locator, quote, captured_at) VALUES(?1, ?2, ?3, ?4, ?5)",
             params![document.id, source_uri, document.relative_path, quote, document.captured_at],
@@ -439,6 +442,15 @@ pub fn export_markdown(vault: &Path, destination: &Path) -> std::io::Result<u64>
             if path.is_dir() {
                 copy_tree(&path, &target, count)?;
             } else if path.extension().is_some_and(|ext| ext == "md") {
+                let reserved = path
+                    .file_name()
+                    .is_some_and(|name| name == "index.md" || name == "log.md");
+                if !reserved {
+                    let content = fs::read_to_string(&path)?;
+                    crate::okf::validate_concept(&content).map_err(|error| {
+                        std::io::Error::new(std::io::ErrorKind::InvalidData, error)
+                    })?;
+                }
                 fs::copy(&path, &target)?;
                 *count += 1;
             }
