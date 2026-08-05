@@ -20,8 +20,10 @@ the scorecard must not treat them as shipped.
    alternatives, and open questions with source citations.
 6. Implemented: index heading/size-bounded chunks in FTS5 and optional vector storage with
    model/version/input-hash metadata.
-7. [Partial] Retrieve with reciprocal-rank fusion across lexical and vector results and a
-   deterministic overlap reranker; a local cross-encoder reranker is still pending.
+7. [Partial] Retrieve with reciprocal-rank fusion across lexical and vector results. An opt-in,
+   loopback-only cross-encoder adapter uses a local OpenAI-compatible `POST /v1/rerank` server
+   when configured; deterministic overlap ranking remains the offline fallback. The adapter and
+   its quality fixture are covered, but an installed-model smoke remains a release gate.
 8. [Partial] Build answer context with stable citation IDs, source URLs, and capture
    timestamps; confidence/coverage metadata is pending.
 
@@ -50,3 +52,20 @@ The first local provider is Ollama’s `/api/embed` endpoint, defaulting to `emb
 and configurable to another installed embedding model. Embeddings are opt-in and persisted
 per chunk in SQLite; if Ollama is unavailable, lexical FTS5 and deterministic distillation
 continue to work without network or model dependencies.
+
+## Local cross-encoder contract
+
+ResearchLedger does not download a reranking model and does not add an in-process ML runtime.
+To enable cross-encoding, an operator starts a local reranker such as `llama-server --rerank`
+with a separately installed BGE reranker GGUF, then configures:
+
+```sh
+export RESEARCHLEDGER_RERANK_ENDPOINT=http://127.0.0.1:11435/v1/rerank
+export RESEARCHLEDGER_RERANK_MODEL=bge-reranker-v2-m3-q8
+```
+
+The adapter accepts only `http` loopback endpoints (`localhost`, `127.0.0.1`, or `::1`), times
+out after three seconds, validates every returned candidate index and score, and falls back to
+deterministic ranking if the service is unavailable or malformed. The versioned contract fixture
+at `apps/desktop/src-tauri/tests/fixtures/retrieval/cross_encoder_contract.json` locks the
+expected semantic ordering independently of a downloaded model artifact.
