@@ -9,7 +9,8 @@
 - Reference fetch, structured claims, fetched source documents, versioned chunk embeddings,
   and persisted Library claim/provenance inspection are implemented; the worker now has
   bounded retry/backoff and host-keyed concurrency accounting.
-- Deterministic overlap reranking is implemented; a local cross-encoder contract and
-  retrieval-quality fixtures remain for the A+ gate.
+- Deterministic overlap reranking is implemented. The MLX-first/TEI/ONNX local cross-encoder
+  contract and versioned quality fixture are implemented, but an installed-model quality smoke
+  remains an A+ release gate.
 - Path traversal and symlink export checks are now guarded in storage; the remaining
   security caveat is the lack of an authenticated live-provider smoke record.

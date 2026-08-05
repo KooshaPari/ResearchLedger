@@ -3,6 +3,10 @@
 - Static/resource: `npm run verify:resources`, `npm run build`.
 - Frontend/capture: `npm test` (65 tests).
 - Rust: `CARGO_TARGET_DIR=/tmp/researchledger-target cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml` (69 tests).
+- Retrieval quality: `cross_encoder_contract.json` supplies candidate text, MLX/Cohere-v1 and
+  TEI response forms, and expected order. Unit tests prove platform engine selection, wire-shape
+  adaptation, strict response validation, loopback-only endpoint policy, and rank application.
+  An operator-installed model smoke is a separate gate.
 - Release: build app-only bundle, verify packaged resources, install, then smoke provider
   menus and vault/export flows. The current installed executable is SHA-256
   `adf1facbfc860afda22fa9151627c8c81519e4fe42466bb500ea1d566ae95895`; packaged Playwright

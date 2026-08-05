@@ -20,8 +20,11 @@ the scorecard must not treat them as shipped.
    alternatives, and open questions with source citations.
 6. Implemented: index heading/size-bounded chunks in FTS5 and optional vector storage with
    model/version/input-hash metadata.
-7. [Partial] Retrieve with reciprocal-rank fusion across lexical and vector results and a
-   deterministic overlap reranker; a local cross-encoder reranker is still pending.
+7. [Partial] Retrieve with reciprocal-rank fusion across lexical and vector results. An opt-in,
+   loopback-only cross-encoder adapter is MLX-first on macOS, with TEI and ONNX wire-compatible
+   engines for Linux and Windows; deterministic overlap ranking remains the offline fallback.
+   The adapter and quality fixture are covered, but an installed-model smoke remains a release
+   gate.
 8. [Partial] Build answer context with stable citation IDs, source URLs, and capture
    timestamps; confidence/coverage metadata is pending.
 
@@ -50,3 +53,45 @@ The first local provider is Ollama’s `/api/embed` endpoint, defaulting to `emb
 and configurable to another installed embedding model. Embeddings are opt-in and persisted
 per chunk in SQLite; if Ollama is unavailable, lexical FTS5 and deterministic distillation
 continue to work without network or model dependencies.
+
+## Local cross-encoder contract
+
+ResearchLedger does not download a reranking model and does not add an in-process ML runtime.
+It sends only to an explicitly configured loopback endpoint, so a vault works entirely offline
+until the operator has installed and started a local cross-encoder service.
+
+The preferred macOS engine is an MLX-native cross-encoder service that exposes the
+Cohere/Jina-style `POST /v1/rerank` contract. MLX LM's official HTTP server is for generative
+models, not a cross-encoder rerank endpoint, so it is deliberately not used here. Configure an
+already-installed MLX rerank service as follows:
+
+```sh
+export RESEARCHLEDGER_RERANK_ENGINE=mlx
+export RESEARCHLEDGER_RERANK_ENDPOINT=http://127.0.0.1:9000/v1/rerank
+export RESEARCHLEDGER_RERANK_MODEL=local-cross-encoder
+```
+
+For Linux, use Hugging Face Text Embeddings Inference (TEI) with a local `/rerank` endpoint;
+for Windows, use a local ONNX Runtime DirectML/CPU server that presents the same TEI rerank
+contract. Both use `{"query", "texts", "raw_scores": false, "truncate": true}` and return
+indexed scores. The configuration is identical except for the engine and endpoint:
+
+```sh
+# Linux: local TEI service
+export RESEARCHLEDGER_RERANK_ENGINE=tei
+export RESEARCHLEDGER_RERANK_ENDPOINT=http://127.0.0.1:8080/rerank
+export RESEARCHLEDGER_RERANK_MODEL=BAAI/bge-reranker-large
+
+# Windows: local ONNX Runtime service implementing the TEI rerank shape
+export RESEARCHLEDGER_RERANK_ENGINE=onnx
+export RESEARCHLEDGER_RERANK_ENDPOINT=http://127.0.0.1:8080/rerank
+export RESEARCHLEDGER_RERANK_MODEL=BAAI/bge-reranker-large
+```
+
+Without `RESEARCHLEDGER_RERANK_ENGINE`, ResearchLedger selects `mlx` on macOS, `tei` on Linux,
+and `onnx` on Windows. The adapter accepts only `http` loopback endpoints (`localhost`,
+`127.0.0.1`, or `::1`), times out after three seconds, validates every returned candidate index
+and finite score, and falls back to deterministic ranking if the service is unavailable or
+malformed. The versioned contract fixture at
+`apps/desktop/src-tauri/tests/fixtures/retrieval/cross_encoder_contract.json` locks MLX and TEI
+semantic ordering independently of a downloaded model artifact.
