@@ -4,15 +4,17 @@ import path from "node:path";
 import process from "node:process";
 import {
   loadPlaywright,
+  assertNonEmptyCapture,
   openAuthenticatedSession,
   parseFlags,
   readInt,
   resolveProfile,
+  defaultCapturePath,
 } from "./_capture_common.mjs";
 
 const flags = parseFlags(process.argv);
 const profile = resolveProfile(flags, "linkedin-profile");
-const output = flags.get("--output") ?? "linkedin-capture.json";
+const output = flags.get("--output") ?? defaultCapturePath("linkedin");
 const url = flags.get("--url") ?? "https://www.linkedin.com/in/me/recent-activity/reactions/";
 const maxRounds = readInt(flags, "--max-rounds", 240);
 const waitMs = readInt(flags, "--wait-ms", 1200);
@@ -35,10 +37,19 @@ for (let round = 0; round < maxRounds && unchangedRounds < 8; round += 1) {
     const text = (article?.innerText ?? link.innerText ?? "").replace(/\s+/g, " ").trim();
     return { url, text };
   }));
-  for (const post of rows) if (post.url && post.text.length >= 40) posts.set(post.url, post);
+  // A short reaction is still a real post. Filtering on rendered text length
+  // made a loaded feed look like an empty/authenticated failure.
+  for (const post of rows) if (post.url) posts.set(post.url, post);
   unchangedRounds = posts.size === before ? unchangedRounds + 1 : 0;
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.waitForTimeout(waitMs);
+}
+
+try {
+  assertNonEmptyCapture({ providerName: "LinkedIn", posts });
+} catch (error) {
+  await context.close();
+  throw error;
 }
 
 const payload = {

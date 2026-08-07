@@ -24,6 +24,7 @@
  */
 
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { spawn } from "node:child_process";
@@ -103,12 +104,39 @@ export async function assertAuthedPage({ page, target, loggedInMarker, timeoutMs
  * @returns {Promise<{ chromium: any }>}
  */
 export async function loadPlaywright() {
-  const playwrightModule =
-    process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE ?? "playwright";
-  const spec = playwrightModule.startsWith("/")
-    ? pathToFileURL(playwrightModule).href
-    : playwrightModule;
-  return import(spec);
+  const configuredModule = process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE;
+  const candidates = [
+    configuredModule,
+    configuredModule ? path.resolve(configuredModule, "index.js") : undefined,
+    configuredModule ? path.resolve(configuredModule, "index.mjs") : undefined,
+    "node_modules/playwright",
+    "node_modules/playwright/index.js",
+    "node_modules/playwright/index.mjs",
+    "node_modules/playwright-core",
+    "node_modules/playwright-core/index.js",
+    "node_modules/playwright-core/index.mjs",
+    "playwright-core",
+    "playwright",
+  ].filter((value) => typeof value === "string" && value.length > 0);
+
+  /** @param {string} value */
+  const isAbsolutePath = (value) =>
+    process.platform === "win32"
+      ? /[a-z]:[\\/]/i.test(String(value))
+      : String(value).startsWith("/");
+
+  const errors = [];
+  for (const candidate of candidates) {
+    let spec = isAbsolutePath(candidate) ? pathToFileURL(candidate).href : candidate;
+    try {
+      const loaded = await import(spec);
+      return loaded.default ?? loaded;
+    } catch (error) {
+      errors.push(`${candidate}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  throw new Error(`PLAYWRIGHT_IMPORT_FAIL: unable to import Playwright. Tried: ${errors.join(", ")}`);
 }
 
 /**
@@ -237,32 +265,68 @@ export async function detectAuthGate(page) {
  * }} params
  */
 export async function openAuthenticatedSession(params) {
-  const { chromium, profile, url, warmupMs = 2500, logMessage, onAuthInstall, execFileSync } = params;
+  const {
+    chromium,
+    profile,
+    url,
+    warmupMs = 2500,
+    authWaitMs = 180_000,
+    launchTimeoutMs = 30_000,
+    logMessage,
+    onAuthInstall,
+    execFileSync,
+  } = params;
   const runInstall = execFileSync ?? defaultInstallRunner;
   let context;
+  // Create the dedicated user-data directory before launching Chromium so
+  // packaged runs persist cookies/MFA in the same path on every invocation.
+  await fs.mkdir(profile, { recursive: true });
   try {
-    context = await chromium.launchPersistentContext(profile, { headless: false });
+    context = await chromium.launchPersistentContext(profile, {
+      headless: false,
+      timeout: launchTimeoutMs,
+    });
   } catch (err) {
+    if (isProfileLaunchTimeout(err)) throw profileLaunchError(profile, launchTimeoutMs);
     if (!isMissingBrowserError(err)) throw err;
     const msg = `Browser not installed; running \`npx playwright install chromium\` (one-time, ~150 MB).`;
     if (typeof onAuthInstall === "function") onAuthInstall(msg);
     console.error(msg);
     runInstall("npx", ["playwright", "install", "chromium"]);
-    context = await chromium.launchPersistentContext(profile, { headless: false });
+    try {
+      context = await chromium.launchPersistentContext(profile, {
+        headless: false,
+        timeout: launchTimeoutMs,
+      });
+    } catch (err) {
+      if (isProfileLaunchTimeout(err)) throw profileLaunchError(profile, launchTimeoutMs);
+      throw err;
+    }
   }
   const page = context.pages()[0] ?? (await context.newPage());
   await page.goto(url, { waitUntil: "domcontentloaded" });
   if (await detectAuthGate(page)) {
-    try {
-      await context.close();
-    } catch {
-      /* ignore */
-    }
-    const friendly = new Error(
-      "AUTH_REQUIRED: page landed on login or consent screen. Complete the login in the browser window, then re-run capture.",
+    console.error(
+      "ResearchLedger is waiting for LinkedIn sign-in/MFA in the browser window. " +
+        "Finish authentication there; capture will continue automatically.",
     );
-    friendly.code = "AUTH_REQUIRED";
-    throw friendly;
+    const deadline = Date.now() + authWaitMs;
+    while (Date.now() < deadline && (await detectAuthGate(page))) {
+      await page.waitForTimeout(500);
+    }
+    if (await detectAuthGate(page)) {
+      try {
+        await context.close();
+      } catch {
+        /* ignore */
+      }
+      const friendly = new Error(
+        "AUTH_REQUIRED: LinkedIn sign-in did not complete within 3 minutes. " +
+          "Finish authentication in the browser window, then run capture again.",
+      );
+      friendly.code = "AUTH_REQUIRED";
+      throw friendly;
+    }
   }
   console.error(logMessage);
   await page.waitForTimeout(warmupMs);
@@ -280,6 +344,36 @@ function isMissingBrowserError(err) {
     /Looks like Playwright was just installed or updated/i.test(msg) ||
     /playwright install/i.test(msg) && /chrome|chromium/i.test(msg)
   );
+}
+
+/**
+ * Playwright waits up to its launch timeout when the profile is already open,
+ * the profile lock is stale, or Chromium cannot initialize the user-data
+ * directory (often because the disk is full). Surface a bounded, actionable
+ * error rather than leaving the app stuck for three minutes.
+ *
+ * @param {unknown} err
+ * @returns {boolean}
+ */
+function isProfileLaunchTimeout(err) {
+  const msg = err instanceof Error ? `${err.message}\n${err.stack ?? ""}` : String(err);
+  return /launchPersistentContext: Timeout|browserType\.launchPersistentContext.*Timeout/i.test(msg);
+}
+
+/**
+ * @param {string} profile
+ * @param {number} timeoutMs
+ * @returns {Error & {code?: string}}
+ */
+function profileLaunchError(profile, timeoutMs) {
+  const friendly = new Error(
+    `BROWSER_PROFILE_UNAVAILABLE: Chromium could not open the ResearchLedger profile ` +
+      `within ${Math.round(timeoutMs / 1000)} seconds (${profile}). ` +
+      "Close any Chrome/Chromium window using this profile, check available disk space, " +
+      "or choose a new dedicated profile directory. No profile data was deleted.",
+  );
+  friendly.code = "BROWSER_PROFILE_UNAVAILABLE";
+  return friendly;
 }
 
 import { execFileSync } from "node:child_process";
@@ -365,6 +459,27 @@ export async function scrollAndCollect(params) {
   }
 
   return posts;
+}
+
+/**
+ * Refuse to turn an authenticated-page/selector failure into a successful
+ * zero-row import. Providers that can legitimately return no rows should
+ * only call this after their own empty-state check; LinkedIn uses it because
+ * its reactions page otherwise renders the same shell for an auth redirect.
+ *
+ * @param {{ providerName: string, posts: { url?: string }[] | Map<unknown, unknown> }} params
+ * @returns {void}
+ */
+export function assertNonEmptyCapture({ providerName, posts }) {
+  const count = posts instanceof Map ? posts.size : Array.isArray(posts) ? posts.length : 0;
+  if (count > 0) return;
+  const error = new Error(
+    `CAPTURE_EMPTY: ${providerName} returned no posts. ` +
+      "The page may still require sign-in, or its feed did not load; " +
+      "finish authentication in the browser and try again.",
+  );
+  error.code = "CAPTURE_EMPTY";
+  throw error;
 }
 
 /**
@@ -494,6 +609,25 @@ export async function writeCapture(outputPath, payload, successMessage) {
   await fs.mkdir(path.dirname(path.resolve(outputPath)), { recursive: true });
   await fs.writeFile(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
   console.error(successMessage);
+}
+
+/**
+ * Resolve the external user-owned default location for raw captures.
+ * Relative overrides are rejected so provider data cannot silently land in a
+ * repository or vault working tree.
+ *
+ * @param {string} provider
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {string}
+ */
+export function defaultCapturePath(provider, env = process.env) {
+  const configured = env.RESEARCHLEDGER_CAPTURE_ROOT?.trim();
+  if (configured && !path.isAbsolute(configured)) {
+    throw new Error("RESEARCHLEDGER_CAPTURE_ROOT must be an absolute path");
+  }
+  const home = env.HOME?.trim() || env.USERPROFILE?.trim() || os.homedir();
+  const root = configured || path.join(home, ".phenotype", "researchledger", "captures");
+  return path.join(root, `${provider}-capture.json`);
 }
 
 /**
@@ -636,8 +770,7 @@ export async function runCaptureSession(params) {
 
   const args = parseFlags(argv);
   const profile = resolveProfile(args, profileSubdir);
-  const output = args.get("--output");
-  if (!output) throw new Error("Missing required flag: --output <path>");
+  const output = args.get("--output") ?? defaultCapturePath(providerName.toLowerCase());
   const url = args.get("--url") ?? defaultUrl;
   const maxRounds = readInt(args, "--max-rounds", 240);
   const waitMs = readInt(args, "--wait-ms", 1200);

@@ -35,13 +35,13 @@ authenticated browser connectors (each uses a dedicated persistent browser profi
 
 ```bash
 npm run linkedin:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/linkedin-profile" \
-  --output "$PWD/linkedin-capture.json"
+  --output "$HOME/.phenotype/researchledger/captures/linkedin-capture.json"
 
 npm run reddit:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/reddit-profile" \
-  --output "$PWD/reddit-capture.json"
+  --output "$HOME/.phenotype/researchledger/captures/reddit-capture.json"
 
 npm run x:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/x-profile" \
-  --output "$PWD/x-capture.json"
+  --output "$HOME/.phenotype/researchledger/captures/x-capture.json"
 ```
 
 Each connector opens a persistent local browser profile, waits for the user’s normal login

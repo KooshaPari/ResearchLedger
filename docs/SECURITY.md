@@ -15,6 +15,10 @@ tokens, and browser state are local artifacts and must not be committed or uploa
   scrolling and deduplication, and store only extracted post text/URLs in the
   capture file; browser cookies remain in the dedicated profile.
 - Tauri filesystem commands must validate user-selected roots before reading or writing.
+- The production renderer CSP permits bundled Tauri assets and renderer-to-Rust IPC only.
+  Provider requests run in Rust or the packaged local browser helpers, so their URLs are
+  deliberately not renderer CSP sources. The development-only CSP additionally permits the
+  Vite server and its local HMR WebSocket at `127.0.0.1:5173`.
 - Logs and error messages must redact tokens and authentication artifacts.
 - CI uses synthetic fixtures and never requires real credentials or personal data.
 - Users can delete imported Markdown and rebuild SQLite indexes from the vault.

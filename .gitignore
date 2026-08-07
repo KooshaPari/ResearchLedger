@@ -6,6 +6,7 @@ target/
 *.db-shm
 *.db-wal
 .researchledger/
+*-capture.json
 vault/
 browser-profiles/
 .env
