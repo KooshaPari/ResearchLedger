@@ -62,6 +62,34 @@ mod commands {
             .unwrap_or_else(|| tokio::process::Command::new("bun"))
     }
 
+    fn gh_command() -> tokio::process::Command {
+        let mut candidates = Vec::new();
+        if let Some(path) = std::env::var_os("RESEARCHLEDGER_GH_PATH") {
+            candidates.push(std::path::PathBuf::from(path));
+        }
+        candidates.push(std::path::PathBuf::from("/opt/homebrew/bin/gh"));
+        candidates.push(std::path::PathBuf::from("/usr/local/bin/gh"));
+        if let Some(home) = std::env::var_os("HOME") {
+            candidates.push(std::path::PathBuf::from(home).join(".local/bin/gh"));
+        }
+        candidates
+            .into_iter()
+            .find(|candidate| candidate.is_file())
+            .map(tokio::process::Command::new)
+            .unwrap_or_else(|| tokio::process::Command::new("gh"))
+    }
+
+    pub(crate) fn parse_gh_token_output(success: bool, stdout: &[u8]) -> Result<String, String> {
+        if !success {
+            return Err("GitHub CLI is not authenticated. Run `gh auth login`, then retry.".into());
+        }
+        let token = String::from_utf8_lossy(stdout).trim().to_string();
+        if token.is_empty() {
+            return Err("GitHub CLI returned no token. Run `gh auth login`, then retry.".into());
+        }
+        Ok(token)
+    }
+
     fn configure_playwright_command(app: &tauri::AppHandle, command: &mut tokio::process::Command) {
         if let Ok(resource_dir) = app.path().resource_dir() {
             command.current_dir(&resource_dir);
@@ -180,6 +208,22 @@ mod commands {
             }
         }
         Ok(summary)
+    }
+
+    /// Read an already-authenticated GitHub CLI token from the OS-backed
+    /// credential store. The token is returned only in memory to the frontend
+    /// for the immediately-following import and is never logged or persisted.
+    #[tauri::command]
+    pub async fn github_token_from_gh() -> Result<String, String> {
+        let output = gh_command()
+            .args(["auth", "token", "--hostname", "github.com"])
+            .output()
+            .await
+            .map_err(|_| {
+                "GitHub CLI is unavailable. Install `gh` or configure RESEARCHLEDGER_GH_PATH."
+                    .to_string()
+            })?;
+        parse_gh_token_output(output.status.success(), &output.stdout)
     }
 
     #[tauri::command]
@@ -1158,6 +1202,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_vault_status,
             commands::import_github,
+            commands::github_token_from_gh,
             commands::github_device_start,
             commands::github_device_poll,
             commands::import_linkedin_html,
@@ -1192,6 +1237,7 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::storage::*;
+    use crate::commands;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     fn temp_root() -> std::path::PathBuf {
@@ -1318,5 +1364,15 @@ mod tests {
         assert_eq!(jobs[0].source_document_id, "source");
         assert_eq!(jobs[0].target_url, "https://example.com/source-link");
         let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn gh_token_output_is_trimmed_without_exposing_failure_output() {
+        assert_eq!(
+            commands::parse_gh_token_output(true, b"  ghp_test-token\n"),
+            Ok("ghp_test-token".into())
+        );
+        assert!(commands::parse_gh_token_output(false, b"secret-token").is_err());
+        assert!(commands::parse_gh_token_output(true, b"\n").is_err());
     }
 }

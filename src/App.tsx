@@ -613,6 +613,25 @@ function Inbox({
             }
           />
           <Action
+            title="GitHub CLI"
+            label="Use authenticated gh"
+            state="Reads OS keychain; token stays in memory"
+            onClick={async () => {
+              try {
+                const githubToken = await invoke<string>(
+                  "github_token_from_gh",
+                );
+                setToken(githubToken);
+                setGithubState("ready");
+                setMessage(
+                  "GitHub CLI credentials loaded. Import starred repositories when ready.",
+                );
+              } catch (error) {
+                setMessage(formatCommandError("github_token_from_gh", error));
+              }
+            }}
+          />
+          <Action
             title="References"
             label="Fetch linked sources"
             state="Up to 10 public pages"
