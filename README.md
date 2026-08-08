@@ -71,3 +71,22 @@ bunx playwright install chromium
 
 See [security](docs/SECURITY.md) and [testing](docs/TESTING.md) for data-handling and
 verification rules.
+
+### Optional local cross-encoder
+
+Reranking is loopback-only and opt-in. Download a model explicitly, then run the
+included adapter in a separate terminal:
+
+```bash
+hf download cross-encoder/ms-marco-MiniLM-L-6-v2 config.json model.safetensors \
+  tokenizer.json tokenizer_config.json special_tokens_map.json vocab.txt \
+  --local-dir "$HOME/.cache/huggingface/hub/rl-ms-marco-minilm"
+RESEARCHLEDGER_RERANK_MODEL_PATH="$HOME/.cache/huggingface/hub/rl-ms-marco-minilm" \
+  python3 scripts/local_reranker_server.py
+RESEARCHLEDGER_RERANK_ENDPOINT=http://127.0.0.1:8082/v1/rerank \
+RESEARCHLEDGER_RERANK_ENGINE=mlx \
+RESEARCHLEDGER_RERANK_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2 \
+  bun run smoke:rerank
+```
+
+The adapter binds only to `127.0.0.1`; no model or source text is uploaded.
