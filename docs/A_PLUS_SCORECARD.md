@@ -22,9 +22,10 @@ quality are green; only installed-app GitHub import remains.
 
 ## Remaining A+ gate
 
-Run the installed UI `Use authenticated gh` action followed by GitHub import, recording repository
-and README counts plus hashes without retaining credentials. The API-compatible corpus path and
-keychain-token command are verified separately.
+Run the installed UI GitHub import, recording repository and README counts plus hashes without
+retaining credentials. When its token field is empty, the importer now obtains the authenticated
+`gh` credential in memory automatically; the visible keychain control remains optional. The
+API-compatible corpus path and keychain-token command are verified separately.
 
 Operational prerequisite: packaged browser connectors require Node.js and Playwright
 Chromium on the host. Ollama is optional; FTS5 and deterministic distillation remain
