@@ -2,8 +2,8 @@
 
 Status as of 2026-08-08: **release candidate, not A+ yet**. The local-first shell,
 packaging path, bounded reference worker, structured deterministic distillation, persisted
-claims/provenance UX, and chunked/versioned retrieval substrate are healthy; local
-strict local cross-encoder quality is green; only installed-app GitHub import remains.
+claims/provenance UX, chunked/versioned retrieval substrate, and strict local cross-encoder
+quality are green; only installed-app GitHub import remains.
 
 | Requirement | Evidence | Status |
 |---|---|---|
