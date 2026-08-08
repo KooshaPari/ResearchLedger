@@ -359,6 +359,41 @@ function Inbox({
       cancelled = true;
     };
   }, [deviceAuth, githubClientId, setMessage]);
+  const loadGithubCliToken = async () => {
+    try {
+      const githubToken = await invoke<string>("github_token_from_gh");
+      setToken(githubToken);
+      setGithubState("ready");
+      setMessage(
+        "GitHub CLI credentials loaded. Import starred repositories when ready.",
+      );
+    } catch (error) {
+      setMessage(formatCommandError("github_token_from_gh", error));
+    }
+  };
+  const importGithubStars = async () => {
+    if (!vaultPath) {
+      setMessage("Select a vault before running a source action.");
+      return;
+    }
+    let importToken = token.trim();
+    if (!importToken) {
+      try {
+        importToken = await invoke<string>("github_token_from_gh");
+      } catch (error) {
+        setMessage(formatCommandError("github_token_from_gh", error));
+        return;
+      }
+    }
+    await run(
+      "import_github",
+      { vaultPath, token: importToken },
+      (value: ImportResult) => {
+        setToken("");
+        return `Imported ${value.created + value.updated} repositories; ${value.unchanged} unchanged.`;
+      },
+    );
+  };
   const captureHackerNews = async () => {
     if (hackernewsProfile && typeof localStorage !== "undefined")
       localStorage.setItem(
@@ -600,17 +635,8 @@ function Inbox({
           <Action
             title="GitHub"
             label="Import starred repos"
-            state="Token cleared after import"
-            onClick={() =>
-              void run(
-                "import_github",
-                { vaultPath, token },
-                (value: ImportResult) => {
-                  setToken("");
-                  return `Imported ${value.created + value.updated} repositories; ${value.unchanged} unchanged.`;
-                },
-              )
-            }
+            state="Uses authenticated gh when token is empty"
+            onClick={() => void importGithubStars()}
           />
           <Action
             title="References"
@@ -997,20 +1023,9 @@ function Inbox({
         <button
           className="button secondary"
           type="button"
-          onClick={async () => {
-            try {
-              const githubToken = await invoke<string>("github_token_from_gh");
-              setToken(githubToken);
-              setGithubState("ready");
-              setMessage(
-                "GitHub CLI credentials loaded. Import starred repositories when ready.",
-              );
-            } catch (error) {
-              setMessage(formatCommandError("github_token_from_gh", error));
-            }
-          }}
+          onClick={() => void loadGithubCliToken()}
         >
-          Use authenticated gh
+          Use authenticated gh token
         </button>
         <button
           className="button secondary"
