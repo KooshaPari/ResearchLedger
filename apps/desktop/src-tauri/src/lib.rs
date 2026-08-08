@@ -1259,4 +1259,39 @@ mod tests {
         assert!(load_document(&db, &root, "unsafe").is_err());
         let _ = std::fs::remove_dir_all(root);
     }
+
+    #[test]
+    fn reference_backfill_does_not_recurse_from_fetched_or_distilled_documents() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        for (id, kind, path) in [
+            ("source", "article", "sources/article.md"),
+            ("fetched", "reference", "sources/references/fetched.md"),
+            ("note", "distillation", "knowledge/note.md"),
+        ] {
+            upsert_document(
+                &mut db,
+                &root,
+                &SourceDocument {
+                    id: id.into(),
+                    relative_path: path.into(),
+                    title: id.into(),
+                    source_kind: kind.into(),
+                    source_uri: Some(format!("https://example.com/{id}")),
+                    content: format!(
+                        "---\ntype: Test Document\n---\n\nSee https://example.com/{id}-link."
+                    ),
+                    captured_at: "2026-07-20T00:00:00Z".into(),
+                },
+            )
+            .unwrap();
+        }
+
+        let jobs = pending_reference_jobs(&db, 10).unwrap();
+        assert_eq!(jobs.len(), 1);
+        assert_eq!(jobs[0].source_document_id, "source");
+        assert_eq!(jobs[0].target_url, "https://example.com/source-link");
+        let _ = std::fs::remove_dir_all(root);
+    }
 }
