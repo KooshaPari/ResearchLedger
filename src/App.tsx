@@ -47,6 +47,28 @@ type Result = {
   snippet: string;
   sourceUri: string | null;
 };
+type RetrievalContext = {
+  query: string;
+  context: string;
+  citations: Array<{
+    citationId: string;
+    documentId: string;
+    title: string;
+    sourceUri: string | null;
+    snippet: string;
+  }>;
+  coverage: {
+    retrieved: number;
+    cited: number;
+    withSourceUri: number;
+    sourceUriRatio: number;
+  };
+  confidence: {
+    score: number;
+    label: string;
+    rationale: string;
+  };
+};
 type ImportResult = {
   created: number;
   updated: number;
@@ -278,6 +300,9 @@ function Inbox({
   >("needs-config");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Result[]>([]);
+  const [retrievalContext, setRetrievalContext] =
+    useState<RetrievalContext | null>(null);
+  const [retrieving, setRetrieving] = useState(false);
   const [linkedinState, setLinkedinState] = useState<
     "needs-auth" | "ready" | "capturing"
   >("needs-auth");
@@ -446,6 +471,7 @@ function Inbox({
   const search = async () => {
     if (!vaultPath || !query) return;
     try {
+      setRetrievalContext(null);
       setResults(
         await invoke<Result[]>("search_documents", {
           vaultPath,
@@ -455,6 +481,24 @@ function Inbox({
       );
     } catch {
       setResults([]);
+    }
+  };
+  const retrieve = async () => {
+    if (!vaultPath || !query.trim() || retrieving) return;
+    setRetrieving(true);
+    try {
+      setRetrievalContext(
+        await invoke<RetrievalContext>("retrieve_context", {
+          vaultPath,
+          query: query.trim(),
+          limit: 8,
+        }),
+      );
+    } catch (error) {
+      setMessage(formatCommandError("retrieve_context", error));
+      setRetrievalContext(null);
+    } finally {
+      setRetrieving(false);
     }
   };
   return (
@@ -845,6 +889,14 @@ function Inbox({
         >
           Search
         </button>
+        <button
+          className="button primary"
+          type="button"
+          onClick={() => void retrieve()}
+          disabled={!vaultPath || !query.trim() || retrieving}
+        >
+          {retrieving ? "Building context…" : "Build cited context"}
+        </button>
         {results.length > 0 && (
           <div className="results">
             {results.map((result) => (
@@ -858,6 +910,38 @@ function Inbox({
           </div>
         )}
       </section>
+      {retrievalContext && (
+        <section className="retrieval-panel" aria-label="Cited retrieval context">
+          <div className="panel-heading">
+            <div>
+              <p className="eyebrow">RETRIEVAL CONTEXT</p>
+              <h3>Evidence for “{retrievalContext.query}”</h3>
+            </div>
+            <span className={`state-pill ${retrievalContext.confidence.label}`}>
+              {retrievalContext.confidence.label.toUpperCase()}
+            </span>
+          </div>
+          <p className="retrieval-meta">
+            {retrievalContext.coverage.cited} cited of {retrievalContext.coverage.retrieved} retrieved · {Math.round(retrievalContext.coverage.sourceUriRatio * 100)}% source-linked
+          </p>
+          <pre className="retrieval-context">{retrievalContext.context || "No evidence matched this query."}</pre>
+          <div className="retrieval-citations">
+            {retrievalContext.citations.map((citation) => (
+              <a
+                className="retrieval-citation"
+                href={citation.sourceUri ?? undefined}
+                key={citation.citationId}
+                target={citation.sourceUri ? "_blank" : undefined}
+                rel={citation.sourceUri ? "noreferrer" : undefined}
+              >
+                <strong>[{citation.citationId}] {citation.title}</strong>
+                <span>{citation.sourceUri || "Local vault source"}</span>
+              </a>
+            ))}
+          </div>
+          <p className="retrieval-rationale">{retrievalContext.confidence.rationale}</p>
+        </section>
+      )}
       <section className="export-row">
         <input
           aria-label="GitHub App client ID"

@@ -158,4 +158,58 @@ describe("ResearchLedger shell", () => {
       expect(results?.querySelector("article mark")?.textContent).toBe("beta");
     });
   });
+
+  it("builds a persisted cited context with coverage metadata", async () => {
+    resetTauriMocks();
+    invokeMock.mockImplementation((command: string) => {
+      if (command === "retrieve_context") {
+        return Promise.resolve({
+          query: "local vault",
+          context: "[1] Local vault\nA local vault remains reviewable.",
+          citations: [
+            {
+              citationId: "1",
+              documentId: "doc-1",
+              title: "Local vault",
+              sourceUri: "https://example.com/vault",
+              snippet: "A local vault remains reviewable.",
+            },
+          ],
+          coverage: {
+            retrieved: 1,
+            cited: 1,
+            withSourceUri: 1,
+            sourceUriRatio: 1,
+          },
+          confidence: {
+            score: 0.5,
+            label: "limited",
+            rationale: "1/1 cited results retain source URIs.",
+          },
+        });
+      }
+      return Promise.resolve({ selected: false, path: null, documentCount: 0 });
+    });
+    render(<App />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Vault path" }), {
+      target: { value: "/tmp/research-vault" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Search research" }), {
+      target: { value: "local vault" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Build cited context" }));
+    await waitFor(() => {
+      expect(screen.getByRole("region", { name: "Cited retrieval context" })).toBeInTheDocument();
+    });
+    expect(screen.getByText("1 cited of 1 retrieved · 100% source-linked")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /\[1\] Local vault/ })).toHaveAttribute(
+      "href",
+      "https://example.com/vault",
+    );
+    expect(invokeMock).toHaveBeenCalledWith("retrieve_context", {
+      vaultPath: "/tmp/research-vault",
+      query: "local vault",
+      limit: 8,
+    });
+  });
 });
