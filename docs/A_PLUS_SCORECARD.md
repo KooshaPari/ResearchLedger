@@ -9,16 +9,16 @@ cross-encoder quality and live-account smoke remain.
 |---|---|---|
 | Local-first Tauri desktop | `apps/desktop/src-tauri`; app-only bundle built and installed during this release pass | PASS |
 | SQLite + Markdown canonical vault | `storage.rs`, migration, atomic Markdown writes | PASS |
-| GitHub starred repositories and READMEs | GitHub client, device OAuth, importer tests | PASS |
+| GitHub starred repositories and READMEs | GitHub client, device OAuth, importer tests; keychain-authenticated API smoke fetched 371/371 README payloads (canonical corpus SHA recorded externally) | PASS API / installed UI import pending |
 | LinkedIn, Reddit, X, and Hacker News capture | Persistent Playwright connectors, bounded scroll, JSON import, packaged resource parity; installed-profile smoke captured 7 LinkedIn posts (SHA recorded externally) | PASS for LinkedIn / other providers unverified |
 | GitHub auth and Markdown export UX | Device-flow polling, client-id validation, native destination picker; frontend suite 7/7 | PASS |
 | Provenance | `provenance` rows and claim rows write on create, update, and unchanged re-import; fetched references become source documents; Library exposes claim citations | PASS |
-| Search/RAG | SQLite FTS5 lexical search, deterministic heading/size chunking, optional Ollama vectors with model/version/input hashes, rank fusion including vector-only hits, loopback-only local `/v1/rerank` cross-encoder adapter, versioned ranking fixture, deterministic overlap fallback, persisted cited-context UX | PARTIAL: `bun run smoke:rerank` emits deterministic local fallback evidence when no explicit reranker endpoint is configured; explicit endpoint mode still requires a healthy local `/rerank`/`/v1/rerank` route |
+| Search/RAG | SQLite FTS5 lexical search, deterministic heading/size chunking, optional Ollama vectors with model/version/input hashes, rank fusion including vector-only hits, loopback-only local `/v1/rerank` cross-encoder adapter, versioned ranking fixture, deterministic overlap fallback, persisted cited-context UX | PARTIAL: fixture and fallback pass; active MLX service is generative-only and returns 404 for `/v1/rerank` |
 | Frontend workflows | Workspace tabs, provider actions, vault/import/search/distill/export flows | PASS |
 | Interoperable knowledge format | OKF-style frontmatter, citations, generated index | PASS: schema coverage still needs fixture validation |
 | Enrichment | URL queue with resumable status, bounded exponential retry for transient HTTP failures, host-keyed concurrency budget, public-HTTP worker with robots/private-host/redirect/byte/time guards, atomic artifacts, fetched source documents, structured deterministic claims, persisted claim rows | PASS |
 | Privacy/security | In-memory auth, provider profiles, URL/path guards, login redirect detection, load-path traversal rejection, symlink-safe Markdown export | PASS |
-| Verification | `bun run verify:resources`, `bun run test` (95/95), `bun run build`, Rust (82 + 1 OKF), packaged parity, `bun run smoke:rerank`, installed LinkedIn smoke | PARTIAL: GitHub live import and live cross-encoder remain |
+| Verification | `bun run verify:resources`, `bun run test` (95/95), `bun run build`, Rust (82 + 1 OKF), packaged parity, `bun run smoke:rerank`, installed LinkedIn smoke, `cargo audit` | PARTIAL: installed UI GitHub import and live cross-encoder remain; audit reports 18 allowed upstream maintenance/unsoundness advisories |
 
 ## Remaining A+ gates
 
