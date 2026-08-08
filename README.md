@@ -8,15 +8,15 @@ exposes import/search/RAG/export adapters through a Tauri command boundary.
 ## Development
 
 ```bash
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 Tests and production build:
 
 ```bash
-npm test -- --run
-npm run build
+bun run test
+bun run build
 ```
 
 The desktop app supports a native local-vault picker, persisted vault status, GitHub
@@ -34,13 +34,13 @@ For LinkedIn’s personal reaction feed, Reddit saved posts, and X bookmarks, us
 authenticated browser connectors (each uses a dedicated persistent browser profile):
 
 ```bash
-npm run linkedin:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/linkedin-profile" \
+bun run linkedin:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/linkedin-profile" \
   --output "$HOME/.phenotype/researchledger/captures/linkedin-capture.json"
 
-npm run reddit:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/reddit-profile" \
+bun run reddit:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/reddit-profile" \
   --output "$HOME/.phenotype/researchledger/captures/reddit-capture.json"
 
-npm run x:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/x-profile" \
+bun run x:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/x-profile" \
   --output "$HOME/.phenotype/researchledger/captures/x-capture.json"
 ```
 
@@ -51,7 +51,7 @@ reactions, follows, votes, or other account actions.
 
 ### First-run: Playwright browser install
 
-The capture scripts use Playwright’s Chromium binary. `npm install` runs a
+The capture scripts use Playwright’s Chromium binary. `bun install` runs a
 `postinstall` hook (`scripts/postinstall.mjs`) that pre-fetches the browser so
 the first capture feels instant — there is no prompt, no spinner, and no
 ~150 MB download during capture. The hook is platform-aware (Linux also pulls
@@ -66,7 +66,7 @@ Subsequent runs use the cached install under `~/Library/Caches/ms-playwright/`.
 You can also re-run manually:
 
 ```bash
-npx playwright install chromium
+bunx playwright install chromium
 ```
 
 See [security](docs/SECURITY.md) and [testing](docs/TESTING.md) for data-handling and
