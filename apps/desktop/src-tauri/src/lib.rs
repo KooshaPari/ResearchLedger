@@ -1236,8 +1236,8 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
+    use super::commands;
     use super::storage::*;
-    use crate::commands;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     fn temp_root() -> std::path::PathBuf {

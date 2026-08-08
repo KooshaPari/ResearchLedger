@@ -54,6 +54,32 @@ describe("ResearchLedger shell", () => {
     expect(invokeMock).not.toHaveBeenCalledWith("github_device_start", expect.anything());
   });
 
+  it("loads an authenticated gh token in memory before importing stars", async () => {
+    resetTauriMocks();
+    invokeMock.mockImplementation((command: string) => {
+      if (command === "github_token_from_gh") return Promise.resolve("ghp-test-token");
+      if (command === "import_github") {
+        return Promise.resolve({ created: 3, updated: 0, unchanged: 0, failed: 0 });
+      }
+      return Promise.resolve({ selected: false, path: null, documentCount: 0 });
+    });
+    render(<App />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Vault path" }), {
+      target: { value: "/tmp/research-vault" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Use authenticated gh" }));
+    await waitFor(() =>
+      expect(invokeMock).toHaveBeenCalledWith("github_token_from_gh"),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Import starred repos" }));
+    await waitFor(() =>
+      expect(invokeMock).toHaveBeenCalledWith("import_github", {
+        vaultPath: "/tmp/research-vault",
+        token: "ghp-test-token",
+      }),
+    );
+  });
+
   it("uses a directory picker before exporting Markdown", async () => {
     resetTauriMocks();
     openMock.mockResolvedValue("/tmp/researchledger-export");
