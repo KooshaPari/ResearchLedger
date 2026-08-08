@@ -9,7 +9,7 @@ quality are green; only installed-app GitHub import remains.
 |---|---|---|
 | Local-first Tauri desktop | `apps/desktop/src-tauri`; app-only bundle built and installed during this release pass | PASS |
 | SQLite + Markdown canonical vault | `storage.rs`, migration, atomic Markdown writes | PASS |
-| GitHub starred repositories and READMEs | GitHub client, device OAuth, importer tests; keychain-authenticated API smoke fetched 371/371 README payloads (canonical corpus SHA recorded externally) | PASS API / installed UI import pending |
+| GitHub starred repositories and READMEs | GitHub client, device OAuth, importer tests, and installed-app `Use authenticated gh` action backed by the OS credential store; keychain-authenticated API smoke fetched 371/371 README payloads (canonical corpus SHA recorded externally) | PASS implementation/API / installed invocation pending |
 | LinkedIn, Reddit, X, and Hacker News capture | Persistent Playwright connectors, bounded scroll, JSON import, packaged resource parity; installed-profile smoke captured 7 LinkedIn posts (SHA recorded externally) | PASS for LinkedIn / other providers unverified |
 | GitHub auth and Markdown export UX | Device-flow polling, client-id validation, native destination picker; frontend suite 7/7 | PASS |
 | Provenance | `provenance` rows and claim rows write on create, update, and unchanged re-import; fetched references become source documents; Library exposes claim citations | PASS |
@@ -18,13 +18,13 @@ quality are green; only installed-app GitHub import remains.
 | Interoperable knowledge format | OKF-style frontmatter, citations, generated index | PASS: schema coverage still needs fixture validation |
 | Enrichment | URL queue with resumable status, bounded exponential retry for transient HTTP failures, host-keyed concurrency budget, public-HTTP worker with robots/private-host/redirect/byte/time guards, atomic artifacts, fetched source documents, structured deterministic claims, persisted claim rows | PASS |
 | Privacy/security | In-memory auth, provider profiles, URL/path guards, login redirect detection, load-path traversal rejection, symlink-safe Markdown export | PASS |
-| Verification | `bun run verify:resources`, `bun run test` (95/95), `bun run build`, Rust (82 + 1 OKF), packaged parity, strict `bun run smoke:rerank`, installed LinkedIn smoke (7 posts), GitHub API corpus smoke (371/371 READMEs; SHA `c230e2a92f0c4e458a1e60d3becd9774511445d6f50557183e26a4f289352c96`), `cargo audit` | PARTIAL: installed UI GitHub import remains; audit reports 18 allowed upstream maintenance/unsoundness advisories |
+| Verification | `bun run verify:resources`, `bun run test` (96/96), `bun run build`, Rust (83/83 + 1 OKF), packaged parity, installed binary parity, strict `bun run smoke:rerank`, installed LinkedIn smoke (7 posts), GitHub API corpus smoke (371/371 READMEs; SHA `c230e2a92f0c4e458a1e60d3becd9774511445d6f50557183e26a4f289352c96`), `cargo audit` | PARTIAL: installed UI GitHub import invocation remains; audit reports 18 allowed upstream maintenance/unsoundness advisories |
 
 ## Remaining A+ gate
 
-Run the installed UI GitHub importer with the keychain-backed token or a user-supplied GitHub App
-client ID/device flow, recording repository and README counts plus hashes without retaining
-credentials. The API-compatible corpus path is already verified separately.
+Run the installed UI `Use authenticated gh` action followed by GitHub import, recording repository
+and README counts plus hashes without retaining credentials. The API-compatible corpus path and
+keychain-token command are verified separately.
 
 Operational prerequisite: packaged browser connectors require Node.js and Playwright
 Chromium on the host. Ollama is optional; FTS5 and deterministic distillation remain
