@@ -38,15 +38,36 @@ mod commands {
         pub failed: u64,
     }
 
-    fn configure_playwright_node_command(
-        app: &tauri::AppHandle,
-        command: &mut tokio::process::Command,
-    ) {
+    /// Build the Bun command used for browser capture.
+    ///
+    /// GUI-launched macOS applications do not reliably inherit the shell PATH,
+    /// so prefer the user-configured path and the two standard Homebrew/Bun
+    /// locations before falling back to PATH lookup. This keeps the packaged
+    /// app on the repository's Bun runtime contract without requiring a shell
+    /// or a globally installed Node/npm toolchain.
+    fn bun_command() -> tokio::process::Command {
+        let mut candidates = Vec::new();
+        if let Some(path) = std::env::var_os("RESEARCHLEDGER_BUN_PATH") {
+            candidates.push(std::path::PathBuf::from(path));
+        }
+        candidates.push(std::path::PathBuf::from("/opt/homebrew/bin/bun"));
+        candidates.push(std::path::PathBuf::from("/usr/local/bin/bun"));
+        if let Some(home) = std::env::var_os("HOME") {
+            candidates.push(std::path::PathBuf::from(home).join(".bun/bin/bun"));
+        }
+        candidates
+            .into_iter()
+            .find(|candidate| candidate.is_file())
+            .map(tokio::process::Command::new)
+            .unwrap_or_else(|| tokio::process::Command::new("bun"))
+    }
+
+    fn configure_playwright_command(app: &tauri::AppHandle, command: &mut tokio::process::Command) {
         if let Ok(resource_dir) = app.path().resource_dir() {
             command.current_dir(&resource_dir);
             let candidates = [
-                resource_dir.join("node_modules/playwright"),
                 resource_dir.join("node_modules/playwright/index.mjs"),
+                resource_dir.join("node_modules/playwright"),
                 resource_dir.join("node_modules/playwright-core"),
             ];
             for candidate in candidates {
@@ -68,8 +89,12 @@ mod commands {
         } else {
             let home = std::env::var_os("HOME")
                 .map(std::path::PathBuf::from)
-                .ok_or_else(|| "HOME is unavailable; configure RESEARCHLEDGER_CAPTURE_ROOT".to_string())?;
-            home.join(".phenotype").join("researchledger").join("captures")
+                .ok_or_else(|| {
+                    "HOME is unavailable; configure RESEARCHLEDGER_CAPTURE_ROOT".to_string()
+                })?;
+            home.join(".phenotype")
+                .join("researchledger")
+                .join("captures")
         };
         std::fs::create_dir_all(&root).map_err(|error| error.to_string())?;
         Ok(root.join(format!("{provider}-capture.json")))
@@ -279,9 +304,9 @@ mod commands {
                 .map_err(|error| error.to_string())?
                 .join("scripts/linkedin_capture.mjs")
         };
-        let mut command = tokio::process::Command::new("node");
+        let mut command = bun_command();
         command.arg(script).arg("--output").arg(&output);
-        configure_playwright_node_command(&app, &mut command);
+        configure_playwright_command(&app, &mut command);
         if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
             let safe_profile = safe_paths::ensure_safe_command_arg(&profile, "profile")
                 .map_err(|error| error.to_string())?;
@@ -328,9 +353,9 @@ mod commands {
                 .map_err(|error| error.to_string())?
                 .join("scripts/linkedin_signin.mjs")
         };
-        let mut command = tokio::process::Command::new("node");
+        let mut command = bun_command();
         command.arg(script);
-        configure_playwright_node_command(&app, &mut command);
+        configure_playwright_command(&app, &mut command);
         if let Some(path) = profile {
             command.arg("--profile").arg(path);
         }
@@ -458,9 +483,9 @@ mod commands {
                 .map_err(|error| error.to_string())?
                 .join("scripts/hackernews_capture.mjs")
         };
-        let mut command = tokio::process::Command::new("node");
+        let mut command = bun_command();
         command.arg(script).arg("--output").arg(&output);
-        configure_playwright_node_command(&app, &mut command);
+        configure_playwright_command(&app, &mut command);
         if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
             let safe_profile = safe_paths::ensure_safe_command_arg(&profile, "profile")
                 .map_err(|error| error.to_string())?;
@@ -633,9 +658,9 @@ mod commands {
                 .map_err(|error| error.to_string())?
                 .join("scripts/reddit_capture.mjs")
         };
-        let mut command = tokio::process::Command::new("node");
+        let mut command = bun_command();
         command.arg(script).arg("--output").arg(&output);
-        configure_playwright_node_command(&app, &mut command);
+        configure_playwright_command(&app, &mut command);
         if let Some(profile) = profile_path
             .as_deref()
             .filter(|value| !value.trim().is_empty())
@@ -756,9 +781,9 @@ mod commands {
                 .map_err(|error| error.to_string())?
                 .join("scripts/x_capture.mjs")
         };
-        let mut command = tokio::process::Command::new("node");
+        let mut command = bun_command();
         command.arg(script).arg("--output").arg(&output);
-        configure_playwright_node_command(&app, &mut command);
+        configure_playwright_command(&app, &mut command);
         if let Some(profile) = profile_path
             .as_deref()
             .filter(|value| !value.trim().is_empty())
@@ -1257,6 +1282,41 @@ mod tests {
         )
         .unwrap();
         assert!(load_document(&db, &root, "unsafe").is_err());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn reference_backfill_does_not_recurse_from_fetched_or_distilled_documents() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        for (id, kind, path) in [
+            ("source", "article", "sources/article.md"),
+            ("fetched", "reference", "sources/references/fetched.md"),
+            ("note", "distillation", "knowledge/note.md"),
+        ] {
+            upsert_document(
+                &mut db,
+                &root,
+                &SourceDocument {
+                    id: id.into(),
+                    relative_path: path.into(),
+                    title: id.into(),
+                    source_kind: kind.into(),
+                    source_uri: Some(format!("https://example.com/{id}")),
+                    content: format!(
+                        "---\ntype: Test Document\n---\n\nSee https://example.com/{id}-link."
+                    ),
+                    captured_at: "2026-07-20T00:00:00Z".into(),
+                },
+            )
+            .unwrap();
+        }
+
+        let jobs = pending_reference_jobs(&db, 10).unwrap();
+        assert_eq!(jobs.len(), 1);
+        assert_eq!(jobs[0].source_document_id, "source");
+        assert_eq!(jobs[0].target_url, "https://example.com/source-link");
         let _ = std::fs::remove_dir_all(root);
     }
 }

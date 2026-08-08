@@ -34,7 +34,7 @@ import { pathToFileURL } from "node:url";
  * Detect Playwright's "Executable doesn't exist" / "looks like Playwright was
  * just installed or updated" failure mode from the thrown error's message.
  * The Chromium executable missing on disk is recoverable by running
- * `npx playwright install chromium`, so we surface a friendlier message and
+ * `bunx playwright install chromium`, so we surface a friendlier message and
  * fall through to auto-install rather than letting the raw stack trace reach
  * the React UI.
  *
@@ -249,7 +249,7 @@ export async function detectAuthGate(page) {
  * pending login in the launched window.
  *
  * If Playwright's Chromium browser binary is not installed, run
- * `npx playwright install chromium` once and retry. If the post-navigation
+ * `bunx playwright install chromium` once and retry. If the post-navigation
  * page is detected as an auth gate, the function throws a friendly
  * `AUTH_REQUIRED` error so the UI can surface it instead of silently
  * collecting zero posts.
@@ -289,10 +289,10 @@ export async function openAuthenticatedSession(params) {
   } catch (err) {
     if (isProfileLaunchTimeout(err)) throw profileLaunchError(profile, launchTimeoutMs);
     if (!isMissingBrowserError(err)) throw err;
-    const msg = `Browser not installed; running \`npx playwright install chromium\` (one-time, ~150 MB).`;
+    const msg = `Browser not installed; running \`bunx playwright install chromium\` (one-time, ~150 MB).`;
     if (typeof onAuthInstall === "function") onAuthInstall(msg);
     console.error(msg);
-    runInstall("npx", ["playwright", "install", "chromium"]);
+    runInstall("bunx", ["playwright", "install", "chromium"]);
     try {
       context = await chromium.launchPersistentContext(profile, {
         headless: false,

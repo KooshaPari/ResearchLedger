@@ -153,7 +153,7 @@ function release(configuration) {
   assertIdentityAvailable(configuration.signingIdentity);
   verifyNotaryProfile(configuration.profile);
 
-  run("npm", ["exec", "tauri", "build", "--", "--bundles", "app,dmg"], {
+  run("bunx", ["tauri", "build", "--bundles", "app,dmg"], {
     env: { ...process.env, APPLE_SIGNING_IDENTITY: configuration.signingIdentity },
   });
 
@@ -173,7 +173,7 @@ function printDryRun() {
   for (const command of [
     "security find-identity -v -p codesigning",
     "xcrun notarytool history --keychain-profile ResearchLedger-Notary",
-    "npm exec tauri build -- --bundles app,dmg",
+    "bunx tauri build --bundles app,dmg",
     "codesign --verify --deep --strict --verbose=4 <ResearchLedger.app>",
     "xcrun notarytool submit <ResearchLedger.dmg> --keychain-profile ResearchLedger-Notary --wait",
     "xcrun stapler staple <ResearchLedger.dmg>",

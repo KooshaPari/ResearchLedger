@@ -41,6 +41,10 @@ pub struct ReferenceJob {
     pub target_url: String,
 }
 
+fn should_fetch_references(source_kind: &str) -> bool {
+    !matches!(source_kind, "reference" | "distillation")
+}
+
 pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     fs::create_dir_all(root).map_err(|_| rusqlite::Error::InvalidPath(root.to_path_buf()))?;
     let database = root.join(".researchledger.db");
@@ -209,7 +213,7 @@ pub fn upsert_document(
             "INSERT OR IGNORE INTO document_links (source_document_id, target_url, discovered_at) VALUES (?1, ?2, ?3)",
             params![document.id, crate::enrichment::canonical_url(&url), document.captured_at],
         )?;
-        if document.source_kind != "reference" {
+        if should_fetch_references(&document.source_kind) {
             tx.execute(
                 "INSERT OR IGNORE INTO reference_fetches (source_document_id, target_url, status) VALUES (?1, ?2, 'pending')",
                 params![document.id, crate::enrichment::canonical_url(&url)],
@@ -304,7 +308,10 @@ pub fn pending_enrichment_ids(connection: &Connection, limit: u32) -> SqlResult<
 pub fn pending_reference_jobs(connection: &Connection, limit: u32) -> SqlResult<Vec<ReferenceJob>> {
     connection.execute(
         "INSERT OR IGNORE INTO reference_fetches (source_document_id, target_url, status)
-         SELECT source_document_id, target_url, 'pending' FROM document_links",
+         SELECT l.source_document_id, l.target_url, 'pending'
+         FROM document_links l
+         JOIN documents d ON d.id = l.source_document_id
+         WHERE d.source_kind NOT IN ('reference', 'distillation')",
         [],
     )?;
     let mut statement = connection.prepare(

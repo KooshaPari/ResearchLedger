@@ -13,7 +13,7 @@ it("prints the complete macOS release plan without touching credentials or artif
 
   expect(output).toContain("Dry run only: no credentials, signing, notarization, or stapling occurs.");
   expect(output).toContain("security find-identity -v -p codesigning");
-  expect(output).toContain("npm exec tauri build -- --bundles app,dmg");
+  expect(output).toContain("bunx tauri build --bundles app,dmg");
   expect(output).toContain("xcrun notarytool submit");
   expect(output).toContain("--keychain-profile ResearchLedger-Notary");
   expect(output).toContain("xcrun stapler staple");
