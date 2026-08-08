@@ -29,17 +29,13 @@ import {
   scrollAndCollect,
   getProbe,
   writeCapture,
+  loadPlaywright,
   parseFlags,
+  defaultCapturePath,
 } from "./_capture_common.mjs";
 
 const flags = parseFlags(process.argv);
-const output = flags.get("--output");
-if (!output) {
-  console.error(
-    "Usage: node scripts/hackernews_capture.mjs --output <path> [--profile <dir>] [--url <saved-url>] [--max-rounds N] [--wait-ms MS] [--min-length CHARS]",
-  );
-  process.exit(2);
-}
+const output = flags.get("--output") ?? defaultCapturePath("hackernews");
 const profile = flags.get("--profile")
   ?? `${process.env.HOME}/Library/Application Support/ResearchLedger/hackernews-profile`;
 const url = flags.get("--url") ?? "https://news.ycombinator.com/saved?id=USERNAME";
@@ -58,9 +54,7 @@ if (url.includes("USERNAME")) {
   process.exit(2);
 }
 
-const { chromium } = await import(
-  process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE ?? "playwright",
-);
+const { chromium } = await loadPlaywright();
 
 const { context, page } = await openAuthenticatedSession({
   chromium,

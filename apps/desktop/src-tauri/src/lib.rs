@@ -6,6 +6,7 @@ mod enrichment;
 mod github;
 mod hackernews;
 mod linkedin;
+mod okf;
 mod provider_html;
 mod rag;
 mod reddit;
@@ -18,8 +19,11 @@ mod commands {
     include!("commands.rs");
 
     use super::{
-        distill, embeddings::OllamaEmbedder, github, github::GithubClient, hackernews, linkedin,
-        rag, reddit, reference_fetch, safe_paths, storage, x, VaultStatus,
+        distill,
+        embeddings::{LocalCrossEncoder, OllamaEmbedder},
+        github,
+        github::GithubClient,
+        hackernews, linkedin, rag, reddit, reference_fetch, safe_paths, storage, x, VaultStatus,
     };
     use serde::Serialize;
     use sha2::{Digest, Sha256};
@@ -32,6 +36,43 @@ mod commands {
         pub updated: u64,
         pub unchanged: u64,
         pub failed: u64,
+    }
+
+    fn configure_playwright_node_command(
+        app: &tauri::AppHandle,
+        command: &mut tokio::process::Command,
+    ) {
+        if let Ok(resource_dir) = app.path().resource_dir() {
+            command.current_dir(&resource_dir);
+            let candidates = [
+                resource_dir.join("node_modules/playwright"),
+                resource_dir.join("node_modules/playwright/index.mjs"),
+                resource_dir.join("node_modules/playwright-core"),
+            ];
+            for candidate in candidates {
+                if candidate.exists() {
+                    command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", candidate);
+                    break;
+                }
+            }
+        }
+    }
+
+    fn external_capture_path(provider: &str) -> Result<std::path::PathBuf, String> {
+        let root = if let Some(configured) = std::env::var_os("RESEARCHLEDGER_CAPTURE_ROOT") {
+            let path = std::path::PathBuf::from(configured);
+            if !path.is_absolute() {
+                return Err("RESEARCHLEDGER_CAPTURE_ROOT must be an absolute path".into());
+            }
+            path
+        } else {
+            let home = std::env::var_os("HOME")
+                .map(std::path::PathBuf::from)
+                .ok_or_else(|| "HOME is unavailable; configure RESEARCHLEDGER_CAPTURE_ROOT".to_string())?;
+            home.join(".phenotype").join("researchledger").join("captures")
+        };
+        std::fs::create_dir_all(&root).map_err(|error| error.to_string())?;
+        Ok(root.join(format!("{provider}-capture.json")))
     }
 
     #[tauri::command]
@@ -225,9 +266,7 @@ mod commands {
         activity_url: Option<String>,
         profile_path: Option<String>,
     ) -> Result<ImportSummary, String> {
-        let output = std::path::PathBuf::from(&vault_path)
-            .join(".researchledger")
-            .join("linkedin-capture.json");
+        let output = external_capture_path("linkedin")?;
         let resource_script = app
             .path()
             .resource_dir()
@@ -242,14 +281,11 @@ mod commands {
         };
         let mut command = tokio::process::Command::new("node");
         command.arg(script).arg("--output").arg(&output);
-        if let Ok(resource_dir) = app.path().resource_dir() {
-            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
-            if packaged_module.exists() {
-                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
-            }
-        }
+        configure_playwright_node_command(&app, &mut command);
         if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
-            command.arg("--profile").arg(profile);
+            let safe_profile = safe_paths::ensure_safe_command_arg(&profile, "profile")
+                .map_err(|error| error.to_string())?;
+            command.arg("--profile").arg(safe_profile);
         }
         if let Some(url) = activity_url {
             command.arg("--url").arg(url);
@@ -259,6 +295,47 @@ mod commands {
             return Err(String::from_utf8_lossy(&result.stderr).trim().to_string());
         }
         import_linkedin_capture(vault_path, output.to_string_lossy().into_owned())
+    }
+
+    #[tauri::command]
+    pub async fn open_linkedin_signin(
+        app: tauri::AppHandle,
+        profile_path: Option<String>,
+    ) -> Result<String, String> {
+        let profile = profile_path
+            .filter(|value| !value.trim().is_empty())
+            .map(|value| safe_paths::ensure_safe_command_arg(&value, "profile"))
+            .transpose()
+            .map_err(|error| error.to_string())?;
+        if let Some(path) = profile.as_deref() {
+            for lock in ["SingletonLock", "SingletonSocket", "SingletonCookie"] {
+                if std::path::Path::new(path).join(lock).exists() {
+                    return Err(format!(
+                        "BROWSER_PROFILE_UNAVAILABLE: LinkedIn profile is already open ({path}). Close the existing Chromium window or choose a dedicated profile; no profile data was deleted."
+                    ));
+                }
+            }
+        }
+        let resource_script = app
+            .path()
+            .resource_dir()
+            .map_err(|error| error.to_string())?
+            .join("scripts/linkedin_signin.mjs");
+        let script = if resource_script.exists() {
+            resource_script
+        } else {
+            std::env::current_dir()
+                .map_err(|error| error.to_string())?
+                .join("scripts/linkedin_signin.mjs")
+        };
+        let mut command = tokio::process::Command::new("node");
+        command.arg(script);
+        configure_playwright_node_command(&app, &mut command);
+        if let Some(path) = profile {
+            command.arg("--profile").arg(path);
+        }
+        command.spawn().map_err(|error| error.to_string())?;
+        Ok("LinkedIn sign-in browser opened; close it when authentication is complete.".into())
     }
 
     #[tauri::command]
@@ -361,9 +438,14 @@ mod commands {
         activity_url: Option<String>,
         profile_path: Option<String>,
     ) -> Result<ImportSummary, String> {
-        let output = std::path::PathBuf::from(&vault_path)
-            .join(".researchledger")
-            .join("hackernews-capture.json");
+        if let Some(url) = activity_url
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
+            safe_paths::ensure_safe_provider_url(url, &["news.ycombinator.com"])
+                .map_err(|error| error.to_string())?;
+        }
+        let output = external_capture_path("hackernews")?;
         let resource_script = app
             .path()
             .resource_dir()
@@ -378,14 +460,11 @@ mod commands {
         };
         let mut command = tokio::process::Command::new("node");
         command.arg(script).arg("--output").arg(&output);
-        if let Ok(resource_dir) = app.path().resource_dir() {
-            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
-            if packaged_module.exists() {
-                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
-            }
-        }
+        configure_playwright_node_command(&app, &mut command);
         if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
-            command.arg("--profile").arg(profile);
+            let safe_profile = safe_paths::ensure_safe_command_arg(&profile, "profile")
+                .map_err(|error| error.to_string())?;
+            command.arg("--profile").arg(safe_profile);
         }
         if let Some(url) = activity_url.filter(|value| !value.trim().is_empty()) {
             command.arg("--url").arg(url);
@@ -541,9 +620,7 @@ mod commands {
             )
             .map_err(|error| error.to_string())?;
         }
-        let output = std::path::PathBuf::from(&vault_path)
-            .join(".researchledger")
-            .join("reddit-capture.json");
+        let output = external_capture_path("reddit")?;
         let resource_script = app
             .path()
             .resource_dir()
@@ -558,12 +635,7 @@ mod commands {
         };
         let mut command = tokio::process::Command::new("node");
         command.arg(script).arg("--output").arg(&output);
-        if let Ok(resource_dir) = app.path().resource_dir() {
-            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
-            if packaged_module.exists() {
-                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
-            }
-        }
+        configure_playwright_node_command(&app, &mut command);
         if let Some(profile) = profile_path
             .as_deref()
             .filter(|value| !value.trim().is_empty())
@@ -671,9 +743,7 @@ mod commands {
             safe_paths::ensure_safe_provider_url(url, &["x.com", "twitter.com"])
                 .map_err(|error| error.to_string())?;
         }
-        let output = std::path::PathBuf::from(&vault_path)
-            .join(".researchledger")
-            .join("x-capture.json");
+        let output = external_capture_path("x")?;
         let resource_script = app
             .path()
             .resource_dir()
@@ -688,12 +758,7 @@ mod commands {
         };
         let mut command = tokio::process::Command::new("node");
         command.arg(script).arg("--output").arg(&output);
-        if let Ok(resource_dir) = app.path().resource_dir() {
-            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
-            if packaged_module.exists() {
-                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
-            }
-        }
+        configure_playwright_node_command(&app, &mut command);
         if let Some(profile) = profile_path
             .as_deref()
             .filter(|value| !value.trim().is_empty())
@@ -768,7 +833,21 @@ mod commands {
             })
             .collect();
         let fused = rag::fuse_ranked(lexical, vector_hits, limit as usize);
-        Ok(rag::build_context(&query, rag::rerank(&query, fused)))
+        let reranked = match LocalCrossEncoder::from_environment() {
+            Ok(Some(reranker)) => {
+                let documents = fused
+                    .iter()
+                    .map(|result| format!("{}\n{}", result.title, result.snippet))
+                    .collect::<Vec<_>>();
+                reranker
+                    .rerank(&query, &documents)
+                    .await
+                    .map(|scores| rag::rerank_with_cross_encoder(fused.clone(), scores))
+                    .unwrap_or_else(|_| rag::rerank(&query, fused))
+            }
+            Ok(None) | Err(_) => rag::rerank(&query, fused),
+        };
+        Ok(rag::build_context(&query, reranked))
     }
 
     #[tauri::command]
@@ -1059,6 +1138,7 @@ pub fn run() {
             commands::import_linkedin_html,
             commands::import_linkedin_capture,
             commands::capture_linkedin_browser,
+            commands::open_linkedin_signin,
             commands::import_hackernews_html,
             commands::import_hackernews_capture,
             commands::capture_hackernews_browser,
@@ -1110,13 +1190,21 @@ mod tests {
             title: "hello".into(),
             source_kind: "github".into(),
             source_uri: Some("https://github.com/octo/hello".into()),
-            content: "# hello\n".into(),
+            content: "---\ntype: GitHub Repository\n---\n\n# hello\n".into(),
             captured_at: "2026-07-20T00:00:00Z".into(),
         };
         assert_eq!(
             upsert_document(&mut db, &root, &document).unwrap(),
             UpsertResult::Created
         );
+        let created_quote: String = db
+            .query_row(
+                "SELECT quote FROM provenance WHERE document_id = ?1",
+                [&document.id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(created_quote, "hello");
         assert_eq!(
             upsert_document(&mut db, &root, &document).unwrap(),
             UpsertResult::Unchanged

@@ -23,7 +23,10 @@ import { describe, expect, it } from "vitest";
 import {
   getProbe,
   parseFlags,
+  assertNonEmptyCapture,
   writeCapture,
+  defaultCapturePath,
+  loadPlaywright,
 } from "./_capture_common.mjs";
 import {
   isHackerNewsItemUrl,
@@ -105,6 +108,37 @@ describe("parseFlags", () => {
     } else {
       expect(observed).toBeInstanceOf(Error);
     }
+  });
+});
+
+describe("loadPlaywright", () => {
+  it("loads playwright from a configured absolute module directory path", async () => {
+    const previous = process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE;
+    process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE = `${process.cwd()}/node_modules/playwright`;
+    const module = await loadPlaywright();
+    process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE = previous;
+
+    expect(module.chromium).toBeTruthy();
+  });
+});
+
+describe("defaultCapturePath", () => {
+  it("defaults to the external phenotype data home", () => {
+    expect(defaultCapturePath("linkedin", { HOME: "/Users/tester" })).toBe(
+      "/Users/tester/.phenotype/researchledger/captures/linkedin-capture.json",
+    );
+  });
+
+  it("honors an absolute external override", () => {
+    expect(defaultCapturePath("reddit", {
+      HOME: "/Users/tester",
+      RESEARCHLEDGER_CAPTURE_ROOT: "/Volumes/ResearchLedgerData/captures",
+    })).toBe("/Volumes/ResearchLedgerData/captures/reddit-capture.json");
+  });
+
+  it("rejects a relative override", () => {
+    expect(() => defaultCapturePath("x", { RESEARCHLEDGER_CAPTURE_ROOT: "./captures" }))
+      .toThrow("must be an absolute path");
   });
 });
 
@@ -201,6 +235,20 @@ describe("getProbe", () => {
 
   it("throws on unknown mode names", () => {
     expect(() => getProbe({ mode: "no-such-mode" })).toThrow();
+  });
+});
+
+describe("assertNonEmptyCapture", () => {
+  it("rejects an empty LinkedIn capture instead of writing a false zero", () => {
+    expect(() => assertNonEmptyCapture({ providerName: "LinkedIn", posts: [] }))
+      .toThrow(/CAPTURE_EMPTY.*LinkedIn/i);
+  });
+
+  it("accepts a capture containing at least one post", () => {
+    expect(() => assertNonEmptyCapture({
+      providerName: "LinkedIn",
+      posts: [{ url: "https://www.linkedin.com/feed/update/urn:li:activity:1", text: "post" }],
+    })).not.toThrow();
   });
 });
 

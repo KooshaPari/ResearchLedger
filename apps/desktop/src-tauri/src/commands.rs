@@ -21,7 +21,7 @@ mod read_model_tests {
             upsert_document(&mut connection, root, &SourceDocument {
                 id: id.into(), relative_path: format!("{id}.md"), title: title.into(),
                 source_kind: kind.into(), source_uri: None,
-                content: format!("---\ntags: {tags}\n---\n\n{body}"),
+                content: format!("---\ntype: Test Document\ntags: {tags}\n---\n\n{body}"),
                 captured_at: "2026-07-20T00:00:00Z".into(),
             }).unwrap();
         }
@@ -69,7 +69,7 @@ mod read_model_tests {
                 title: "Claim source".into(),
                 source_kind: "article".into(),
                 source_uri: Some("https://example.com/claim".into()),
-                content: "A durable ledger is local and reviewable.".into(),
+                content: "---\ntype: Test Document\n---\n\nA durable ledger is local and reviewable.".into(),
                 captured_at: "2026-07-20T00:00:00Z".into(),
             },
         )
