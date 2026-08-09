@@ -232,7 +232,7 @@ mod tests {
     }
 
     /// The document id is derived from the captured URL — never trusted from
-    /// input. The production schema (see `lib.rs::commands::import_linkedin_capture`)
+    /// input. The production schema derives stable ids from the captured URL.
     /// uses `post.url.rsplit(':').next().unwrap_or(&post.url)`. A capture JSON that
     /// includes an attacker-controlled `id` field must NOT carry that id through
     /// `parse_capture_json` — only the canonical id derived from the URL remains.

@@ -75,13 +75,6 @@ type ImportResult = {
   unchanged: number;
   failed: number;
 };
-type DeviceAuthorization = {
-  deviceCode: string;
-  userCode: string;
-  verificationUri: string;
-  expiresIn: number;
-  interval: number;
-};
 const views: Array<{ id: PrimaryView; label: string; hint: string }> = [
   {
     id: "inbox",
@@ -274,7 +267,6 @@ function Inbox({
   message: string;
   setMessage: (value: string) => void;
 }) {
-  const [token, setToken] = useState("");
   const [hackernewsProfile, setHackernewsProfile] = useState(() =>
     typeof localStorage === "undefined"
       ? ""
@@ -285,27 +277,13 @@ function Inbox({
       ? ""
       : (localStorage.getItem("researchledger.hackernewsUsername") ?? ""),
   );
-  const [linkedinPath, setLinkedinPath] = useState("");
-  const [linkedinProfile, setLinkedinProfile] = useState(() =>
-    typeof localStorage === "undefined"
-      ? ""
-      : (localStorage.getItem("researchledger.linkedinProfile") ?? ""),
-  );
-  const [githubClientId, setGithubClientId] = useState("");
-  const [deviceAuth, setDeviceAuth] = useState<DeviceAuthorization | null>(
-    null,
-  );
-  const [githubState, setGithubState] = useState<
-    "needs-config" | "waiting" | "ready"
-  >("needs-config");
+  const [linkedinPermalink, setLinkedinPermalink] = useState("");
+  const [linkedinContent, setLinkedinContent] = useState("");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Result[]>([]);
   const [retrievalContext, setRetrievalContext] =
     useState<RetrievalContext | null>(null);
   const [retrieving, setRetrieving] = useState(false);
-  const [linkedinState, setLinkedinState] = useState<
-    "needs-auth" | "ready" | "capturing"
-  >("needs-auth");
   const [hnState, setHnState] = useState<"needs-auth" | "ready" | "capturing">(
     "needs-auth",
   );
@@ -332,66 +310,16 @@ function Inbox({
       ? ""
       : (localStorage.getItem("researchledger.xProfile") ?? ""),
   );
-  useEffect(() => {
-    if (!deviceAuth || !githubClientId.trim()) return;
-    let cancelled = false;
-    setGithubState("waiting");
-    void invoke<string>("github_device_poll", {
-      clientId: githubClientId.trim(),
-      deviceCode: deviceAuth.deviceCode,
-      interval: deviceAuth.interval,
-      expiresIn: deviceAuth.expiresIn,
-    })
-      .then((githubToken) => {
-        if (cancelled) return;
-        setToken(githubToken);
-        setGithubState("ready");
-        setDeviceAuth(null);
-        setMessage("GitHub connected. Import starred repositories when ready.");
-      })
-      .catch((error) => {
-        if (cancelled) return;
-        setGithubState("needs-config");
-        setDeviceAuth(null);
-        setMessage(formatCommandError("github_device_poll", error));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [deviceAuth, githubClientId, setMessage]);
-  const loadGithubCliToken = async () => {
-    try {
-      const githubToken = await invoke<string>("github_token_from_gh");
-      setToken(githubToken);
-      setGithubState("ready");
-      setMessage(
-        "GitHub CLI credentials loaded. Import starred repositories when ready.",
-      );
-    } catch (error) {
-      setMessage(formatCommandError("github_token_from_gh", error));
-    }
-  };
   const importGithubStars = async () => {
     if (!vaultPath) {
       setMessage("Select a vault before running a source action.");
       return;
     }
-    let importToken = token.trim();
-    if (!importToken) {
-      try {
-        importToken = await invoke<string>("github_token_from_gh");
-      } catch (error) {
-        setMessage(formatCommandError("github_token_from_gh", error));
-        return;
-      }
-    }
     await run(
-      "import_github",
-      { vaultPath, token: importToken },
-      (value: ImportResult) => {
-        setToken("");
-        return `Imported ${value.created + value.updated} repositories; ${value.unchanged} unchanged.`;
-      },
+      "import_github_from_gh",
+      { vaultPath },
+      (value: ImportResult) =>
+        `Imported ${value.created + value.updated} repositories; ${value.unchanged} unchanged.`,
     );
   };
   const captureHackerNews = async () => {
@@ -428,31 +356,6 @@ function Inbox({
       setMessage(formatCommandError("capture_hackernews_browser", error));
     }
     setHnState("ready");
-  };
-  const captureLinkedIn = async () => {
-    if (linkedinProfile && typeof localStorage !== "undefined")
-      localStorage.setItem("researchledger.linkedinProfile", linkedinProfile);
-    setLinkedinState("capturing");
-    await run(
-      "capture_linkedin_browser",
-      { vaultPath, activityUrl: null, profilePath: linkedinProfile || null },
-      (value: ImportResult) =>
-        `Captured ${value.created + value.updated} LinkedIn posts; ${value.unchanged} unchanged.`,
-    );
-    setLinkedinState("ready");
-  };
-  const openLinkedInSignin = async () => {
-    if (linkedinProfile && typeof localStorage !== "undefined")
-      localStorage.setItem("researchledger.linkedinProfile", linkedinProfile);
-    try {
-      setMessage(
-        await invoke<string>("open_linkedin_signin", {
-          profilePath: linkedinProfile || null,
-        }),
-      );
-    } catch (error) {
-      setMessage(formatCommandError("open_linkedin_signin", error));
-    }
   };
   const captureReddit = async () => {
     if (redditProfile)
@@ -557,25 +460,6 @@ function Inbox({
         </div>
         <div className="action-stack">
           <Action
-            title="LinkedIn"
-            label={
-              linkedinState === "needs-auth"
-                ? "Connect browser"
-                : linkedinState === "capturing"
-                  ? "Capturing…"
-                  : "Connected"
-            }
-            state={
-              linkedinState === "needs-auth"
-                ? "Needs authentication"
-                : linkedinState === "capturing"
-                  ? "Capture in progress"
-                  : "Ready to capture"
-            }
-            onClick={() => void captureLinkedIn()}
-            disabled={linkedinState === "capturing"}
-          />
-          <Action
             title="Hacker News"
             label={
               hnState === "needs-auth"
@@ -669,77 +553,43 @@ function Inbox({
       <section className="capture-panel">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">LINKEDIN CONNECTION</p>
-            <h3>
-              {linkedinState === "needs-auth"
-                ? "Sign in once, capture locally"
-                : "Browser profile connected"}
-            </h3>
+            <p className="eyebrow">LINKEDIN IMPORT</p>
+            <h3>Bring your own export or permalink</h3>
           </div>
-          <span className={`state-pill ${linkedinState}`}>
-            {linkedinState === "needs-auth"
-              ? "AUTH REQUIRED"
-              : linkedinState === "capturing"
-                ? "CAPTURING"
-                : "READY"}
-          </span>
+          <span className="state-pill needs-auth">API / EXPORT ONLY</span>
         </div>
         <p className="muted">
-          Use a dedicated persistent Chrome profile. ResearchLedger opens
-          LinkedIn in that profile so SSO, cookies, and MFA remain in your
-          browser; it never stores your LinkedIn password.
+          Paste a permalink and the content you want to retain. ResearchLedger
+          never opens, signs in to, or reads a LinkedIn browser session.
         </p>
-        <div className="profile-row">
-          <input
-            aria-label="LinkedIn browser profile"
-            placeholder="Default profile or /Users/you/Library/Application Support/ResearchLedger/linkedin-profile"
-            value={linkedinProfile}
-            onChange={(event) => setLinkedinProfile(event.target.value)}
-          />
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => void openLinkedInSignin()}
-            disabled={linkedinState === "capturing"}
-          >
-            Open LinkedIn sign-in
-          </button>
-        </div>
         <div className="capture-actions">
-          <button
-            className="button primary"
-            type="button"
-            onClick={() => void captureLinkedIn()}
-            disabled={linkedinState === "capturing"}
-          >
-            Capture reactions in browser
-          </button>
           <input
-            aria-label="LinkedIn capture path"
-            placeholder="Optional capture JSON path"
-            value={linkedinPath}
-            onChange={(event) => setLinkedinPath(event.target.value)}
+            aria-label="LinkedIn permalink"
+            placeholder="https://www.linkedin.com/posts/..."
+            value={linkedinPermalink}
+            onChange={(event) => setLinkedinPermalink(event.target.value)}
+          />
+          <textarea
+            aria-label="LinkedIn content"
+            placeholder="Paste the post content you want to keep"
+            value={linkedinContent}
+            onChange={(event) => setLinkedinContent(event.target.value)}
           />
           <button
             className="button secondary"
             type="button"
             onClick={() =>
               void run(
-                "import_linkedin_capture",
-                { vaultPath, capturePath: linkedinPath },
+                "import_linkedin_manual",
+                { vaultPath, permalink: linkedinPermalink, content: linkedinContent },
                 (value: ImportResult) =>
                   `Imported ${value.created + value.updated} LinkedIn posts.`,
               )
             }
           >
-            Import capture
+            Import manual LinkedIn source
           </button>
         </div>
-        <p className="import-message">
-          Advanced API credentials are not requested because LinkedIn’s approved
-          member APIs do not expose a general reactions feed. Use an approved
-          integration only through a future provider adapter.
-        </p>
       </section>
       <section className="capture-panel">
         <div className="panel-heading">
@@ -969,64 +819,7 @@ function Inbox({
         </section>
       )}
       <section className="export-row">
-        <input
-          aria-label="GitHub App client ID"
-          placeholder="GitHub App client ID (required for OAuth)"
-          value={githubClientId}
-          onChange={(event) => {
-            setGithubClientId(event.target.value);
-            if (!event.target.value.trim()) setGithubState("needs-config");
-          }}
-        />
-        <button
-          className="button secondary"
-          type="button"
-          disabled={githubState === "waiting"}
-          onClick={async () => {
-            const clientId = githubClientId.trim();
-            if (!clientId) {
-              setMessage(
-                "Enter your GitHub App client ID to start device sign-in.",
-              );
-              setGithubState("needs-config");
-              return;
-            }
-            try {
-              setGithubState("waiting");
-              setDeviceAuth(
-                await invoke<DeviceAuthorization>("github_device_start", {
-                  clientId,
-                }),
-              );
-              setMessage(
-                "GitHub verification code ready. Finish sign-in in your browser; ResearchLedger will poll automatically.",
-              );
-            } catch (error) {
-              setGithubState("needs-config");
-              setMessage(formatCommandError("github_device_start", error));
-            }
-          }}
-        >
-          {githubState === "waiting"
-            ? "Waiting for GitHub…"
-            : githubState === "ready"
-              ? "GitHub connected"
-              : "Connect GitHub"}
-        </button>
-        <input
-          aria-label="GitHub token"
-          type="password"
-          placeholder="GitHub token (never stored)"
-          value={token}
-          onChange={(event) => setToken(event.target.value)}
-        />
-        <button
-          className="button secondary"
-          type="button"
-          onClick={() => void loadGithubCliToken()}
-        >
-          Use authenticated gh token
-        </button>
+        <span className="muted">GitHub imports use your authenticated local GitHub CLI.</span>
         <button
           className="button secondary"
           type="button"
@@ -1054,16 +847,6 @@ function Inbox({
           Export Markdown
         </button>
       </section>
-      {deviceAuth && (
-        <p className="import-message" role="status">
-          Open{" "}
-          <a href={deviceAuth.verificationUri} target="_blank" rel="noreferrer">
-            {deviceAuth.verificationUri}
-          </a>{" "}
-          and enter <strong>{deviceAuth.userCode}</strong>. The app will poll
-          until GitHub approves or the code expires.
-        </p>
-      )}
       {message && (
         <p className="import-message" role="status">
           {message}

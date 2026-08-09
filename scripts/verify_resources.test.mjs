@@ -7,11 +7,11 @@ import { expect, it } from "vitest";
 
 const scriptsDirectory = path.dirname(fileURLToPath(import.meta.url));
 
-it("verifies every packaged browser resource, including LinkedIn sign-in", () => {
+it("verifies every packaged browser resource", () => {
   const output = execFileSync(process.execPath, ["verify_resources.mjs"], {
     cwd: scriptsDirectory,
     encoding: "utf8",
   });
 
-  expect(output).toContain("Resource parity passed: 9 source declarations.");
+  expect(output).toContain("Resource parity passed: 7 source declarations.");
 });

@@ -5,7 +5,6 @@ mod embeddings;
 mod enrichment;
 mod github;
 mod hackernews;
-mod linkedin;
 mod okf;
 mod provider_html;
 mod rag;
@@ -21,9 +20,8 @@ mod commands {
     use super::{
         distill,
         embeddings::{LocalCrossEncoder, OllamaEmbedder},
-        github,
         github::GithubClient,
-        hackernews, linkedin, rag, reddit, reference_fetch, safe_paths, storage, x, VaultStatus,
+        hackernews, rag, reddit, reference_fetch, safe_paths, storage, x, VaultStatus,
     };
     use serde::Serialize;
     use sha2::{Digest, Sha256};
@@ -149,15 +147,17 @@ mod commands {
         })
     }
 
-    #[tauri::command]
-    pub async fn import_github(vault_path: String, token: String) -> Result<ImportSummary, String> {
-        if token.trim().is_empty() {
-            return Err("GitHub token is required".into());
+    async fn import_github_with_credential(
+        vault_path: String,
+        credential: String,
+    ) -> Result<ImportSummary, String> {
+        if credential.trim().is_empty() {
+            return Err("GitHub authentication is required".into());
         }
         let root = std::path::PathBuf::from(vault_path);
         let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
         let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let client = GithubClient::new(token).map_err(|error| error.to_string())?;
+        let client = GithubClient::new(credential).map_err(|error| error.to_string())?;
         let repositories = client
             .list_starred()
             .await
@@ -210,11 +210,8 @@ mod commands {
         Ok(summary)
     }
 
-    /// Read an already-authenticated GitHub CLI token from the OS-backed
-    /// credential store. The token is returned only in memory to the frontend
-    /// for the immediately-following import and is never logged or persisted.
     #[tauri::command]
-    pub async fn github_token_from_gh() -> Result<String, String> {
+    pub async fn import_github_from_gh(vault_path: String) -> Result<ImportSummary, String> {
         let output = gh_command()
             .args(["auth", "token", "--hostname", "github.com"])
             .output()
@@ -223,189 +220,46 @@ mod commands {
                 "GitHub CLI is unavailable. Install `gh` or configure RESEARCHLEDGER_GH_PATH."
                     .to_string()
             })?;
-        parse_gh_token_output(output.status.success(), &output.stdout)
+        let credential = parse_gh_token_output(output.status.success(), &output.stdout)?;
+        import_github_with_credential(vault_path, credential).await
     }
 
     #[tauri::command]
-    pub async fn github_device_start(
-        client_id: String,
-    ) -> Result<github::DeviceAuthorization, String> {
-        GithubClient::new("")
-            .map_err(|error| error.to_string())?
-            .request_device_authorization(&client_id)
-            .await
-            .map_err(|error| error.to_string())
-    }
-
-    #[tauri::command]
-    pub async fn github_device_poll(
-        client_id: String,
-        device_code: String,
-        interval: u64,
-        expires_in: u64,
-    ) -> Result<String, String> {
-        GithubClient::new("")
-            .map_err(|error| error.to_string())?
-            .poll_device_token(&client_id, &device_code, interval, expires_in)
-            .await
-            .map_err(|error| error.to_string())
-    }
-
-    #[tauri::command]
-    pub fn import_linkedin_html(
+    pub fn import_linkedin_manual(
         vault_path: String,
-        html_path: String,
+        permalink: String,
+        content: String,
     ) -> Result<ImportSummary, String> {
-        let html = std::fs::read_to_string(&html_path).map_err(|error| error.to_string())?;
-        let posts = linkedin::parse_activity_html(&html);
+        let permalink = permalink.trim();
+        let content = content.trim();
+        if !permalink.starts_with("https://www.linkedin.com/") {
+            return Err("LinkedIn permalink must be an https://www.linkedin.com/ URL".into());
+        }
+        if content.is_empty() {
+            return Err("LinkedIn content is required".into());
+        }
         let root = std::path::PathBuf::from(vault_path);
         let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
         let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let mut summary = ImportSummary {
-            created: 0,
-            updated: 0,
-            unchanged: 0,
-            failed: 0,
+        let id = format!("{:x}", Sha256::digest(permalink.as_bytes()));
+        let document = storage::SourceDocument {
+            id: format!("linkedin:{id}"),
+            relative_path: format!("sources/linkedin/{id}.md"),
+            title: "LinkedIn manual import".into(),
+            source_kind: "linkedin".into(),
+            source_uri: Some(permalink.to_string()),
+            content: format!("---\ntype: LinkedIn Post\nid: linkedin:{id}\ntitle: LinkedIn manual import\ndescription: User-supplied LinkedIn permalink and content\nresource: {permalink}\ntags: [linkedin, manual]\ntimestamp: {}\nsource_kind: linkedin\nsource_uri: {permalink}\n---\n\n{content}\n\n# Citations\n\n[1] [LinkedIn post]({permalink})\n", chrono::Utc::now().to_rfc3339()),
+            captured_at: chrono::Utc::now().to_rfc3339(),
         };
-        for post in posts {
-            let id = post.url.rsplit(':').next().unwrap_or(&post.url).to_string();
-            let content = format!("---\ntype: LinkedIn Post\nid: linkedin:{id}\ntitle: LinkedIn post {id}\ndescription: Captured LinkedIn post\nresource: {}\ntags: [linkedin, captured]\ntimestamp: {}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n\n# Citations\n\n[1] [LinkedIn post]({})\n", post.url, chrono::Utc::now().to_rfc3339(), post.url, post.text, post.url);
-            let document = storage::SourceDocument {
-                id: format!("linkedin:{id}"),
-                relative_path: format!("sources/linkedin/{id}.md"),
-                title: format!("LinkedIn post {id}"),
-                source_kind: "linkedin".into(),
-                source_uri: Some(post.url),
-                content,
-                captured_at: chrono::Utc::now().to_rfc3339(),
-            };
-            match storage::upsert_document(&mut connection, &root, &document)
-                .map_err(|error| error.to_string())?
-            {
-                storage::UpsertResult::Created => summary.created += 1,
-                storage::UpsertResult::Updated => summary.updated += 1,
-                storage::UpsertResult::Unchanged => summary.unchanged += 1,
-            }
-        }
-        Ok(summary)
-    }
-
-    #[tauri::command]
-    pub fn import_linkedin_capture(
-        vault_path: String,
-        capture_path: String,
-    ) -> Result<ImportSummary, String> {
-        let json = std::fs::read_to_string(&capture_path).map_err(|error| error.to_string())?;
-        let posts = linkedin::parse_capture_json(&json).map_err(|error| error.to_string())?;
-        let root = std::path::PathBuf::from(vault_path);
-        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
-        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let mut summary = ImportSummary {
-            created: 0,
-            updated: 0,
-            unchanged: 0,
-            failed: 0,
-        };
-        for post in posts {
-            let id = post.url.rsplit(':').next().unwrap_or(&post.url).to_string();
-            let document = storage::SourceDocument {
-                id: format!("linkedin:{id}"),
-                relative_path: format!("sources/linkedin/{id}.md"),
-                title: format!("LinkedIn post {id}"),
-                source_kind: "linkedin".into(),
-                source_uri: Some(post.url.clone()),
-                content: format!("---\ntype: LinkedIn Post\nid: linkedin:{id}\ntitle: LinkedIn post {id}\ndescription: Captured LinkedIn post\nresource: {}\ntags: [linkedin, captured]\ntimestamp: {}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n\n# Citations\n\n[1] [LinkedIn post]({})\n", post.url, chrono::Utc::now().to_rfc3339(), post.url, post.text, post.url),
-                captured_at: chrono::Utc::now().to_rfc3339(),
-            };
-            match storage::upsert_document(&mut connection, &root, &document)
-                .map_err(|error| error.to_string())?
-            {
-                storage::UpsertResult::Created => summary.created += 1,
-                storage::UpsertResult::Updated => summary.updated += 1,
-                storage::UpsertResult::Unchanged => summary.unchanged += 1,
-            }
-        }
-        Ok(summary)
-    }
-
-    #[tauri::command]
-    pub async fn capture_linkedin_browser(
-        app: tauri::AppHandle,
-        vault_path: String,
-        activity_url: Option<String>,
-        profile_path: Option<String>,
-    ) -> Result<ImportSummary, String> {
-        let output = external_capture_path("linkedin")?;
-        let resource_script = app
-            .path()
-            .resource_dir()
+        match storage::upsert_document(&mut connection, &root, &document)
             .map_err(|error| error.to_string())?
-            .join("scripts/linkedin_capture.mjs");
-        let script = if resource_script.exists() {
-            resource_script
-        } else {
-            std::env::current_dir()
-                .map_err(|error| error.to_string())?
-                .join("scripts/linkedin_capture.mjs")
-        };
-        let mut command = bun_command();
-        command.arg(script).arg("--output").arg(&output);
-        configure_playwright_command(&app, &mut command);
-        if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
-            let safe_profile = safe_paths::ensure_safe_command_arg(&profile, "profile")
-                .map_err(|error| error.to_string())?;
-            command.arg("--profile").arg(safe_profile);
+        {
+            storage::UpsertResult::Created => Ok(ImportSummary { created: 1, updated: 0, unchanged: 0, failed: 0 }),
+            storage::UpsertResult::Updated => Ok(ImportSummary { created: 0, updated: 1, unchanged: 0, failed: 0 }),
+            storage::UpsertResult::Unchanged => Ok(ImportSummary { created: 0, updated: 0, unchanged: 1, failed: 0 }),
         }
-        if let Some(url) = activity_url {
-            command.arg("--url").arg(url);
-        }
-        let result = command.output().await.map_err(|error| error.to_string())?;
-        if !result.status.success() {
-            return Err(String::from_utf8_lossy(&result.stderr).trim().to_string());
-        }
-        import_linkedin_capture(vault_path, output.to_string_lossy().into_owned())
     }
 
-    #[tauri::command]
-    pub async fn open_linkedin_signin(
-        app: tauri::AppHandle,
-        profile_path: Option<String>,
-    ) -> Result<String, String> {
-        let profile = profile_path
-            .filter(|value| !value.trim().is_empty())
-            .map(|value| safe_paths::ensure_safe_command_arg(&value, "profile"))
-            .transpose()
-            .map_err(|error| error.to_string())?;
-        if let Some(path) = profile.as_deref() {
-            for lock in ["SingletonLock", "SingletonSocket", "SingletonCookie"] {
-                if std::path::Path::new(path).join(lock).exists() {
-                    return Err(format!(
-                        "BROWSER_PROFILE_UNAVAILABLE: LinkedIn profile is already open ({path}). Close the existing Chromium window or choose a dedicated profile; no profile data was deleted."
-                    ));
-                }
-            }
-        }
-        let resource_script = app
-            .path()
-            .resource_dir()
-            .map_err(|error| error.to_string())?
-            .join("scripts/linkedin_signin.mjs");
-        let script = if resource_script.exists() {
-            resource_script
-        } else {
-            std::env::current_dir()
-                .map_err(|error| error.to_string())?
-                .join("scripts/linkedin_signin.mjs")
-        };
-        let mut command = bun_command();
-        command.arg(script);
-        configure_playwright_command(&app, &mut command);
-        if let Some(path) = profile {
-            command.arg("--profile").arg(path);
-        }
-        command.spawn().map_err(|error| error.to_string())?;
-        Ok("LinkedIn sign-in browser opened; close it when authentication is complete.".into())
-    }
 
     #[tauri::command]
     pub fn import_hackernews_html(
@@ -1201,14 +1055,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             commands::get_vault_status,
-            commands::import_github,
-            commands::github_token_from_gh,
-            commands::github_device_start,
-            commands::github_device_poll,
-            commands::import_linkedin_html,
-            commands::import_linkedin_capture,
-            commands::capture_linkedin_browser,
-            commands::open_linkedin_signin,
+            commands::import_github_from_gh,
+            commands::import_linkedin_manual,
             commands::import_hackernews_html,
             commands::import_hackernews_capture,
             commands::capture_hackernews_browser,

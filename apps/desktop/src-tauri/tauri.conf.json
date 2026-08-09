@@ -45,8 +45,6 @@
     }
   },
   "bundle": { "active": true, "targets": "all", "icon": ["icons/researchledger.icns"], "resources": {
-    "../../../scripts/linkedin_capture.mjs": "scripts/linkedin_capture.mjs",
-    "../../../scripts/linkedin_signin.mjs": "scripts/linkedin_signin.mjs",
     "../../../scripts/hackernews_capture.mjs": "scripts/hackernews_capture.mjs",
     "../../../scripts/reddit_capture.mjs": "scripts/reddit_capture.mjs",
     "../../../scripts/x_capture.mjs": "scripts/x_capture.mjs",

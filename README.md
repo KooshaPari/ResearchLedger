@@ -20,23 +20,19 @@ bun run build
 ```
 
 The desktop app supports a native local-vault picker, persisted vault status, GitHub
-starred-repository import, browser-capture imports for LinkedIn, Reddit, and X
+starred-repository import, manual LinkedIn permalink/content import, and browser-capture imports for Reddit and X
 bookmarks, offline FTS5 search, and retrieval context with aligned citations.
 Imported documents are written as Markdown under
 the selected vault and indexed into a local SQLite database. Markdown export is compatible
 with Obsidian and Logseq-style vault workflows.
 
-GitHub uses the OAuth device flow when a GitHub App client ID is configured. The UI displays
-GitHub’s verification URL/code and polls only at the interval supplied by GitHub; a pasted
-token is retained solely as an advanced fallback.
+GitHub uses the authenticated local GitHub CLI. The Rust backend reads the credential and
+returns only an import summary to the UI; no GitHub credential crosses the renderer boundary.
 
-For LinkedIn’s personal reaction feed, Reddit saved posts, and X bookmarks, use the
-authenticated browser connectors (each uses a dedicated persistent browser profile):
+For LinkedIn, paste a manually supplied permalink and content. Reddit saved posts and X
+bookmarks use authenticated browser connectors:
 
 ```bash
-bun run linkedin:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/linkedin-profile" \
-  --output "$HOME/.phenotype/researchledger/captures/linkedin-capture.json"
-
 bun run reddit:capture -- --profile "$HOME/Library/Application Support/ResearchLedger/reddit-profile" \
   --output "$HOME/.phenotype/researchledger/captures/reddit-capture.json"
 

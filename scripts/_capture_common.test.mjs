@@ -124,8 +124,8 @@ describe("loadPlaywright", () => {
 
 describe("defaultCapturePath", () => {
   it("defaults to the external phenotype data home", () => {
-    expect(defaultCapturePath("linkedin", { HOME: "/Users/tester" })).toBe(
-      "/Users/tester/.phenotype/researchledger/captures/linkedin-capture.json",
+    expect(defaultCapturePath("reddit", { HOME: "/Users/tester" })).toBe(
+      "/Users/tester/.phenotype/researchledger/captures/reddit-capture.json",
     );
   });
 
@@ -239,15 +239,15 @@ describe("getProbe", () => {
 });
 
 describe("assertNonEmptyCapture", () => {
-  it("rejects an empty LinkedIn capture instead of writing a false zero", () => {
-    expect(() => assertNonEmptyCapture({ providerName: "LinkedIn", posts: [] }))
-      .toThrow(/CAPTURE_EMPTY.*LinkedIn/i);
+  it("rejects an empty capture instead of writing a false zero", () => {
+    expect(() => assertNonEmptyCapture({ providerName: "Reddit", posts: [] }))
+      .toThrow(/CAPTURE_EMPTY.*Reddit/i);
   });
 
   it("accepts a capture containing at least one post", () => {
     expect(() => assertNonEmptyCapture({
-      providerName: "LinkedIn",
-      posts: [{ url: "https://www.linkedin.com/feed/update/urn:li:activity:1", text: "post" }],
+      providerName: "Reddit",
+      posts: [{ url: "https://www.reddit.com/r/rust/comments/a1b2c3d/post", text: "post" }],
     })).not.toThrow();
   });
 });

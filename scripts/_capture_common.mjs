@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * ResearchLedger – shared scroll/collect loop for authenticated Playwright
- * capture scripts (LinkedIn, Reddit, X, Hacker News).
+ * capture scripts (Reddit, X, Hacker News).
  *
  * Each provider supplies:
  *   - The URL pattern of the saved/bookmarks page.
@@ -307,7 +307,7 @@ export async function openAuthenticatedSession(params) {
   await page.goto(url, { waitUntil: "domcontentloaded" });
   if (await detectAuthGate(page)) {
     console.error(
-      "ResearchLedger is waiting for LinkedIn sign-in/MFA in the browser window. " +
+      "ResearchLedger is waiting for sign-in/MFA in the browser window. " +
         "Finish authentication there; capture will continue automatically.",
     );
     const deadline = Date.now() + authWaitMs;
@@ -321,7 +321,7 @@ export async function openAuthenticatedSession(params) {
         /* ignore */
       }
       const friendly = new Error(
-        "AUTH_REQUIRED: LinkedIn sign-in did not complete within 3 minutes. " +
+        "AUTH_REQUIRED: Sign-in did not complete within 3 minutes. " +
           "Finish authentication in the browser window, then run capture again.",
       );
       friendly.code = "AUTH_REQUIRED";
@@ -464,8 +464,7 @@ export async function scrollAndCollect(params) {
 /**
  * Refuse to turn an authenticated-page/selector failure into a successful
  * zero-row import. Providers that can legitimately return no rows should
- * only call this after their own empty-state check; LinkedIn uses it because
- * its reactions page otherwise renders the same shell for an auth redirect.
+ * only call this after their own empty-state check.
  *
  * @param {{ providerName: string, posts: { url?: string }[] | Map<unknown, unknown> }} params
  * @returns {void}
@@ -519,22 +518,15 @@ function xProbe(link) {
   return { href: hrefAttr, text: textOf(link.closest("article") || link.closest('[data-testid="tweet"]')) };
 }
 
-function linkedinProbe(link) {
-  if (link.tagName !== "A") return null;
-  const hrefAttr = link.getAttribute("href") || "";
-  if (!/urn:li:activity:/.test(hrefAttr)) return null;
-  return { href: hrefAttr, text: textOf(link.closest("article") || link.closest(".feed-shared-update-v2")) };
-}
-
 /**
  * Hacker News saved-stories probe: rows are `<tr class="athing submission"
  * id="<numeric>">` and the persisted item-id / canonical permalink comes
  * from the parent `<tr>`'s `id` attribute, not from the `.titlelink` href
  * (which points to the external blog post the story links to).
  *
- * The probe intentionally differs in shape from `redditProbe` / `xProbe` /
- * `linkedinProbe` so SonarCloud's `new_duplicated_lines_density` rule does
- * not flag the quartet as duplicated code: we filter by class name rather
+ * The probe intentionally differs in shape from the other probes so
+ * SonarCloud's `new_duplicated_lines_density` rule does
+ * not flag the probes as duplicated code: we filter by class name rather
  * than by href regex, walk up to a `<tr>` ancestor rather than an
  * `<article>`, and the build pipeline uses the parent's `id` attribute to
  * construct the canonical `/item?id=<id>` permalink rather than splitting
@@ -567,7 +559,6 @@ function hnProbe(link) {
 export const PROBES = Object.freeze({
   "reddit-article": redditProbe,
   "x-article": xProbe,
-  "linkedin-article": linkedinProbe,
   "hn-athing": hnProbe,
 });
 
@@ -633,7 +624,7 @@ export function defaultCapturePath(provider, env = process.env) {
 /**
  * Build a post record from a `probed` sample and a per-provider match config.
  *
- * The capture scripts (reddit, x, linkedin) all followed the same shape:
+ * The capture scripts (reddit and x) share the same shape:
  * run a regex over `href`, pull out named/positional captures, build a record
  * whose fields are `{url, text, ...captures}`. This helper replaces that
  * shape with a single shared implementation so the three call sites each
@@ -641,8 +632,8 @@ export function defaultCapturePath(provider, env = process.env) {
  *
  * The shape of the returned record is documented here because it is the
  * canonical contract between the capture scripts and the Tauri import
- * commands (`import_linkedin_capture`, `import_reddit_capture`,
- * `import_x_capture`). Changing it requires updating all three Rust parsers
+ * commands (`import_reddit_capture`, `import_x_capture`). Changing it requires
+ * updating the matching Rust parsers
  * in `apps/desktop/src-tauri/src/`.
  *
  * @param {{
@@ -658,10 +649,9 @@ export function buildPostFromMatch(params) {
   const { sample, hrefRegex, fields } = params;
   const urlFieldName = params.urlFieldName ?? "url";
   const textFieldName = params.textFieldName ?? "text";
-  // `transform` is an optional hook so providers that need to re-shape a raw
-  // capture group (e.g. LinkedIn prefixing the digits with `urn:li:activity:`)
-  // don't have to re-implement the matcher scaffolding here. Default: identity
-  // — the captured string becomes the field value verbatim.
+  // `transform` is an optional hook for providers that need to reshape a raw
+  // capture group without re-implementing the matcher scaffolding. Default:
+  // identity — the captured string becomes the field value verbatim.
   const transform = params.transform ?? ((_name, value) => value);
   const match = hrefRegex.exec(sample.href);
   if (match === null) return null;
@@ -693,11 +683,6 @@ export const MATCHERS = Object.freeze({
   x: {
     regex: /\/([^/]+)\/status\/(\d+)/,
     fields: ["user", "statusId"],
-  },
-  linkedin: {
-    regex: /urn:li:activity:(\d+)/,
-    fields: ["activityUrn"],
-    transform: (_name, value) => `urn:li:activity:${value}`,
   },
   // HN does not use a href-regex: it walks to the enclosing
   // `tr.athing.submission` and reads the row's numeric `id` attribute

@@ -8,7 +8,6 @@
     "lint": "tsc --noEmit",
     "tauri": "bunx tauri",
     "release:macos": "bun run scripts/release_macos.mjs",
-    "linkedin:capture": "bun run scripts/linkedin_capture.mjs",
     "reddit:capture": "bun run scripts/reddit_capture.mjs",
     "x:capture": "bun run scripts/x_capture.mjs",
     "verify:csp": "bun run scripts/verify_csp.mjs",
