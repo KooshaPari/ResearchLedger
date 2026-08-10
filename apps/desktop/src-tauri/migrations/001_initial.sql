@@ -124,3 +124,31 @@ CREATE TABLE IF NOT EXISTS reference_fetches (
 
 CREATE INDEX IF NOT EXISTS idx_reference_fetches_status
   ON reference_fetches(status, id);
+
+CREATE TABLE IF NOT EXISTS consent_grants (
+  id TEXT PRIMARY KEY,
+  local_profile TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  purpose TEXT NOT NULL,
+  data_categories TEXT NOT NULL,
+  url_scope TEXT NOT NULL,
+  granted_at TEXT NOT NULL,
+  expires_at TEXT,
+  revoked_at TEXT,
+  version INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_consent_grants_active
+  ON consent_grants(purpose, url_scope, revoked_at, expires_at);
+
+CREATE TABLE IF NOT EXISTS consent_audit (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  grant_id TEXT NOT NULL,
+  target_hash TEXT NOT NULL,
+  decision TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  decided_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_consent_audit_decided_at
+  ON consent_audit(decided_at, id);
