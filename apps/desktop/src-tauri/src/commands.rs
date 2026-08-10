@@ -123,6 +123,9 @@ pub struct ClaimRecord {
     pub claim: String,
     pub source_uri: Option<String>,
     pub citation_id: String,
+    pub evidence_quote: String,
+    pub span_start: u32,
+    pub span_end: u32,
 }
 
 fn connection(vault_path: &str) -> Result<rusqlite::Connection, String> {
@@ -183,7 +186,7 @@ pub fn list_document_claims(
     let db = connection(&vault_path)?;
     let mut statement = db
         .prepare(
-            "SELECT document_id, ordinal, claim, source_uri, citation_id FROM claims
+            "SELECT document_id, ordinal, claim, source_uri, citation_id, evidence_quote, span_start, span_end FROM claims
              WHERE document_id = ?1 ORDER BY ordinal",
         )
         .map_err(|error| error.to_string())?;
@@ -195,6 +198,9 @@ pub fn list_document_claims(
                 claim: row.get(2)?,
                 source_uri: row.get(3)?,
                 citation_id: row.get(4)?,
+                evidence_quote: row.get(5)?,
+                span_start: row.get::<_, i64>(6)? as u32,
+                span_end: row.get::<_, i64>(7)? as u32,
             })
         })
         .map_err(|error| error.to_string())?;

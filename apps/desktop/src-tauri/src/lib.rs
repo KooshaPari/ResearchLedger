@@ -1,5 +1,6 @@
 use serde::Serialize;
 mod chunking;
+mod consent;
 mod distill;
 mod embeddings;
 mod enrichment;
@@ -21,9 +22,11 @@ mod commands {
         distill,
         embeddings::{LocalCrossEncoder, OllamaEmbedder},
         github::GithubClient,
-        hackernews, rag, reddit, reference_fetch, safe_paths, storage, x, VaultStatus,
+        consent::{ConsentGrant, ConsentRegistry}, hackernews, rag, reddit, reference_fetch,
+        safe_paths, storage, x, VaultStatus,
     };
-    use serde::Serialize;
+    use super::consent;
+    use serde::{Deserialize, Serialize};
     use sha2::{Digest, Sha256};
     use tauri::Manager;
 
@@ -34,6 +37,50 @@ mod commands {
         pub updated: u64,
         pub unchanged: u64,
         pub failed: u64,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ConsentGrantInput {
+        pub vault_path: String,
+        pub id: String,
+        pub local_profile: String,
+        pub provider: String,
+        pub data_categories: Vec<String>,
+        pub url_scope: String,
+        pub expires_at: Option<String>,
+        pub version: i64,
+        pub granted_at: String,
+    }
+
+    #[tauri::command]
+    pub fn grant_consent(input: ConsentGrantInput) -> Result<(), String> {
+        let root = std::path::PathBuf::from(&input.vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        ConsentRegistry::new(&connection)
+            .grant(ConsentGrant {
+                id: input.id,
+                local_profile: input.local_profile,
+                provider: input.provider,
+                purpose: consent::REFERENCE_FETCH_PURPOSE.into(),
+                data_categories: input.data_categories,
+                url_scope: input.url_scope,
+                expires_at: input.expires_at,
+                version: input.version,
+                granted_at: input.granted_at,
+            })
+            .map_err(|error| error.to_string())
+    }
+
+    #[tauri::command]
+    pub fn revoke_consent(vault_path: String, id: String, revoked_at: String) -> Result<bool, String> {
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        ConsentRegistry::new(&connection)
+            .revoke(&id, &revoked_at)
+            .map_err(|error| error.to_string())
     }
 
     /// Build the Bun command used for browser capture.
@@ -1055,6 +1102,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             commands::get_vault_status,
+            commands::grant_consent,
+            commands::revoke_consent,
             commands::import_github_from_gh,
             commands::import_linkedin_manual,
             commands::import_hackernews_html,
@@ -1084,6 +1133,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
+    use super::consent::{ConsentGrant, ConsentRegistry};
     use super::commands;
     use super::storage::*;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -1180,7 +1230,7 @@ mod tests {
     }
 
     #[test]
-    fn reference_backfill_does_not_recurse_from_fetched_or_distilled_documents() {
+    fn documents_do_not_create_implicit_reference_jobs() {
         let root = temp_root();
         let paths = initialize(&root).unwrap();
         let mut db = open(&paths).unwrap();
@@ -1208,9 +1258,75 @@ mod tests {
         }
 
         let jobs = pending_reference_jobs(&db, 10).unwrap();
-        assert_eq!(jobs.len(), 1);
-        assert_eq!(jobs[0].source_document_id, "source");
-        assert_eq!(jobs[0].target_url, "https://example.com/source-link");
+        assert!(jobs.is_empty());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn source_without_active_consent_queues_no_reference_jobs() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "unconsented".into(),
+                relative_path: "sources/unconsented.md".into(),
+                title: "Unconsented source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSee https://example.com/reference.".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+
+        assert!(pending_reference_jobs(&db, 10).unwrap().is_empty());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn explicit_exact_consent_queues_reference_job() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "source".into(),
+                relative_path: "sources/source.md".into(),
+                title: "Source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSource".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        let registry = ConsentRegistry::new(&db);
+        registry
+            .grant(ConsentGrant {
+                id: "consent-1".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/reference/".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/reference",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        assert_eq!(pending_reference_jobs(&db, 10).unwrap().len(), 1);
         let _ = std::fs::remove_dir_all(root);
     }
 

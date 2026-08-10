@@ -36,6 +36,32 @@ pub fn extract_claims(content: &str) -> Vec<String> {
         .collect()
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ClaimEvidence {
+    pub claim: String,
+    pub quote: String,
+    pub start: i64,
+    pub end: i64,
+}
+
+pub fn extract_claim_evidence(content: &str) -> Vec<ClaimEvidence> {
+    let mut search_from = 0;
+    extract_claims(content)
+        .into_iter()
+        .filter_map(|claim| {
+            let start = content[search_from..].find(&claim)? + search_from;
+            let end = start + claim.len();
+            search_from = end;
+            Some(ClaimEvidence {
+                quote: claim.clone(),
+                claim,
+                start: start as i64,
+                end: end as i64,
+            })
+        })
+        .collect()
+}
+
 fn bullet_list(items: &[String], empty: &str) -> String {
     if items.is_empty() {
         format!("- {empty}")
@@ -152,5 +178,15 @@ mod tests {
         let note = render_deterministic(&document("A concise research finding."));
         assert!(note.contains("A concise research finding. [1]"));
         assert!(note.contains("[1] [Original source](https://example.com/source)"));
+    }
+
+    #[test]
+    fn claim_evidence_has_reproducible_byte_spans() {
+        let content = "Intro. A durable ledger is local and reviewable. Another finding follows.";
+        let evidence = extract_claim_evidence(content);
+        assert_eq!(evidence.len(), 2);
+        assert_eq!(&content[evidence[0].start as usize..evidence[0].end as usize], evidence[0].quote);
+        assert_eq!(evidence[0].start, content.find(&evidence[0].claim).unwrap() as i64);
+        assert!(evidence[0].end <= evidence[1].start);
     }
 }
