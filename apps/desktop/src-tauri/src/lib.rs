@@ -53,6 +53,65 @@ mod commands {
         pub granted_at: String,
     }
 
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct QueueReferenceFetchInput {
+        pub vault_path: String,
+        pub source_document_id: String,
+        pub target_url: String,
+        pub requested_at: String,
+    }
+
+    #[derive(Debug, Serialize, PartialEq, Eq)]
+    #[serde(rename_all = "camelCase")]
+    pub struct QueueReferenceFetchResult {
+        pub source_document_id: String,
+        pub target_url: String,
+        pub queued: bool,
+    }
+
+    #[tauri::command]
+    pub fn queue_reference_fetch(
+        input: QueueReferenceFetchInput,
+    ) -> Result<QueueReferenceFetchResult, String> {
+        let root = std::path::PathBuf::from(&input.vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let source_exists: bool = connection
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM documents WHERE id = ?1)",
+                rusqlite::params![input.source_document_id],
+                |row| row.get(0),
+            )
+            .map_err(|error| error.to_string())?;
+        if !source_exists {
+            return Err("source document not found".into());
+        }
+        let target_url = consent::canonical_scope(&input.target_url);
+        let link_exists: bool = connection
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM document_links WHERE source_document_id = ?1 AND target_url = ?2)",
+                rusqlite::params![input.source_document_id, target_url],
+                |row| row.get(0),
+            )
+            .map_err(|error| error.to_string())?;
+        if !link_exists {
+            return Err("reference link not found for source document".into());
+        }
+        let queued = storage::queue_reference_fetch(
+            &connection,
+            &input.source_document_id,
+            &target_url,
+            &input.requested_at,
+        )
+        .map_err(|error| error.to_string())?;
+        Ok(QueueReferenceFetchResult {
+            source_document_id: input.source_document_id,
+            target_url,
+            queued,
+        })
+    }
+
     #[tauri::command]
     pub fn grant_consent(input: ConsentGrantInput) -> Result<(), String> {
         let root = std::path::PathBuf::from(&input.vault_path);
@@ -1104,6 +1163,7 @@ pub fn run() {
             commands::get_vault_status,
             commands::grant_consent,
             commands::revoke_consent,
+            commands::queue_reference_fetch,
             commands::import_github_from_gh,
             commands::import_linkedin_manual,
             commands::import_hackernews_html,
@@ -1327,6 +1387,19 @@ mod tests {
         )
         .unwrap());
         assert_eq!(pending_reference_jobs(&db, 10).unwrap().len(), 1);
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn queue_reference_command_rejects_unknown_source_before_consent_lookup() {
+        let root = temp_root();
+        let result = commands::queue_reference_fetch(commands::QueueReferenceFetchInput {
+            vault_path: root.to_string_lossy().into_owned(),
+            source_document_id: "missing".into(),
+            target_url: "https://example.com/reference".into(),
+            requested_at: "2026-08-10T01:00:00Z".into(),
+        });
+        assert_eq!(result, Err("source document not found".into()));
         let _ = std::fs::remove_dir_all(root);
     }
 
