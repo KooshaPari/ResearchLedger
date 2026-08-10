@@ -1,5 +1,6 @@
 use serde::Serialize;
 mod chunking;
+mod consent;
 mod distill;
 mod embeddings;
 mod enrichment;
@@ -21,7 +22,8 @@ mod commands {
         distill,
         embeddings::{LocalCrossEncoder, OllamaEmbedder},
         github::GithubClient,
-        hackernews, rag, reddit, reference_fetch, safe_paths, storage, x, VaultStatus,
+        consent::{ConsentGrant, ConsentRegistry}, hackernews, rag, reddit, reference_fetch,
+        safe_paths, storage, x, VaultStatus,
     };
     use serde::Serialize;
     use sha2::{Digest, Sha256};
@@ -1084,6 +1086,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
+    use super::consent::{ConsentGrant, ConsentRegistry};
     use super::commands;
     use super::storage::*;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -1180,7 +1183,7 @@ mod tests {
     }
 
     #[test]
-    fn reference_backfill_does_not_recurse_from_fetched_or_distilled_documents() {
+    fn documents_do_not_create_implicit_reference_jobs() {
         let root = temp_root();
         let paths = initialize(&root).unwrap();
         let mut db = open(&paths).unwrap();
@@ -1208,9 +1211,75 @@ mod tests {
         }
 
         let jobs = pending_reference_jobs(&db, 10).unwrap();
-        assert_eq!(jobs.len(), 1);
-        assert_eq!(jobs[0].source_document_id, "source");
-        assert_eq!(jobs[0].target_url, "https://example.com/source-link");
+        assert!(jobs.is_empty());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn source_without_active_consent_queues_no_reference_jobs() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "unconsented".into(),
+                relative_path: "sources/unconsented.md".into(),
+                title: "Unconsented source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSee https://example.com/reference.".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+
+        assert!(pending_reference_jobs(&db, 10).unwrap().is_empty());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn explicit_exact_consent_queues_reference_job() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "source".into(),
+                relative_path: "sources/source.md".into(),
+                title: "Source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSource".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        let registry = ConsentRegistry::new(&db);
+        registry
+            .grant(ConsentGrant {
+                id: "consent-1".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/reference/".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/reference",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        assert_eq!(pending_reference_jobs(&db, 10).unwrap().len(), 1);
         let _ = std::fs::remove_dir_all(root);
     }
 
