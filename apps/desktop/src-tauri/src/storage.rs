@@ -41,10 +41,6 @@ pub struct ReferenceJob {
     pub target_url: String,
 }
 
-fn should_fetch_references(source_kind: &str) -> bool {
-    !matches!(source_kind, "reference" | "distillation")
-}
-
 pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     fs::create_dir_all(root).map_err(|_| rusqlite::Error::InvalidPath(root.to_path_buf()))?;
     let database = root.join(".researchledger.db");
@@ -208,17 +204,12 @@ pub fn upsert_document(
         "DELETE FROM document_links WHERE source_document_id = ?1",
         params![document.id],
     )?;
+    // Record discovered links; only explicit active-consent logic may queue reference fetches.
     for url in crate::enrichment::extract_urls(&document.content) {
         tx.execute(
             "INSERT OR IGNORE INTO document_links (source_document_id, target_url, discovered_at) VALUES (?1, ?2, ?3)",
             params![document.id, crate::enrichment::canonical_url(&url), document.captured_at],
         )?;
-        if should_fetch_references(&document.source_kind) {
-            tx.execute(
-                "INSERT OR IGNORE INTO reference_fetches (source_document_id, target_url, status) VALUES (?1, ?2, 'pending')",
-                params![document.id, crate::enrichment::canonical_url(&url)],
-            )?;
-        }
     }
     tx.execute(
         "DELETE FROM provenance WHERE document_id = ?1",
@@ -303,17 +294,8 @@ pub fn pending_enrichment_ids(connection: &Connection, limit: u32) -> SqlResult<
     rows.collect()
 }
 
-/// Backfill fetch rows for links created before the reference worker existed,
-/// then return a deterministic, bounded batch for the worker to process.
+/// Return a deterministic, bounded batch of explicitly queued reference jobs.
 pub fn pending_reference_jobs(connection: &Connection, limit: u32) -> SqlResult<Vec<ReferenceJob>> {
-    connection.execute(
-        "INSERT OR IGNORE INTO reference_fetches (source_document_id, target_url, status)
-         SELECT l.source_document_id, l.target_url, 'pending'
-         FROM document_links l
-         JOIN documents d ON d.id = l.source_document_id
-         WHERE d.source_kind NOT IN ('reference', 'distillation')",
-        [],
-    )?;
     let mut statement = connection.prepare(
         "SELECT source_document_id, target_url FROM reference_fetches
          WHERE status = 'pending' ORDER BY id LIMIT ?1",
