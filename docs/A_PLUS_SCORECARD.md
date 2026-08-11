@@ -1,8 +1,8 @@
 # ResearchLedger release scorecard
 
-Status as of 2026-08-01: **release candidate, not A+ yet**. The local-first shell and
-packaging path are healthy; the knowledge-quality pipeline still needs bounded reference
-fetching, claim-level distillation, and retrieval hardening before an A+ claim is honest.
+Status as of 2026-08-10: **release candidate, not A+ yet**. The local-first shell,
+packaging path, consent registry, and claim-span evidence path are verified; installed-app
+and provider-boundary gates still prevent an A+ claim.
 
 | Requirement | Evidence | Status |
 |---|---|---|
@@ -15,19 +15,16 @@ fetching, claim-level distillation, and retrieval hardening before an A+ claim i
 | Search/RAG | SQLite FTS5 lexical search, optional Ollama vectors, rank fusion, citation context | PARTIAL: no reranker or versioned embedding invalidation |
 | Frontend workflows | Workspace tabs, provider actions, vault/import/search/distill/export flows | PASS |
 | Interoperable knowledge format | OKF-style frontmatter, citations, generated index | PASS: schema coverage still needs fixture validation |
-| Enrichment | URL extraction, queued deterministic distillation, persisted provenance | PARTIAL: no bounded reference fetch or claim-level evidence graph |
-| Privacy/security | In-memory auth, provider profiles, URL/path guards, login redirect detection | PARTIAL: audit `load_document` and export symlink behavior |
+| Enrichment | Bounded reference worker, queued deterministic distillation, persisted provenance, structured claims with source citations and reproducible byte spans | PASS: local tests cover retry/guard behavior and claim-span persistence |
+| Privacy/security | In-memory auth, consent registry with scoped/expiring/revocable grants, hashed consent audit targets, provider profiles, URL/path guards, login redirect detection | PASS implementation/tests; installed-app/provider-policy verification remains |
 | Verification | `npm run verify:resources`, `npm test` (65/65), `npm run build`, Rust (57/57) | PASS |
 
 ## Remaining A+ gates
 
-1. Add a bounded, robots/terms-aware reference fetch worker with retries and content limits.
-2. Replace the one-line deterministic summary with structured claims, definitions,
-   alternatives, open questions, and claim-to-source citations.
-3. Chunk documents for embeddings, record model/version and input hash, and fix vector-only
+1. Chunk documents for embeddings, record model/version and input hash, and fix vector-only
    retrieval fusion coverage; add a local reranker contract.
-4. Add document-detail/provenance inspection and persisted collection/graph views.
-5. Re-run an authenticated LinkedIn capture and a GitHub starred-repository import on the
+2. Add document-detail/provenance inspection and persisted collection/graph views.
+3. Re-run an authenticated LinkedIn capture and a GitHub starred-repository import on the
    installed app, recording counts and hashes without retaining credentials.
 
 Operational prerequisite: packaged browser connectors require Node.js and Playwright
