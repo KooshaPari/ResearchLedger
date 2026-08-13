@@ -1,32 +1,52 @@
 # ResearchLedger release scorecard
 
+<<<<<<< HEAD
 Status as of 2026-08-10: **release candidate, not A+ yet**. The local-first shell,
 packaging path, consent registry, and claim-span evidence path are verified; installed-app
 and provider-boundary gates still prevent an A+ claim.
+=======
+Status as of 2026-08-08: **release candidate, not A+ yet**. The local-first shell,
+packaging path, bounded reference worker, structured deterministic distillation, persisted
+claims/provenance UX, chunked/versioned retrieval substrate, and strict local cross-encoder
+quality are green. Provider-policy retirement and an installed-app GitHub import remain.
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
 
 | Requirement | Evidence | Status |
 |---|---|---|
 | Local-first Tauri desktop | `apps/desktop/src-tauri`; app-only bundle built and installed during this release pass | PASS |
 | SQLite + Markdown canonical vault | `storage.rs`, migration, atomic Markdown writes | PASS |
-| GitHub starred repositories and READMEs | GitHub client, device OAuth, importer tests | PASS |
-| LinkedIn, Reddit, X, and Hacker News capture | Persistent Playwright connectors, bounded scroll, JSON import, packaged resource parity | READY / live-account unverified |
-| GitHub auth and Markdown export UX | Device-flow polling, client-id validation, native destination picker; frontend suite 7/7 | PASS |
-| Provenance | `provenance` rows now write on create, update, and unchanged re-import; Rust suite 57/57 | PASS |
-| Search/RAG | SQLite FTS5 lexical search, optional Ollama vectors, rank fusion, citation context | PARTIAL: no reranker or versioned embedding invalidation |
+| GitHub starred repositories and READMEs | Rust-owned local `gh` credential import, importer tests, and prior keychain-authenticated API corpus evidence | PASS implementation/API / installed invocation pending |
+| LinkedIn import | Official export/manual permalink path only; no browser sign-in, persistent profile, DOM capture, or reaction-feed crawler is shipped | PASS policy boundary / API capability adapter pending |
+| GitHub auth and Markdown export UX | Rust-owned local CLI import and native destination picker; frontend boundary tests | PARTIAL: first-party Device Flow fallback remains planned |
+| Provenance | `provenance` rows and claim rows write on create, update, and unchanged re-import; fetched references become source documents; Library exposes claim citations | PASS |
+| Search/RAG | SQLite FTS5 lexical search, deterministic heading/size chunking, optional Ollama vectors with model/version/input hashes, rank fusion including vector-only hits, loopback-only local `/v1/rerank` cross-encoder adapter, versioned ranking fixture, deterministic overlap fallback, persisted cited-context UX; strict smoke passed with `cross-encoder/ms-marco-MiniLM-L-6-v2` on loopback (`d4e3de77826d02b515c08a4cc55a4bd5668d093de5d669f2fb96b61973d9bad4` -> `aa9bd1d064d1303cf6acedbddca3cfa8b0b8be51c7a15b6dc00fbc491f440e16`, order `[2,1,0]`) | PASS (explicit local model; deterministic fallback remains the offline default) |
 | Frontend workflows | Workspace tabs, provider actions, vault/import/search/distill/export flows | PASS |
 | Interoperable knowledge format | OKF-style frontmatter, citations, generated index | PASS: schema coverage still needs fixture validation |
+<<<<<<< HEAD
 | Enrichment | Bounded reference worker, queued deterministic distillation, persisted provenance, structured claims with source citations and reproducible byte spans | PASS: local tests cover retry/guard behavior and claim-span persistence |
 | Privacy/security | In-memory auth, consent registry with scoped/expiring/revocable grants, hashed consent audit targets, provider profiles, URL/path guards, login redirect detection | PASS implementation/tests; installed-app/provider-policy verification remains |
 | Verification | `npm run verify:resources`, `npm test` (65/65), `npm run build`, Rust (57/57) | PASS |
+=======
+| Enrichment | URL queue with resumable status, bounded exponential retry for transient HTTP failures, host-keyed concurrency budget, public-HTTP worker with robots/private-host/redirect/byte/time guards, atomic artifacts, fetched source documents, structured deterministic claims, persisted claim rows | PASS |
+| Privacy/security | Rust-owned GitHub credentials, provider profiles only for permitted sources, URL/path guards, login redirect detection, load-path traversal rejection, symlink-safe Markdown export | PARTIAL: consent registry and URL redaction lifecycle remain |
+| Verification | Existing local checks and historical corpus evidence | PARTIAL: re-run all checks, package parity, installed binary parity, and authenticated GitHub invocation after provider-policy retirement; audit reports 18 allowed upstream maintenance/unsoundness advisories |
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
 
-## Remaining A+ gates
+## Remaining A+ gate
 
+<<<<<<< HEAD
 1. Chunk documents for embeddings, record model/version and input hash, and fix vector-only
    retrieval fusion coverage; add a local reranker contract.
 2. Add document-detail/provenance inspection and persisted collection/graph views.
 3. Re-run an authenticated LinkedIn capture and a GitHub starred-repository import on the
    installed app, recording counts and hashes without retaining credentials.
+=======
+Run the installed UI GitHub import, recording repository and README counts plus hashes without
+retaining credentials. The renderer must never receive a GitHub credential. Complete the consent
+registry, URL scope/redaction lifecycle, claim-span evidence, and first-party Device Flow fallback
+before an A+ release claim.
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
 
-Operational prerequisite: packaged browser connectors require Node.js and Playwright
+Operational prerequisite: permitted packaged browser connectors require Bun and Playwright
 Chromium on the host. Ollama is optional; FTS5 and deterministic distillation remain
 available when it is offline.

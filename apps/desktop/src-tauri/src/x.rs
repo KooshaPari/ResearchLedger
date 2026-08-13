@@ -24,12 +24,15 @@ pub fn parse_capture_json(json: &str) -> Result<Vec<XSavedPost>, serde_json::Err
 /// nearest `@user` text and body from the closest article container.
 pub fn parse_bookmarks_html(html: &str) -> Vec<XSavedPost> {
     let document = Html::parse_document(html);
-    let status_selector =
-        Selector::parse("a[href*='/status/']").expect("static selector parses");
+    let status_selector = Selector::parse("a[href*='/status/']").expect("static selector parses");
     let mut posts = BTreeMap::new();
     for link in document.select(&status_selector) {
-        let Some(raw_href) = link.value().attr("href") else { continue };
-        let Some(url) = clean_post_href(raw_href, "/status/", "https://x.com") else { continue };
+        let Some(raw_href) = link.value().attr("href") else {
+            continue;
+        };
+        let Some(url) = clean_post_href(raw_href, "/status/", "https://x.com") else {
+            continue;
+        };
         if !is_x_post_path(&url) {
             continue;
         }
@@ -123,16 +126,33 @@ mod tests {
             ]
         );
         for post in &posts {
-            assert!(post.text.len() > 40, "captured text must satisfy capture min-length");
-            assert!(crate::provider_html::is_x_post_path(&post.url),
-                "all round-tripped urls must satisfy the X post-path shape guard");
+            assert!(
+                post.text.len() > 40,
+                "captured text must satisfy capture min-length"
+            );
+            assert!(
+                crate::provider_html::is_x_post_path(&post.url),
+                "all round-tripped urls must satisfy the X post-path shape guard"
+            );
         }
         // No post should be authored "intent", "i", "messages", "compose", "home", "settings".
         for post in &posts {
-            let user = post.url.trim_start_matches("https://x.com/").split('/').next().unwrap_or("");
-            assert!(user != "intent" && user != "i" && user != "messages" && user != "compose"
-                && user != "home" && user != "settings",
-                "no permalink under an excluded route should round-trip; got {}", post.url);
+            let user = post
+                .url
+                .trim_start_matches("https://x.com/")
+                .split('/')
+                .next()
+                .unwrap_or("");
+            assert!(
+                user != "intent"
+                    && user != "i"
+                    && user != "messages"
+                    && user != "compose"
+                    && user != "home"
+                    && user != "settings",
+                "no permalink under an excluded route should round-trip; got {}",
+                post.url
+            );
         }
     }
 
@@ -144,18 +164,22 @@ mod tests {
     fn x_path_shape_guard_drops_malformed_permalinks() {
         use crate::provider_html::is_x_post_path;
         let urls = vec![
-            "https://x.com/koosha/status/1234567890",          // good
-            "https://x.com/i/status/1234567890",                // photo route — drop
-            "https://x.com/intent/follow?screen_name=foo",      // intent — drop
-            "https://x.com/messages/1234-5678",                 // DM — drop
-            "https://x.com/compose/post",                       // compose — drop
-            "https://x.com/home",                               // home — drop
-            "https://x.com/settings",                           // settings — drop
-            "https://x.com/someone/status/notanumber",         // non-numeric id — drop
-            "https://x.com/koosha/status/1234567891/photo/1",   // good (extra path segments ok)
+            "https://x.com/koosha/status/1234567890",         // good
+            "https://x.com/i/status/1234567890",              // photo route — drop
+            "https://x.com/intent/follow?screen_name=foo",    // intent — drop
+            "https://x.com/messages/1234-5678",               // DM — drop
+            "https://x.com/compose/post",                     // compose — drop
+            "https://x.com/home",                             // home — drop
+            "https://x.com/settings",                         // settings — drop
+            "https://x.com/someone/status/notanumber",        // non-numeric id — drop
+            "https://x.com/koosha/status/1234567891/photo/1", // good (extra path segments ok)
         ];
         let kept: Vec<&str> = urls.iter().copied().filter(|u| is_x_post_path(u)).collect();
-        assert_eq!(kept.len(), 2, "only /<user>/status/<numeric-id> survive; got {kept:?}");
+        assert_eq!(
+            kept.len(),
+            2,
+            "only /<user>/status/<numeric-id> survive; got {kept:?}"
+        );
         assert!(kept.contains(&"https://x.com/koosha/status/1234567890"));
         assert!(kept.contains(&"https://x.com/koosha/status/1234567891/photo/1"));
     }
@@ -166,7 +190,10 @@ mod tests {
     #[test]
     fn x_capture_rejects_missing_posts_field() {
         let result = parse_capture_json(r#"{"version":1,"capturedAt":"2026-07-25T11:00:00Z"}"#);
-        assert!(result.is_err(), "missing posts array must fail loudly; got {result:?}");
+        assert!(
+            result.is_err(),
+            "missing posts array must fail loudly; got {result:?}"
+        );
     }
 
     /// Empty `posts: []` is a valid capture (zero rows). We do NOT collapse
@@ -202,10 +229,7 @@ mod tests {
         // /i/status/... is X-internal share format — not a real permalink.
         let html = r#"<article><a href="/i/status/1100000000000000099">share</a><div><span>@someone</span><p>noise that looks like a real post but isn't a permalink anchor.</p></div></article>"#;
         let posts = parse_bookmarks_html(html);
-        assert!(
-            posts.is_empty(),
-            "expected zero posts; got {posts:?}"
-        );
+        assert!(posts.is_empty(), "expected zero posts; got {posts:?}");
 
         // /intent/... (web intent URLs) must be filtered out.
         let html = r#"<article><a href="/intent/like?tweet_id=1100000000000000099">like</a><div><span>@someone</span><p>intent URL noise that must not slip into the bookmarks vault.</p></div></article>"#;

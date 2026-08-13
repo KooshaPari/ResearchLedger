@@ -4,6 +4,7 @@ use std::collections::{HashMap, HashSet};
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Citation {
+    pub citation_id: String,
     pub document_id: String,
     pub title: String,
     pub source_uri: Option<String>,
@@ -12,10 +13,34 @@ pub struct Citation {
 
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct RetrievalCoverage {
+    /// Results that contributed to the answer context.
+    pub retrieved: u32,
+    /// Citation records emitted alongside the answer context.
+    pub cited: u32,
+    /// Citations that retain an original source URI.
+    pub with_source_uri: u32,
+    /// Fraction of emitted citations with a source URI, in `[0, 1]`.
+    pub source_uri_ratio: f32,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RetrievalConfidence {
+    /// Deterministic evidence-coverage signal, not a factual-truth probability.
+    pub score: f32,
+    pub label: String,
+    pub rationale: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RetrievalContext {
     pub query: String,
     pub context: String,
     pub citations: Vec<Citation>,
+    pub coverage: RetrievalCoverage,
+    pub confidence: RetrievalConfidence,
 }
 
 #[derive(Debug, Clone)]
@@ -65,7 +90,9 @@ pub fn fuse_ranked(
 pub fn build_context(query: &str, results: Vec<SearchResult>) -> RetrievalContext {
     let citations = results
         .into_iter()
-        .map(|result| Citation {
+        .enumerate()
+        .map(|(index, result)| Citation {
+            citation_id: (index + 1).to_string(),
             document_id: result.document_id,
             title: result.title,
             source_uri: result.source_uri,
@@ -76,27 +103,98 @@ pub fn build_context(query: &str, results: Vec<SearchResult>) -> RetrievalContex
         .iter()
         .enumerate()
         .map(|(index, citation)| {
-            format!("[{}] {}\n{}", index + 1, citation.title, citation.snippet)
+            format!(
+                "[{}] {}\n{}",
+                citation.citation_id, citation.title, citation.snippet
+            )
         })
         .collect::<Vec<_>>()
         .join("\n\n");
+    let coverage = coverage(&citations);
     RetrievalContext {
         query: query.into(),
         context,
         citations,
+        confidence: confidence(&coverage),
+        coverage,
     }
 }
 
+<<<<<<< HEAD
 /// Deterministic lexical reranker used after reciprocal-rank fusion. It
 /// rewards query-token overlap while preserving fused order for ties.
 pub fn rerank(query: &str, results: Vec<SearchResult>) -> Vec<SearchResult> {
     let tokens = normalized_tokens(query);
+=======
+fn coverage(citations: &[Citation]) -> RetrievalCoverage {
+    let cited = citations.len() as u32;
+    let with_source_uri = citations
+        .iter()
+        .filter(|citation| {
+            citation
+                .source_uri
+                .as_deref()
+                .is_some_and(|uri| !uri.trim().is_empty())
+        })
+        .count() as u32;
+    RetrievalCoverage {
+        retrieved: cited,
+        cited,
+        with_source_uri,
+        source_uri_ratio: if cited == 0 {
+            0.0
+        } else {
+            with_source_uri as f32 / cited as f32
+        },
+    }
+}
+
+fn confidence(coverage: &RetrievalCoverage) -> RetrievalConfidence {
+    // Two cited results are enough to reach the provenance coverage ceiling. This avoids
+    // reporting high confidence from a single, even if fully attributed, result.
+    let result_depth = (coverage.cited as f32 / 2.0).min(1.0);
+    let score = coverage.source_uri_ratio * result_depth;
+    let label = if score >= 0.75 {
+        "supported"
+    } else if score > 0.0 {
+        "limited"
+    } else {
+        "insufficient"
+    };
+    RetrievalConfidence {
+        score,
+        label: label.into(),
+        rationale: format!(
+            "{}/{} cited results retain source URIs; score is source coverage capped by two-result depth.",
+            coverage.with_source_uri, coverage.cited
+        ),
+    }
+}
+
+/// Deterministic reranker fallback used when no local cross-encoder is configured.
+/// It rewards query-token overlap in the title and snippet while preserving the
+/// fused order for ties, so retrieval remains explainable and offline-safe.
+pub fn rerank(query: &str, results: Vec<SearchResult>) -> Vec<SearchResult> {
+    let tokens = query
+        .split_whitespace()
+        .map(|token| token.to_ascii_lowercase())
+        .filter(|token| token.len() > 2)
+        .collect::<Vec<_>>();
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
     let mut ranked = results
         .into_iter()
         .enumerate()
         .map(|(index, result)| {
+<<<<<<< HEAD
             let haystack = normalized_tokens(&format!("{} {}", result.title, result.snippet));
             let score = tokens.intersection(&haystack).count();
+=======
+            let haystack = format!("{} {}", result.title, result.snippet).to_ascii_lowercase();
+            let score = tokens
+                .iter()
+                .filter(|token| haystack.contains(token.as_str()))
+                .count();
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
             (score, index, result)
         })
         .collect::<Vec<_>>();
@@ -104,6 +202,7 @@ pub fn rerank(query: &str, results: Vec<SearchResult>) -> Vec<SearchResult> {
     ranked.into_iter().map(|(_, _, result)| result).collect()
 }
 
+<<<<<<< HEAD
 fn normalized_tokens(value: &str) -> HashSet<String> {
     value
         .split(|character: char| !character.is_alphanumeric())
@@ -115,6 +214,32 @@ fn normalized_tokens(value: &str) -> HashSet<String> {
         })
         .filter(|token| token.chars().count() > 2)
         .collect()
+=======
+/// Applies verified cross-encoder scores and appends any unscored candidates in their fused
+/// order. The latter keeps partial provider responses deterministic and citation-safe.
+pub fn rerank_with_cross_encoder(
+    results: Vec<SearchResult>,
+    scores: Vec<crate::embeddings::CrossEncoderScore>,
+) -> Vec<SearchResult> {
+    let mut score_by_index = HashMap::new();
+    for score in scores {
+        score_by_index.insert(score.index, score.relevance_score);
+    }
+    let mut ranked = results
+        .into_iter()
+        .enumerate()
+        .map(|(index, result)| (score_by_index.get(&index).copied(), index, result))
+        .collect::<Vec<_>>();
+    ranked.sort_by(|left, right| match (left.0, right.0) {
+        (Some(left_score), Some(right_score)) => right_score
+            .total_cmp(&left_score)
+            .then(left.1.cmp(&right.1)),
+        (Some(_), None) => std::cmp::Ordering::Less,
+        (None, Some(_)) => std::cmp::Ordering::Greater,
+        (None, None) => left.1.cmp(&right.1),
+    });
+    ranked.into_iter().map(|(_, _, result)| result).collect()
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
 }
 
 #[cfg(test)]
@@ -133,10 +258,44 @@ mod tests {
             }],
         );
         assert!(bundle.context.contains("[1] Agents"));
+        assert_eq!(bundle.citations[0].citation_id, "1");
         assert_eq!(
             bundle.citations[0].source_uri.as_deref(),
             Some("https://github.com/octo/agents")
         );
+        assert_eq!(bundle.coverage.retrieved, 1);
+        assert_eq!(bundle.coverage.cited, 1);
+        assert_eq!(bundle.coverage.with_source_uri, 1);
+        assert_eq!(bundle.confidence.label, "limited");
+        assert_eq!(bundle.confidence.score, 0.5);
+    }
+
+    #[test]
+    fn context_reports_missing_source_coverage_without_overstating_confidence() {
+        let bundle = build_context(
+            "agents",
+            vec![
+                SearchResult {
+                    document_id: "with-source".into(),
+                    title: "With source".into(),
+                    source_uri: Some("https://example.com/source".into()),
+                    snippet: "cited evidence".into(),
+                },
+                SearchResult {
+                    document_id: "without-source".into(),
+                    title: "Without source".into(),
+                    source_uri: None,
+                    snippet: "local note".into(),
+                },
+            ],
+        );
+
+        assert_eq!(bundle.coverage.retrieved, 2);
+        assert_eq!(bundle.coverage.cited, 2);
+        assert_eq!(bundle.coverage.with_source_uri, 1);
+        assert_eq!(bundle.coverage.source_uri_ratio, 0.5);
+        assert_eq!(bundle.confidence.label, "limited");
+        assert_eq!(bundle.confidence.score, 0.5);
     }
 
     #[test]
@@ -176,11 +335,16 @@ mod tests {
         };
         let second = SearchResult {
             document_id: "second".into(),
+<<<<<<< HEAD
             title: "Agents other note".into(),
+=======
+            title: "Other note".into(),
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
             source_uri: None,
             snippet: "unrelated".into(),
         };
         let ranked = rerank("agents", vec![second, first]);
+<<<<<<< HEAD
         assert_eq!(
             ranked
                 .iter()
@@ -259,6 +423,42 @@ mod tests {
                 .map(|result| result.document_id.as_str())
                 .collect::<Vec<_>>(),
             vec!["a", "b"]
+=======
+        assert_eq!(ranked[0].document_id, "first");
+    }
+
+    #[test]
+    fn cross_encoder_scores_reorder_the_fixture_candidates() {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../tests/fixtures/retrieval/cross_encoder_contract.json"
+        ))
+        .unwrap();
+        let scores = crate::embeddings::LocalCrossEncoder::parse_response(
+            &fixture["response"].to_string(),
+            fixture["documents"].as_array().unwrap().len(),
+        )
+        .unwrap();
+        let results = fixture["documents"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .enumerate()
+            .map(|(index, document)| SearchResult {
+                document_id: index.to_string(),
+                title: document.as_str().unwrap().to_string(),
+                source_uri: None,
+                snippet: document.as_str().unwrap().to_string(),
+            })
+            .collect();
+
+        let ranked = rerank_with_cross_encoder(results, scores);
+        assert_eq!(
+            ranked
+                .into_iter()
+                .map(|result| result.document_id)
+                .collect::<Vec<_>>(),
+            ["2", "1", "0"]
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
         );
     }
 }

@@ -82,10 +82,7 @@ pub fn is_hackernews_post_path(cleaned: &str) -> bool {
     // already-cleaned canonical form `https://news.ycombinator.com/item`
     // (in which case `cleaned` would have stripped the query — and we treat
     // that as malformed).
-    let query = cleaned
-        .split('?')
-        .nth(1)
-        .unwrap_or("");
+    let query = cleaned.split('?').nth(1).unwrap_or("");
     let id = query
         .split('&')
         .find_map(|pair| pair.strip_prefix("id="))
@@ -172,7 +169,11 @@ pub fn clean_post_href(raw_href: &str, must_contain: &str, base_url: &str) -> Op
 /// Walk ancestors of `link` looking for the closest <article>-like container
 /// whose collapsed text falls between `min_len` and `max_len` (inclusive
 /// bounds). Whitespace is normalised to single spaces.
-pub fn ancestor_text(link: ScraperElementRef<'_>, min_len: usize, max_len: usize) -> Option<String> {
+pub fn ancestor_text(
+    link: ScraperElementRef<'_>,
+    min_len: usize,
+    max_len: usize,
+) -> Option<String> {
     link.ancestors().find_map(|ancestor| {
         let element = ElementRef::wrap(ancestor)?;
         let value = element
@@ -189,11 +190,7 @@ pub fn ancestor_text(link: ScraperElementRef<'_>, min_len: usize, max_len: usize
 /// Walks up from `start` through ancestors until it finds one whose
 /// text length is in `[min_len, max_len]`, then returns that text.
 /// Returns `None` if no qualified ancestor exists.
-pub fn collect_post_text(
-    start: ElementRef<'_>,
-    min_len: usize,
-    max_len: usize,
-) -> Option<String> {
+pub fn collect_post_text(start: ElementRef<'_>, min_len: usize, max_len: usize) -> Option<String> {
     for ancestor in start.ancestors() {
         let Some(element) = ElementRef::wrap(ancestor) else {
             continue;
@@ -220,11 +217,19 @@ mod tests {
     #[test]
     fn cleans_absolute_and_relative_hrefs() {
         assert_eq!(
-            clean_post_href("https://x.com/u/status/123?lang=en", "/status/", "https://x.com"),
+            clean_post_href(
+                "https://x.com/u/status/123?lang=en",
+                "/status/",
+                "https://x.com"
+            ),
             Some("https://x.com/u/status/123".to_string())
         );
         assert_eq!(
-            clean_post_href("/r/rust/comments/abc/hi/", "/comments/", "https://www.reddit.com"),
+            clean_post_href(
+                "/r/rust/comments/abc/hi/",
+                "/comments/",
+                "https://www.reddit.com"
+            ),
             Some("https://www.reddit.com/r/rust/comments/abc/hi".to_string())
         );
         assert_eq!(
@@ -262,33 +267,47 @@ mod tests {
 
     #[test]
     fn reddit_post_path_accepts_post_permalink() {
-        assert!(is_reddit_post_path("https://www.reddit.com/r/rust/comments/abc123/why_local_first"));
-        assert!(is_reddit_post_path("https://old.reddit.com/r/rust/comments/abc123"));
+        assert!(is_reddit_post_path(
+            "https://www.reddit.com/r/rust/comments/abc123/why_local_first"
+        ));
+        assert!(is_reddit_post_path(
+            "https://old.reddit.com/r/rust/comments/abc123"
+        ));
     }
 
     #[test]
     fn reddit_post_path_rejects_user_profiles_and_bad_shapes() {
         // user profile comments — must NOT match
-        assert!(!is_reddit_post_path("https://www.reddit.com/user/koosha/comments/abc/def"));
+        assert!(!is_reddit_post_path(
+            "https://www.reddit.com/user/koosha/comments/abc/def"
+        ));
         // missing id
-        assert!(!is_reddit_post_path("https://www.reddit.com/r/rust/comments/"));
+        assert!(!is_reddit_post_path(
+            "https://www.reddit.com/r/rust/comments/"
+        ));
         // not under /r/
         assert!(!is_reddit_post_path("https://www.reddit.com/comments/abc"));
         // /r/<sub>/comments/<id>/<id>/comments/<id> — weird path, but still passes shape
         // We accept this because Reddit allows nested comment replies to be permalinked.
-        assert!(is_reddit_post_path("https://www.reddit.com/r/rust/comments/abc/nested/comments/xyz"));
+        assert!(is_reddit_post_path(
+            "https://www.reddit.com/r/rust/comments/abc/nested/comments/xyz"
+        ));
     }
 
     #[test]
     fn x_post_path_accepts_user_status_permalink() {
-        assert!(is_x_post_path("https://x.com/someone/status/1100000000000000001"));
+        assert!(is_x_post_path(
+            "https://x.com/someone/status/1100000000000000001"
+        ));
         assert!(is_x_post_path("https://x.com/u/status/1234567"));
     }
 
     #[test]
     fn x_post_path_rejects_intent_photos_and_settings() {
         assert!(!is_x_post_path("https://x.com/i/status/123"));
-        assert!(!is_x_post_path("https://x.com/intent/follow?screen_name=foo"));
+        assert!(!is_x_post_path(
+            "https://x.com/intent/follow?screen_name=foo"
+        ));
         assert!(!is_x_post_path("https://x.com/messages/compose"));
         assert!(!is_x_post_path("https://x.com/compose/post"));
         assert!(!is_x_post_path("https://x.com/home"));
@@ -300,8 +319,12 @@ mod tests {
     #[test]
     fn hackernews_post_path_accepts_item_query_pair() {
         // Canonical form: /item with `?id=<digits>`.
-        assert!(is_hackernews_post_path("https://news.ycombinator.com/item?id=1"));
-        assert!(is_hackernews_post_path("https://news.ycombinator.com/item?id=12345"));
+        assert!(is_hackernews_post_path(
+            "https://news.ycombinator.com/item?id=1"
+        ));
+        assert!(is_hackernews_post_path(
+            "https://news.ycombinator.com/item?id=12345"
+        ));
         assert!(is_hackernews_post_path(
             "https://news.ycombinator.com/item?id=42380912"
         ));
@@ -311,28 +334,56 @@ mod tests {
     fn hackernews_post_path_rejects_listings_logins_and_bad_shapes() {
         // Homepage and section listings.
         assert!(!is_hackernews_post_path("https://news.ycombinator.com/"));
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/saved?id=koosha"));
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/news"));
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/best"));
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/show"));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/saved?id=koosha"
+        ));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/news"
+        ));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/best"
+        ));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/show"
+        ));
         assert!(!is_hackernews_post_path("https://news.ycombinator.com/ask"));
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/newcomments"));
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/submit"));
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/login"));
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/about"));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/newcomments"
+        ));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/submit"
+        ));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/login"
+        ));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/about"
+        ));
         // Bulk export shape — must not match.
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/items"));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/items"
+        ));
         // Thread aggregator shape — must not match.
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/threads?id=12345"));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/threads?id=12345"
+        ));
         // /item without any query — drop.
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/item"));
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/item?"));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/item"
+        ));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/item?"
+        ));
         // /item?id=non-numeric — drop.
-        assert!(!is_hackernews_post_path("https://news.ycombinator.com/item?id=abc"));
+        assert!(!is_hackernews_post_path(
+            "https://news.ycombinator.com/item?id=abc"
+        ));
         assert!(!is_hackernews_post_path(
             "https://news.ycombinator.com/item?id=12abc"
         ));
         // Wrong origin — drop.
-        assert!(!is_hackernews_post_path("https://example.com/item?id=12345"));
+        assert!(!is_hackernews_post_path(
+            "https://example.com/item?id=12345"
+        ));
     }
 }
