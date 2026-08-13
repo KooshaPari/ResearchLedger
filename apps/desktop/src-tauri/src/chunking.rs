@@ -1,7 +1,10 @@
 const MAX_CHARS: usize = 1_200;
 
+<<<<<<< HEAD
 /// Split a source document into bounded chunks while retaining its latest
 /// Markdown heading as retrieval context.
+=======
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
 pub fn split_document(content: &str) -> Vec<(Option<String>, String)> {
     let mut chunks = Vec::new();
     let mut heading: Option<String> = None;
@@ -9,6 +12,7 @@ pub fn split_document(content: &str) -> Vec<(Option<String>, String)> {
     for line in content.lines() {
         let trimmed = line.trim();
         if let Some(value) = trimmed.strip_prefix('#') {
+<<<<<<< HEAD
             if !current.trim().is_empty() {
                 chunks.push((heading.clone(), current.trim().to_string()));
                 current.clear();
@@ -42,6 +46,18 @@ pub fn split_document(content: &str) -> Vec<(Option<String>, String)> {
                 chunks.push((heading.clone(), current.trim().to_string()));
                 current.clear();
             }
+=======
+            heading = Some(value.trim().to_string());
+        }
+        let would_overflow = !current.is_empty() && current.len() + line.len() + 1 > MAX_CHARS;
+        if would_overflow || (trimmed.is_empty() && current.len() > 200) {
+            chunks.push((heading.clone(), current.trim().to_string()));
+            current.clear();
+        }
+        if !trimmed.is_empty() {
+            current.push_str(line);
+            current.push('\n');
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
         }
     }
     if !current.trim().is_empty() {
@@ -54,6 +70,7 @@ pub fn split_document(content: &str) -> Vec<(Option<String>, String)> {
     }
 }
 
+<<<<<<< HEAD
 fn utf8_prefix_len(value: &str, max_bytes: usize) -> usize {
     if value.len() <= max_bytes {
         return value.len();
@@ -69,6 +86,8 @@ fn utf8_prefix_len(value: &str, max_bytes: usize) -> usize {
     end
 }
 
+=======
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,6 +98,7 @@ mod tests {
         let chunks = split_document(&content);
         assert!(chunks.len() >= 2);
         assert_eq!(chunks[0].0.as_deref(), Some("Intro"));
+<<<<<<< HEAD
         assert!(chunks.iter().all(|(_, text)| text.len() <= MAX_CHARS));
     }
 
@@ -105,5 +125,8 @@ mod tests {
     #[test]
     fn returns_an_empty_chunk_for_empty_documents() {
         assert_eq!(split_document(""), vec![(None, String::new())]);
+=======
+        assert!(chunks.iter().all(|(_, text)| text.len() <= 1_301));
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
     }
 }

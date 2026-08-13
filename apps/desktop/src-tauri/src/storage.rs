@@ -46,6 +46,39 @@ pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     let database = root.join(".researchledger.db");
     let connection = Connection::open(&database)?;
     connection.execute_batch(include_str!("../migrations/001_initial.sql"))?;
+    for (name, definition) in [
+        ("embedding_version", "TEXT NOT NULL DEFAULT 'v1'"),
+        ("input_hash", "TEXT NOT NULL DEFAULT ''"),
+    ] {
+        let exists: bool = connection.query_row(
+            "SELECT EXISTS(SELECT 1 FROM pragma_table_info('chunk_embeddings') WHERE name = ?1)",
+            params![name],
+            |row| row.get(0),
+        )?;
+        if !exists {
+            connection.execute(
+                &format!("ALTER TABLE chunk_embeddings ADD COLUMN {name} {definition}"),
+                [],
+            )?;
+        }
+    }
+    for (name, definition) in [
+        ("evidence_quote", "TEXT NOT NULL DEFAULT ''"),
+        ("span_start", "INTEGER NOT NULL DEFAULT 0"),
+        ("span_end", "INTEGER NOT NULL DEFAULT 0"),
+    ] {
+        let exists: bool = connection.query_row(
+            "SELECT EXISTS(SELECT 1 FROM pragma_table_info('claims') WHERE name = ?1)",
+            params![name],
+            |row| row.get(0),
+        )?;
+        if !exists {
+            connection.execute(
+                &format!("ALTER TABLE claims ADD COLUMN {name} {definition}"),
+                [],
+            )?;
+        }
+    }
     Ok(LedgerPaths { database })
 }
 
@@ -86,6 +119,7 @@ pub fn write_markdown_atomic(
     Ok(path)
 }
 
+<<<<<<< HEAD
 fn write_chunks(
     transaction: &rusqlite::Transaction<'_>,
     document_id: &str,
@@ -118,6 +152,26 @@ fn chunk_index_matches(
     })?;
     let actual = rows.collect::<SqlResult<Vec<_>>>()?;
     Ok(actual == expected)
+=======
+fn provenance_quote(content: &str) -> String {
+    let mut lines = content.lines();
+    if lines.next() == Some("---") {
+        for line in lines.by_ref() {
+            if line == "---" {
+                break;
+            }
+        }
+    }
+    lines
+        .map(str::trim)
+        .find(|line| !line.is_empty())
+        .unwrap_or("")
+        .trim_start_matches('#')
+        .trim()
+        .chars()
+        .take(280)
+        .collect()
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
 }
 
 pub fn upsert_document(
@@ -125,6 +179,9 @@ pub fn upsert_document(
     root: &Path,
     document: &SourceDocument,
 ) -> SqlResult<UpsertResult> {
+    crate::okf::validate_concept(&document.content).map_err(|_| {
+        rusqlite::Error::InvalidParameterName("document is not an OKF concept".into())
+    })?;
     let hash = format!("{:x}", Sha256::digest(document.content.as_bytes()));
     let previous: Option<String> = connection
         .query_row(
@@ -153,17 +210,7 @@ pub fn upsert_document(
             transaction.commit()?;
         }
         if let Some(source_uri) = document.source_uri.as_deref() {
-            let quote = document
-                .content
-                .lines()
-                .map(str::trim)
-                .find(|line| !line.is_empty() && !line.starts_with("---"))
-                .unwrap_or("")
-                .trim_start_matches('#')
-                .trim()
-                .chars()
-                .take(280)
-                .collect::<String>();
+            let quote = provenance_quote(&document.content);
             connection.execute(
                 "DELETE FROM provenance WHERE document_id = ?1",
                 params![document.id],
@@ -171,6 +218,19 @@ pub fn upsert_document(
             connection.execute(
                 "INSERT INTO provenance(document_id, source_uri, locator, quote, captured_at) VALUES(?1, ?2, ?3, ?4, ?5)",
                 params![document.id, source_uri, document.relative_path, quote, document.captured_at],
+            )?;
+        }
+        connection.execute(
+            "DELETE FROM claims WHERE document_id = ?1",
+            params![document.id],
+        )?;
+        for (ordinal, evidence) in crate::distill::extract_claim_evidence(&document.content)
+            .into_iter()
+            .enumerate()
+        {
+            connection.execute(
+                "INSERT INTO claims(document_id, ordinal, claim, source_uri, citation_id, evidence_quote, span_start, span_end, created_at) VALUES(?1, ?2, ?3, ?4, '1', ?5, ?6, ?7, ?8)",
+                params![document.id, ordinal as i64, evidence.claim, document.source_uri, evidence.quote, evidence.start, evidence.end, document.captured_at],
             )?;
         }
         return Ok(UpsertResult::Unchanged);
@@ -200,41 +260,58 @@ pub fn upsert_document(
     )?;
     tx.execute("INSERT OR IGNORE INTO document_versions(document_id, content_hash, raw_content, captured_at) VALUES(?1, ?2, ?3, ?4)",
         params![document.id, hash, document.content, document.captured_at])?;
+<<<<<<< HEAD
     let chunks = crate::chunking::split_document(&document.content);
     write_chunks(&tx, &document.id, &chunks)?;
+=======
+    for (ordinal, (heading, text)) in crate::chunking::split_document(&document.content)
+        .into_iter()
+        .enumerate()
+    {
+        tx.execute(
+            "INSERT INTO chunks(document_id, ordinal, heading_path, text) VALUES(?1, ?2, ?3, ?4)",
+            params![document.id, ordinal as i64, heading, text],
+        )?;
+        let rowid = tx.last_insert_rowid();
+        tx.execute(
+            "INSERT INTO chunk_fts(rowid, text, heading_path) VALUES(?1, ?2, ?3)",
+            params![rowid, text, heading],
+        )?;
+    }
+>>>>>>> 021209ec2e148ae969bc6f6f955f8a56f751859f
     tx.execute(
         "DELETE FROM document_links WHERE source_document_id = ?1",
         params![document.id],
     )?;
+    // Record discovered links; only explicit active-consent logic may queue reference fetches.
     for url in crate::enrichment::extract_urls(&document.content) {
         tx.execute(
             "INSERT OR IGNORE INTO document_links (source_document_id, target_url, discovered_at) VALUES (?1, ?2, ?3)",
             params![document.id, crate::enrichment::canonical_url(&url), document.captured_at],
-        )?;
-        tx.execute(
-            "INSERT OR IGNORE INTO reference_fetches (source_document_id, target_url, status) VALUES (?1, ?2, 'pending')",
-            params![document.id, crate::enrichment::canonical_url(&url)],
         )?;
     }
     tx.execute(
         "DELETE FROM provenance WHERE document_id = ?1",
         params![document.id],
     )?;
+    tx.execute(
+        "DELETE FROM claims WHERE document_id = ?1",
+        params![document.id],
+    )?;
     if let Some(source_uri) = document.source_uri.as_deref() {
-        let quote = document
-            .content
-            .lines()
-            .map(str::trim)
-            .find(|line| !line.is_empty() && !line.starts_with("---"))
-            .unwrap_or("")
-            .trim_start_matches('#')
-            .trim()
-            .chars()
-            .take(280)
-            .collect::<String>();
+        let quote = provenance_quote(&document.content);
         tx.execute(
             "INSERT INTO provenance(document_id, source_uri, locator, quote, captured_at) VALUES(?1, ?2, ?3, ?4, ?5)",
             params![document.id, source_uri, document.relative_path, quote, document.captured_at],
+        )?;
+    }
+    for (ordinal, evidence) in crate::distill::extract_claim_evidence(&document.content)
+        .into_iter()
+        .enumerate()
+    {
+        tx.execute(
+            "INSERT INTO claims(document_id, ordinal, claim, source_uri, citation_id, evidence_quote, span_start, span_end, created_at) VALUES(?1, ?2, ?3, ?4, '1', ?5, ?6, ?7, ?8)",
+            params![document.id, ordinal as i64, evidence.claim, document.source_uri, evidence.quote, evidence.start, evidence.end, document.captured_at],
         )?;
     }
     if document.source_kind != "distillation" {
@@ -272,7 +349,19 @@ pub fn load_document(
     let Some(mut document) = result else {
         return Ok(None);
     };
-    document.content = fs::read_to_string(root.join(&document.relative_path)).unwrap_or_default();
+    let relative = Path::new(&document.relative_path);
+    if relative.is_absolute()
+        || relative
+            .components()
+            .any(|component| matches!(component, std::path::Component::ParentDir))
+    {
+        return Err(rusqlite::Error::InvalidPath(relative.to_path_buf()));
+    }
+    let path = root.join(relative);
+    if !path.starts_with(root) {
+        return Err(rusqlite::Error::InvalidPath(path));
+    }
+    document.content = fs::read_to_string(path).unwrap_or_default();
     Ok(Some(document))
 }
 
@@ -284,14 +373,16 @@ pub fn pending_enrichment_ids(connection: &Connection, limit: u32) -> SqlResult<
     rows.collect()
 }
 
-/// Backfill fetch rows for links created before the reference worker existed,
-/// then return a deterministic, bounded batch for the worker to process.
+/// Return a deterministic, bounded batch of explicitly queued reference jobs.
 pub fn pending_reference_jobs(connection: &Connection, limit: u32) -> SqlResult<Vec<ReferenceJob>> {
-    connection.execute(
-        "INSERT OR IGNORE INTO reference_fetches (source_document_id, target_url, status)
-         SELECT source_document_id, target_url, 'pending' FROM document_links",
-        [],
-    )?;
+    pending_reference_jobs_at(connection, limit, &chrono::Utc::now().to_rfc3339())
+}
+
+pub fn pending_reference_jobs_at(
+    connection: &Connection,
+    limit: u32,
+    now: &str,
+) -> SqlResult<Vec<ReferenceJob>> {
     let mut statement = connection.prepare(
         "SELECT source_document_id, target_url FROM reference_fetches
          WHERE status = 'pending' ORDER BY id LIMIT ?1",
@@ -302,13 +393,40 @@ pub fn pending_reference_jobs(connection: &Connection, limit: u32) -> SqlResult<
             target_url: row.get(1)?,
         })
     })?;
-    rows.collect()
+    let mut jobs = Vec::new();
+    for row in rows {
+        let job = row?;
+        if crate::consent::ConsentRegistry::new(connection)
+            .decide(&job.target_url, now)?
+            .allowed
+        {
+            jobs.push(job);
+        }
+    }
+    Ok(jobs)
 }
 
-pub fn mark_reference_fetch_started(
+pub fn queue_reference_fetch(
     connection: &Connection,
-    job: &ReferenceJob,
-) -> SqlResult<()> {
+    source_document_id: &str,
+    target_url: &str,
+    now: &str,
+) -> SqlResult<bool> {
+    let decision = crate::consent::ConsentRegistry::new(connection).decide(target_url, now)?;
+    if !decision.allowed {
+        return Ok(false);
+    }
+    let target_url = crate::consent::canonical_scope(target_url);
+    connection.execute(
+        "INSERT INTO reference_fetches (source_document_id, target_url, status)
+         VALUES (?1, ?2, 'pending')
+         ON CONFLICT(source_document_id, target_url) DO UPDATE SET status='pending', error=NULL",
+        params![source_document_id, target_url],
+    )?;
+    Ok(true)
+}
+
+pub fn mark_reference_fetch_started(connection: &Connection, job: &ReferenceJob) -> SqlResult<()> {
     connection.execute(
         "UPDATE reference_fetches SET status = 'running', error = NULL
          WHERE source_document_id = ?1 AND target_url = ?2",
@@ -416,6 +534,9 @@ pub fn export_markdown(vault: &Path, destination: &Path) -> std::io::Result<u64>
         fs::create_dir_all(destination)?;
         for entry in fs::read_dir(source)? {
             let entry = entry?;
+            if entry.file_type()?.is_symlink() {
+                continue;
+            }
             let path = entry.path();
             let target = destination.join(entry.file_name());
             if path
@@ -427,6 +548,15 @@ pub fn export_markdown(vault: &Path, destination: &Path) -> std::io::Result<u64>
             if path.is_dir() {
                 copy_tree(&path, &target, count)?;
             } else if path.extension().is_some_and(|ext| ext == "md") {
+                let reserved = path
+                    .file_name()
+                    .is_some_and(|name| name == "index.md" || name == "log.md");
+                if !reserved {
+                    let content = fs::read_to_string(&path)?;
+                    crate::okf::validate_concept(&content).map_err(|error| {
+                        std::io::Error::new(std::io::ErrorKind::InvalidData, error)
+                    })?;
+                }
                 fs::copy(&path, &target)?;
                 *count += 1;
             }
@@ -438,7 +568,11 @@ pub fn export_markdown(vault: &Path, destination: &Path) -> std::io::Result<u64>
     let mut index = String::from("# ResearchLedger Knowledge Bundle\n\n");
     fn append_index(root: &Path, current: &Path, output: &mut String) -> std::io::Result<()> {
         for entry in fs::read_dir(current)? {
-            let path = entry?.path();
+            let entry = entry?;
+            if entry.file_type()?.is_symlink() {
+                continue;
+            }
+            let path = entry.path();
             if path.is_dir() {
                 append_index(root, &path, output)?;
             } else if path.extension().is_some_and(|extension| extension == "md")
