@@ -79,7 +79,10 @@ pub fn ensure_safe_provider_url(url: &str, allowed_hosts: &[&str]) -> Result<Str
     if contains_control_chars(host) || contains_control_chars(trimmed) {
         return Err("URL contains control characters".into());
     }
-    if !allowed_hosts.iter().any(|allowed| host.eq_ignore_ascii_case(allowed)) {
+    if !allowed_hosts
+        .iter()
+        .any(|allowed| host.eq_ignore_ascii_case(allowed))
+    {
         return Err(format!(
             "URL host `{host}` is not on the allow-list for this provider"
         ));
@@ -88,7 +91,9 @@ pub fn ensure_safe_provider_url(url: &str, allowed_hosts: &[&str]) -> Result<Str
 }
 
 fn contains_parent_dir_component(path: &str) -> bool {
-    Path::new(path).components().any(|component| matches!(component, Component::ParentDir))
+    Path::new(path)
+        .components()
+        .any(|component| matches!(component, Component::ParentDir))
 }
 
 fn contains_control_chars(value: &str) -> bool {
@@ -106,6 +111,9 @@ pub fn ensure_safe_command_arg(value: &str, label: &str) -> Result<String, Strin
         return Err(format!(
             "{label} must not start with `-` (rejected to prevent flag injection)"
         ));
+    }
+    if contains_parent_dir_component(value) {
+        return Err(format!("{label} must not contain `..` traversal segments"));
     }
     if contains_control_chars(value) {
         return Err(format!("{label} must not contain control characters"));
@@ -129,11 +137,8 @@ mod tests {
 
     #[test]
     fn rejects_path_outside_roots() {
-        let result = ensure_within_acceptable_roots(
-            "/etc/passwd",
-            "html",
-            &[PathBuf::from("/tmp/vault")],
-        );
+        let result =
+            ensure_within_acceptable_roots("/etc/passwd", "html", &[PathBuf::from("/tmp/vault")]);
         assert!(result.is_err());
     }
 
@@ -144,7 +149,9 @@ mod tests {
             "html",
             &[PathBuf::from("/tmp/vault")],
         );
-        assert!(matches!(result, Ok(path) if path == PathBuf::from("/tmp/vault/imports/post.html")));
+        assert!(
+            matches!(result, Ok(path) if path == PathBuf::from("/tmp/vault/imports/post.html"))
+        );
     }
 
     #[test]
@@ -161,7 +168,8 @@ mod tests {
 
     #[test]
     fn accepts_known_host() {
-        let result = ensure_safe_provider_url("https://x.com/someone/status/123", &["x.com", "reddit.com"]);
+        let result =
+            ensure_safe_provider_url("https://x.com/someone/status/123", &["x.com", "reddit.com"]);
         assert_eq!(result.unwrap(), "https://x.com/someone/status/123");
     }
 
@@ -170,5 +178,24 @@ mod tests {
         assert!(ensure_safe_command_arg("--eval=evil", "profile").is_err());
         assert!(ensure_safe_command_arg("", "profile").is_err());
         assert!(ensure_safe_command_arg("/normal/path", "profile").is_ok());
+    }
+
+    #[test]
+    fn rejects_profile_path_traversal() {
+        assert!(ensure_safe_command_arg("/tmp/../private-profile", "profile").is_err());
+    }
+
+    #[test]
+    fn allows_hacker_news_host_but_rejects_redirect_target() {
+        assert!(ensure_safe_provider_url(
+            "https://news.ycombinator.com/saved?id=koosha",
+            &["news.ycombinator.com"],
+        )
+        .is_ok());
+        assert!(ensure_safe_provider_url(
+            "https://evil.example/saved?id=koosha",
+            &["news.ycombinator.com"],
+        )
+        .is_err());
     }
 }
