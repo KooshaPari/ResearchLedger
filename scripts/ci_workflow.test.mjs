@@ -68,8 +68,10 @@ describe("hosted CI contracts", () => {
 
   test("runs the pinned workflow linter independently of Trunk plugins", async () => {
     const workflow = await readWorkflow("trunk-check.yml");
+    const ci = await readWorkflow("ci.yml");
 
-    expect(workflow).toContain("actions/setup-go@v7");
+    expect(workflow).toContain("actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e");
+    expect(ci).toContain("actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e");
     expect(workflow).toContain("github.com/rhysd/actionlint/cmd/actionlint@v1.7.10");
     expect(workflow).toContain("find .github/workflows -type f");
     expect(workflow).toContain("xargs -0 -r \"$(go env GOPATH)/bin/actionlint\"");
