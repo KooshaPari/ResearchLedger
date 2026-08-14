@@ -163,9 +163,8 @@ fn chunk_index_matches(
     document_id: &str,
     expected: &[(Option<String>, String)],
 ) -> SqlResult<bool> {
-    let mut statement = connection.prepare(
-        "SELECT heading_path, text FROM chunks WHERE document_id = ?1 ORDER BY ordinal",
-    )?;
+    let mut statement = connection
+        .prepare("SELECT heading_path, text FROM chunks WHERE document_id = ?1 ORDER BY ordinal")?;
     let rows = statement.query_map(params![document_id], |row| {
         Ok((row.get::<_, Option<String>>(0)?, row.get::<_, String>(1)?))
     })?;
@@ -187,7 +186,7 @@ pub fn upsert_document(
             "SELECT content_hash FROM documents WHERE id = ?1",
             params![document.id],
             |row| row.get(0),
-    )
+        )
         .optional()?;
     if previous.as_deref() == Some(hash.as_str()) {
         let expected_chunks = crate::chunking::split_document(&document.content);

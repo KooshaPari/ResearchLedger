@@ -1,18 +1,27 @@
+/** @vitest-environment jsdom */
+
+import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
-// Keep mock handles as ordinary bindings so this suite can run under both
-// Vitest and Bun's Jest-compatible runner (which does not implement
-// `vi.hoisted`).
-const invokeMock = vi.fn();
-const openMock = vi.fn();
+const { invokeMock, openMock } = vi.hoisted(() => ({
+  invokeMock: vi.fn(),
+  openMock: vi.fn(),
+}));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: invokeMock }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: openMock }));
 
 function resetTauriMocks() {
   invokeMock.mockReset().mockResolvedValue({ selected: false, path: null, documentCount: 0 });
   openMock.mockReset().mockResolvedValue(null);
+}
+
+async function renderApp() {
+  render(<App />);
+  await waitFor(() =>
+    expect(invokeMock).toHaveBeenCalledWith("get_vault_status", { vaultPath: null }),
+  );
 }
 
 beforeEach(() => {
@@ -49,9 +58,9 @@ describe("ResearchLedger shell", () => {
     expect(invokeMock).not.toHaveBeenCalledWith("github_device_poll", expect.anything());
   });
 
-  it("offers only manual LinkedIn permalink/content ingestion", () => {
+  it("offers only manual LinkedIn permalink/content ingestion", async () => {
     resetTauriMocks();
-    render(<App />);
+    await renderApp();
 
     expect(screen.getByText("LINKEDIN IMPORT")).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "LinkedIn permalink" })).toBeInTheDocument();
@@ -73,14 +82,14 @@ describe("ResearchLedger shell", () => {
     expect(openMock).toHaveBeenCalledWith(expect.objectContaining({ directory: true, title: "Choose Markdown export folder" }));
   });
 
-  it("shows the local-first vault setup", () => {
-    render(<App />);
+  it("shows the local-first vault setup", async () => {
+    await renderApp();
     expect(screen.getByRole("heading", { name: "ResearchLedger" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Choose vault" })).toBeInTheDocument();
   });
 
-  it("switches accessible primary workspaces", () => {
-    render(<App />);
+  it("switches accessible primary workspaces", async () => {
+    await renderApp();
     fireEvent.click(screen.getByRole("tab", { name: /Library/ }));
     expect(screen.getByRole("tab", { name: /Library/ })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tabpanel")).toHaveTextContent("Your indexed corpus");
@@ -88,16 +97,16 @@ describe("ResearchLedger shell", () => {
   });
 
 
-  it("exposes a Hacker News saved-stories capture pathway", () => {
-    render(<App />);
+  it("exposes a Hacker News saved-stories capture pathway", async () => {
+    await renderApp();
     expect(screen.getByText("HACKER NEWS CONNECTION")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open Hacker News sign-in" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Capture saved stories in browser" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: /Hacker News username/ })).toBeInTheDocument();
   });
 
-  it("renders the consent-safe source actions", () => {
-    render(<App />);
+  it("renders the consent-safe source actions", async () => {
+    await renderApp();
     const connectButtons = screen.getAllByRole("button", { name: "Connect browser" });
     expect(connectButtons.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("button", { name: "Import starred repos" })).toBeInTheDocument();
