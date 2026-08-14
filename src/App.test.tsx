@@ -1,12 +1,14 @@
+/** @vitest-environment jsdom */
+
+import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
-// Keep mock handles as ordinary bindings so this suite can run under both
-// Vitest and Bun's Jest-compatible runner (which does not implement
-// `vi.hoisted`).
-const invokeMock = vi.fn();
-const openMock = vi.fn();
+const { invokeMock, openMock } = vi.hoisted(() => ({
+  invokeMock: vi.fn(),
+  openMock: vi.fn(),
+}));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: invokeMock }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: openMock }));
 

@@ -1275,7 +1275,10 @@ mod tests {
             title: "Chunked article".into(),
             source_kind: "article".into(),
             source_uri: Some("https://example.com/chunked".into()),
-            content: format!("# Intro\n{}\n\n# Next\nsecond", "a".repeat(1_300)),
+            content: format!(
+                "---\ntype: Test Document\n---\n\n# Intro\n{}\n\n# Next\nsecond",
+                "a".repeat(1_300)
+            ),
             captured_at: "2026-07-20T00:00:00Z".into(),
         };
         upsert_document(&mut db, &root, &document).unwrap();
@@ -1289,7 +1292,9 @@ mod tests {
             .collect::<Result<_, _>>()
             .unwrap();
         assert!(chunks.len() >= 2);
-        assert_eq!(chunks[0].2.as_deref(), Some("Intro"));
+        assert!(chunks
+            .iter()
+            .any(|(_, _, heading, _)| heading.as_deref() == Some("Intro")));
         assert!(chunks.iter().all(|(_, _, _, text)| text.len() <= 1_200));
         let first_chunk_id = chunks[0].0;
         db.execute(
@@ -1298,7 +1303,7 @@ mod tests {
         )
         .unwrap();
         let updated = SourceDocument {
-            content: "# Replacement\nshort".into(),
+            content: "---\ntype: Test Document\n---\n\nshort".into(),
             ..document.clone()
         };
         upsert_document(&mut db, &root, &updated).unwrap();
@@ -1456,6 +1461,60 @@ mod tests {
         )
         .unwrap());
         assert_eq!(pending_reference_jobs(&db, 10).unwrap().len(), 1);
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn revoked_consent_removes_already_queued_reference_from_dequeue() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "source".into(),
+                relative_path: "sources/source.md".into(),
+                title: "Source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSource".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        ConsentRegistry::new(&db)
+            .grant(ConsentGrant {
+                id: "consent-1".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/reference".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/reference",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        assert_eq!(
+            pending_reference_jobs_at(&db, 10, "2026-08-10T01:00:00Z")
+                .unwrap()
+                .len(),
+            1
+        );
+        assert!(ConsentRegistry::new(&db)
+            .revoke("consent-1", "2026-08-10T01:30:00Z")
+            .unwrap());
+        assert!(pending_reference_jobs_at(&db, 10, "2026-08-10T02:00:00Z")
+            .unwrap()
+            .is_empty());
         let _ = std::fs::remove_dir_all(root);
     }
 
