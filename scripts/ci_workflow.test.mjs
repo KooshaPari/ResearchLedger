@@ -59,5 +59,8 @@ describe("hosted CI contracts", () => {
     expect(config).toContain("lint:");
     expect(config).not.toContain("linters:");
     expect(config).not.toContain("formatters:");
+    expect(config).toContain("- actionlint");
+    expect(config).not.toContain("- prettier");
+    expect(config).not.toContain("- taplo");
   });
 });

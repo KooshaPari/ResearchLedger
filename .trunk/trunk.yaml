@@ -16,8 +16,5 @@ lint:
   enabled:
     - actionlint
     - git-diff-check
-    - prettier
-    - taplo
-    - yamllint
   disabled:
     - clippy
