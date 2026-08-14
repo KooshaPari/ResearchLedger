@@ -185,8 +185,14 @@ mod tests {
         let content = "Intro. A durable ledger is local and reviewable. Another finding follows.";
         let evidence = extract_claim_evidence(content);
         assert_eq!(evidence.len(), 2);
-        assert_eq!(&content[evidence[0].start as usize..evidence[0].end as usize], evidence[0].quote);
-        assert_eq!(evidence[0].start, content.find(&evidence[0].claim).unwrap() as i64);
+        assert_eq!(
+            &content[evidence[0].start as usize..evidence[0].end as usize],
+            evidence[0].quote
+        );
+        assert_eq!(
+            evidence[0].start,
+            content.find(&evidence[0].claim).unwrap() as i64
+        );
         assert!(evidence[0].end <= evidence[1].start);
     }
 }
