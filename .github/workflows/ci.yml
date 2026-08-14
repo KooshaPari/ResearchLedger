@@ -80,11 +80,13 @@ jobs:
     name: Rust
     needs: detect
     if: needs.detect.outputs.has_rust == 'true'
-    runs-on: ubuntu-latest
+    # Tauri's desktop runtime links against native platform frameworks.
+    # ResearchLedger's shipped target is macOS, so validate it there rather
+    # than requiring Linux GTK/WebKit packages in this gate.
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
       - name: cargo fmt --check
         run: cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml -- --check
       - name: cargo clippy

@@ -26,6 +26,14 @@ describe("hosted CI contracts", () => {
     expect(security).toContain("fetch-depth: 0");
   });
 
+  test("runs the desktop Rust gate on its supported macOS target", async () => {
+    const workflow = await readWorkflow("ci.yml");
+    const rust = workflow.slice(workflow.indexOf("  rust:"), workflow.indexOf("  cargo-deny:"));
+
+    expect(rust).toContain("runs-on: macos-latest");
+    expect(rust).not.toContain("Swatinem/rust-cache");
+  });
+
   test("pins a valid Trunk action commit", async () => {
     const workflow = await readWorkflow("trunk-check.yml");
 
@@ -42,5 +50,14 @@ describe("hosted CI contracts", () => {
     expect(workflow).toContain("bun run test");
     expect(workflow).not.toContain("actions/setup-node");
     expect(workflow).not.toContain("npm ");
+  });
+
+  test("uses the current Trunk configuration schema", async () => {
+    const config = await readFile(path.join(root, ".trunk", "trunk.yaml"), "utf8");
+
+    expect(config).toContain("version: 0.1");
+    expect(config).toContain("lint:");
+    expect(config).not.toContain("linters:");
+    expect(config).not.toContain("formatters:");
   });
 });
