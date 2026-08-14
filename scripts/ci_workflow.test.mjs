@@ -70,6 +70,7 @@ describe("hosted CI contracts", () => {
 
     expect(workflow).toContain("actions/setup-go@v7");
     expect(workflow).toContain("github.com/rhysd/actionlint/cmd/actionlint@v1.7.10");
-    expect(workflow).toContain('"$(go env GOPATH)/bin/actionlint" .github/workflows');
+    expect(workflow).toContain("find .github/workflows -type f");
+    expect(workflow).toContain("xargs -0 -r \"$(go env GOPATH)/bin/actionlint\"");
   });
 });

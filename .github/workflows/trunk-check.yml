@@ -36,7 +36,8 @@ jobs:
       - name: Install and run actionlint
         run: |
           go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.10
-          "$(go env GOPATH)/bin/actionlint" .github/workflows
+          find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 \
+            | xargs -0 -r "$(go env GOPATH)/bin/actionlint"
 
       - name: Trunk Check
         uses: trunk-io/trunk-action@04ba50e7658c81db7356da96657e6e77f220bfa3  # v1
