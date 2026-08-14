@@ -73,4 +73,12 @@ describe("hosted CI contracts", () => {
     expect(workflow).toContain("find .github/workflows -type f");
     expect(workflow).toContain("xargs -0 -r \"$(go env GOPATH)/bin/actionlint\"");
   });
+
+  test("keeps all repository workflows valid for actionlint", async () => {
+    const scorecard = await readWorkflow("scorecard.yml");
+    const config = await readFile(path.join(root, ".github", "actionlint.yaml"), "utf8");
+
+    expect(scorecard).not.toContain("    security:\n      permissions: read-all");
+    expect(config).toContain("blacksmith-2vcpu-ubuntu-2204");
+  });
 });
