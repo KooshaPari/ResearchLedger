@@ -2,6 +2,7 @@
 
 import { execFileSync } from "node:child_process";
 import { expect, it } from "vitest";
+import { validateSignatureMetadata } from "./release_macos.mjs";
 
 const script = new URL("./release_macos.mjs", import.meta.url);
 
@@ -28,4 +29,15 @@ it("rejects unknown release arguments before any release step", () => {
       stdio: "pipe",
     }),
   ).toThrow(/Unknown argument: --unexpected/);
+});
+
+it("requires the configured signing authority and secure timestamp", () => {
+  const identity = "Developer ID Application: ResearchLedger, Inc. (TEAMID)";
+
+  expect(() => validateSignatureMetadata("Authority=Developer ID Application: Other (TEAMID)\nruntime", identity))
+    .toThrow(/configured Developer ID identity/);
+  expect(() => validateSignatureMetadata(`Authority=${identity}\nruntime`, identity))
+    .toThrow(/secure timestamp/);
+  expect(() => validateSignatureMetadata(`Authority=${identity}\nruntime\nTimestamp=2026-08-14T00:00:00Z`, identity))
+    .not.toThrow();
 });

@@ -129,15 +129,22 @@ function findReleaseArtifacts() {
   return { applicationPath, dmgPath: dmgArtifacts[0] };
 }
 
-function verifySignedApplication(applicationPath) {
-  run("codesign", ["--verify", "--deep", "--strict", "--verbose=4", applicationPath]);
-  const signature = run("codesign", ["-d", "--verbose=4", applicationPath]);
-  if (!signature.includes("Authority=Developer ID Application")) {
-    fail("application is not signed by a Developer ID Application certificate");
+export function validateSignatureMetadata(signature, signingIdentity) {
+  if (!signature.includes(`Authority=${signingIdentity}`)) {
+    fail("application is not signed by the configured Developer ID identity");
   }
   if (!signature.includes("runtime")) {
     fail("application signature does not enable the hardened runtime");
   }
+  if (!signature.includes("Timestamp=")) {
+    fail("application signature does not contain a secure timestamp");
+  }
+}
+
+function verifySignedApplication(applicationPath, signingIdentity) {
+  run("codesign", ["--verify", "--deep", "--strict", "--verbose=4", applicationPath]);
+  const signature = run("codesign", ["-d", "--verbose=4", applicationPath]);
+  validateSignatureMetadata(signature, signingIdentity);
   const entitlements = run("codesign", ["-d", "--entitlements", ":-", applicationPath]);
   if (entitlements.includes("com.apple.security.get-task-allow")) {
     fail("distribution application contains the forbidden get-task-allow entitlement");
@@ -158,7 +165,7 @@ function release(configuration) {
   });
 
   const { applicationPath, dmgPath } = findReleaseArtifacts();
-  verifySignedApplication(applicationPath);
+  verifySignedApplication(applicationPath, configuration.signingIdentity);
   run("xcrun", ["notarytool", "submit", dmgPath, "--keychain-profile", configuration.profile, "--wait"]);
   run("xcrun", ["stapler", "staple", dmgPath]);
   run("xcrun", ["stapler", "validate", dmgPath]);
@@ -197,9 +204,11 @@ function main() {
   release(readReleaseConfiguration());
 }
 
-try {
-  main();
-} catch (error) {
-  process.stderr.write(`${error.message}\n`);
-  process.exitCode = 1;
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    main();
+  } catch (error) {
+    process.stderr.write(`${error.message}\n`);
+    process.exitCode = 1;
+  }
 }

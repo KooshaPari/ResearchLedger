@@ -9,7 +9,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const fixturePath = path.join(
@@ -397,14 +397,14 @@ function summarizeAttempt(endpoint, errorMessage, attemptNumber, engine) {
 async function runSmokeForCandidate({
   endpoint,
   engine,
-  requestText,
   documents,
-  model,
   timeoutMs,
   maxRetries,
   retryDelayMs,
   query,
 }) {
+  const model = modelForEngine(engine);
+  const requestText = JSON.stringify(requestBody(engine, query, documents, model));
   const {
     responseText,
     attemptNumber,
@@ -433,6 +433,7 @@ async function runSmokeForCandidate({
     engine,
     responseText,
     model,
+    requestText,
     query,
     responseOrder,
   };
@@ -458,8 +459,7 @@ async function main() {
 
   const query = fixture.query;
   const documents = fixture.documents;
-  const body = requestBody(engine, query, documents, model);
-  const requestText = JSON.stringify(body);
+  const fallbackRequestText = JSON.stringify(requestBody(engine, query, documents, model));
   const failures = [];
 
   for (const target of targets) {
@@ -467,9 +467,7 @@ async function main() {
       const result = await runSmokeForCandidate({
         endpoint: target.endpoint,
         engine: target.engine,
-        requestText,
         documents,
-        model,
         timeoutMs,
         maxRetries,
         retryDelayMs,
@@ -480,11 +478,11 @@ async function main() {
         status: "PASS",
         engine: result.engine,
         endpoint: result.endpoint,
-        model,
+        model: result.model,
         attempt_count: result.attemptNumber,
         query,
         document_count: documents.length,
-        request_hash: hashString(requestText),
+        request_hash: hashString(result.requestText),
         response_hash: hashString(result.responseText),
         order: result.responseOrder,
         elapsed_ms: elapsedMs,
@@ -507,7 +505,7 @@ async function main() {
         const report = buildFallbackReport({
           engine,
           model,
-          requestText,
+          requestText: fallbackRequestText,
           query,
           documents,
           elapsedMs,
@@ -524,10 +522,13 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});
+const invokedPath = process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href;
+if (invokedPath === import.meta.url) {
+  main().catch((error) => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}
 
 export {
   expectedOrder,

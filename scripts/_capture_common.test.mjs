@@ -18,7 +18,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   getProbe,
@@ -27,6 +27,7 @@ import {
   writeCapture,
   defaultCapturePath,
   loadPlaywright,
+  collectAndWriteCapture,
 } from "./_capture_common.mjs";
 import {
   isHackerNewsItemUrl,
@@ -249,6 +250,45 @@ describe("assertNonEmptyCapture", () => {
       providerName: "Reddit",
       posts: [{ url: "https://www.reddit.com/r/rust/comments/a1b2c3d/post", text: "post" }],
     })).not.toThrow();
+  });
+});
+
+describe("collectAndWriteCapture", () => {
+  it("rejects an empty collection before writing and always closes the context", async () => {
+    const context = { close: vi.fn().mockResolvedValue(undefined) };
+    const write = vi.fn();
+
+    await expect(collectAndWriteCapture({
+      context,
+      collectPosts: async () => new Map(),
+      providerName: "Reddit",
+      output: "/tmp/reddit.json",
+      url: "https://www.reddit.com/user/me/saved",
+      sourceTag: "reddit-playwright-authenticated-session",
+      urlFieldName: "savedUrl",
+      write,
+    })).rejects.toThrow(/CAPTURE_EMPTY.*Reddit/i);
+
+    expect(write).not.toHaveBeenCalled();
+    expect(context.close).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes the context when capture writing fails", async () => {
+    const context = { close: vi.fn().mockResolvedValue(undefined) };
+    const write = vi.fn().mockRejectedValue(new Error("disk full"));
+
+    await expect(collectAndWriteCapture({
+      context,
+      collectPosts: async () => new Map([["post", { url: "https://example.com/post" }]]),
+      providerName: "Reddit",
+      output: "/tmp/reddit.json",
+      url: "https://www.reddit.com/user/me/saved",
+      sourceTag: "reddit-playwright-authenticated-session",
+      urlFieldName: "savedUrl",
+      write,
+    })).rejects.toThrow("disk full");
+
+    expect(context.close).toHaveBeenCalledTimes(1);
   });
 });
 
