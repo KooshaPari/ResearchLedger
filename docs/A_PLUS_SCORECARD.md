@@ -10,7 +10,7 @@ local cross-encoder contract are evidenced in the current integration.
 | Local-first Tauri desktop | Tauri desktop source, SQLite metadata, and Markdown vault paths are present in the integration | IMPLEMENTED / package and installed-app validation pending |
 | GitHub import | Rust-owned local GitHub CLI integration and importer code are present | IMPLEMENTED / authenticated installed-app invocation pending |
 | Provider boundary | Official export/manual permalink path is the intended LinkedIn boundary; no release claim is supported by this merge | IMPLEMENTED boundary / live policy and installed-app validation pending |
-| Consented bounded fetching | Scoped, expiring, revocable consent grants; hashed consent audit targets; bounded public-reference fetch guards and persisted fetched sources | IMPLEMENTED / validation and security review pending |
+| Consented bounded fetching | Scoped, expiring, revocable consent grants; hashed consent audit targets; post-consent bounded queue selection, pre-fetch revocation recheck, and non-public address guards | IMPLEMENTED / hostname resolver pinning, validation, and security review pending |
 | Claims and provenance | Persisted provenance and structured claims with source citations and reproducible spans | IMPLEMENTED / validation pending |
 | Search/RAG | FTS5 lexical search, deterministic chunking, model/version/input-hashed vectors, hybrid fusion including vector-only candidates, and a loopback local cross-encoder contract with deterministic fallback | IMPLEMENTED / local-model quality and restart validation pending |
 | Frontend and interoperability | Workspace workflows and OKF-style Markdown/JSON interchange are implemented | IMPLEMENTED / validation and packaged-app parity pending |
@@ -29,6 +29,8 @@ local cross-encoder contract are evidenced in the current integration.
    claims, vector/index state, and cited retrieval results survive the restart.
 6. Validate the configured local cross-encoder/model on the installed path and retain the
    deterministic fallback as the offline behavior.
+7. Bind reference-fetch HTTP connections to the already validated DNS addresses, or otherwise
+   prove an equivalent DNS-rebinding defense; hostname preflight validation alone is not that proof.
 
 Operational prerequisite: optional local retrieval services and any permitted packaged connector
 dependencies must be installed and started by the operator. No credential, cookie, or raw sensitive

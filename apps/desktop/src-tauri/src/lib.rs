@@ -18,14 +18,14 @@ mod x;
 mod commands {
     include!("commands.rs");
 
+    use super::consent;
     use super::{
+        consent::{ConsentGrant, ConsentRegistry},
         distill,
         embeddings::{LocalCrossEncoder, OllamaEmbedder},
         github::GithubClient,
-        consent::{ConsentGrant, ConsentRegistry}, hackernews, rag, reddit, reference_fetch,
-        safe_paths, storage, x, VaultStatus,
+        hackernews, rag, reddit, reference_fetch, safe_paths, storage, x, VaultStatus,
     };
-    use super::consent;
     use serde::{Deserialize, Serialize};
     use sha2::{Digest, Sha256};
     use tauri::Manager;
@@ -133,7 +133,11 @@ mod commands {
     }
 
     #[tauri::command]
-    pub fn revoke_consent(vault_path: String, id: String, revoked_at: String) -> Result<bool, String> {
+    pub fn revoke_consent(
+        vault_path: String,
+        id: String,
+        revoked_at: String,
+    ) -> Result<bool, String> {
         let root = std::path::PathBuf::from(vault_path);
         let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
         let connection = storage::open(&paths).map_err(|error| error.to_string())?;
@@ -360,12 +364,26 @@ mod commands {
         match storage::upsert_document(&mut connection, &root, &document)
             .map_err(|error| error.to_string())?
         {
-            storage::UpsertResult::Created => Ok(ImportSummary { created: 1, updated: 0, unchanged: 0, failed: 0 }),
-            storage::UpsertResult::Updated => Ok(ImportSummary { created: 0, updated: 1, unchanged: 0, failed: 0 }),
-            storage::UpsertResult::Unchanged => Ok(ImportSummary { created: 0, updated: 0, unchanged: 1, failed: 0 }),
+            storage::UpsertResult::Created => Ok(ImportSummary {
+                created: 1,
+                updated: 0,
+                unchanged: 0,
+                failed: 0,
+            }),
+            storage::UpsertResult::Updated => Ok(ImportSummary {
+                created: 0,
+                updated: 1,
+                unchanged: 0,
+                failed: 0,
+            }),
+            storage::UpsertResult::Unchanged => Ok(ImportSummary {
+                created: 0,
+                updated: 0,
+                unchanged: 1,
+                failed: 0,
+            }),
         }
     }
-
 
     #[tauri::command]
     pub fn import_hackernews_html(
@@ -971,9 +989,17 @@ mod commands {
             }
             let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
             let connection = storage::open(&paths).map_err(|error| error.to_string())?;
-            storage::mark_reference_fetch_started(&connection, &job)
-                .map_err(|error| error.to_string())?;
+            let claimed = storage::claim_reference_fetch_if_consented(
+                &connection,
+                &job,
+                &chrono::Utc::now().to_rfc3339(),
+            )
+            .map_err(|error| error.to_string())?;
             drop(connection);
+            if !claimed {
+                domain_budget.release(&job.target_url);
+                continue;
+            }
 
             let fetched_result = reference_fetch::fetch_with_retry(&client, &job.target_url).await;
             domain_budget.release(&job.target_url);
@@ -1011,14 +1037,16 @@ mod commands {
                                     storage::record_reference_fetch(
                                         &connection,
                                         &job,
-                                        "failed",
-                                        None,
-                                        None,
-                                        None,
-                                        None,
-                                        None,
-                                        Some(&chrono::Utc::now().to_rfc3339()),
-                                        Some(&error.to_string()),
+                                        &storage::ReferenceFetchUpdate {
+                                            status: "failed",
+                                            artifact_path: None,
+                                            content_type: None,
+                                            http_status: None,
+                                            byte_count: None,
+                                            content_hash: None,
+                                            fetched_at: Some(&chrono::Utc::now().to_rfc3339()),
+                                            error: Some(&error.to_string()),
+                                        },
                                     )
                                     .map_err(|error| error.to_string())?;
                                     summary.failed += 1;
@@ -1033,14 +1061,16 @@ mod commands {
                             storage::record_reference_fetch(
                                 &connection,
                                 &job,
-                                "done",
-                                Some(&fetched.artifact_path),
-                                Some(&fetched.content_type),
-                                Some(fetched.http_status),
-                                Some(fetched.byte_count),
-                                Some(&fetched.content_hash),
-                                Some(&chrono::Utc::now().to_rfc3339()),
-                                None,
+                                &storage::ReferenceFetchUpdate {
+                                    status: "done",
+                                    artifact_path: Some(&fetched.artifact_path),
+                                    content_type: Some(&fetched.content_type),
+                                    http_status: Some(fetched.http_status),
+                                    byte_count: Some(fetched.byte_count),
+                                    content_hash: Some(&fetched.content_hash),
+                                    fetched_at: Some(&chrono::Utc::now().to_rfc3339()),
+                                    error: None,
+                                },
                             )
                             .map_err(|error| error.to_string())?;
                         }
@@ -1052,14 +1082,16 @@ mod commands {
                             storage::record_reference_fetch(
                                 &connection,
                                 &job,
-                                "failed",
-                                None,
-                                None,
-                                None,
-                                None,
-                                None,
-                                Some(&chrono::Utc::now().to_rfc3339()),
-                                Some(&error.to_string()),
+                                &storage::ReferenceFetchUpdate {
+                                    status: "failed",
+                                    artifact_path: None,
+                                    content_type: None,
+                                    http_status: None,
+                                    byte_count: None,
+                                    content_hash: None,
+                                    fetched_at: Some(&chrono::Utc::now().to_rfc3339()),
+                                    error: Some(&error.to_string()),
+                                },
                             )
                             .map_err(|error| error.to_string())?;
                             summary.failed += 1;
@@ -1072,14 +1104,16 @@ mod commands {
                     storage::record_reference_fetch(
                         &connection,
                         &job,
-                        "failed",
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
-                        Some(&chrono::Utc::now().to_rfc3339()),
-                        Some(&error.to_string()),
+                        &storage::ReferenceFetchUpdate {
+                            status: "failed",
+                            artifact_path: None,
+                            content_type: None,
+                            http_status: None,
+                            byte_count: None,
+                            content_hash: None,
+                            fetched_at: Some(&chrono::Utc::now().to_rfc3339()),
+                            error: Some(&error.to_string()),
+                        },
                     )
                     .map_err(|error| error.to_string())?;
                     summary.failed += 1;
@@ -1197,8 +1231,8 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::consent::{ConsentGrant, ConsentRegistry};
     use super::commands;
+    use super::consent::{ConsentGrant, ConsentRegistry};
     use super::storage::*;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -1275,7 +1309,10 @@ mod tests {
             title: "Chunked article".into(),
             source_kind: "article".into(),
             source_uri: Some("https://example.com/chunked".into()),
-            content: format!("# Intro\n{}\n\n# Next\nsecond", "a".repeat(1_300)),
+            content: format!(
+                "---\ntype: Test Document\n---\n\n# Intro\n{}\n\n# Next\nsecond",
+                "a".repeat(1_300)
+            ),
             captured_at: "2026-07-20T00:00:00Z".into(),
         };
         upsert_document(&mut db, &root, &document).unwrap();
@@ -1289,7 +1326,9 @@ mod tests {
             .collect::<Result<_, _>>()
             .unwrap();
         assert!(chunks.len() >= 2);
-        assert_eq!(chunks[0].2.as_deref(), Some("Intro"));
+        assert!(chunks
+            .iter()
+            .any(|(_, _, heading, _)| heading.as_deref() == Some("Intro")));
         assert!(chunks.iter().all(|(_, _, _, text)| text.len() <= 1_200));
         let first_chunk_id = chunks[0].0;
         db.execute(
@@ -1298,7 +1337,7 @@ mod tests {
         )
         .unwrap();
         let updated = SourceDocument {
-            content: "# Replacement\nshort".into(),
+            content: "---\ntype: Test Document\n---\n\nshort".into(),
             ..document.clone()
         };
         upsert_document(&mut db, &root, &updated).unwrap();
@@ -1405,7 +1444,8 @@ mod tests {
                 title: "Unconsented source".into(),
                 source_kind: "article".into(),
                 source_uri: Some("https://example.com/source".into()),
-                content: "---\ntype: Test Document\n---\n\nSee https://example.com/reference.".into(),
+                content: "---\ntype: Test Document\n---\n\nSee https://example.com/reference."
+                    .into(),
                 captured_at: "2026-08-10T00:00:00Z".into(),
             },
         )
@@ -1456,6 +1496,226 @@ mod tests {
         )
         .unwrap());
         assert_eq!(pending_reference_jobs(&db, 10).unwrap().len(), 1);
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn pending_reference_jobs_skips_revoked_rows_before_applying_limit() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "source".into(),
+                relative_path: "sources/source.md".into(),
+                title: "Source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSource".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        let registry = ConsentRegistry::new(&db);
+
+        registry
+            .grant(ConsentGrant {
+                id: "revoked-consent".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/revoked".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/revoked",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        assert!(registry
+            .revoke("revoked-consent", "2026-08-10T01:30:00Z")
+            .unwrap());
+
+        registry
+            .grant(ConsentGrant {
+                id: "active-consent".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/allowed".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/allowed",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        registry
+            .grant(ConsentGrant {
+                id: "second-active-consent".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/second-allowed".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/second-allowed",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+
+        assert_eq!(
+            pending_reference_jobs_at(&db, 2, "2026-08-10T02:00:00Z").unwrap(),
+            vec![
+                ReferenceJob {
+                    source_document_id: "source".into(),
+                    target_url: "https://example.com/allowed".into(),
+                },
+                ReferenceJob {
+                    source_document_id: "source".into(),
+                    target_url: "https://example.com/second-allowed".into(),
+                },
+            ]
+        );
+        assert!(pending_reference_jobs_at(&db, 0, "2026-08-10T02:00:00Z")
+            .unwrap()
+            .is_empty());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn revoked_consent_removes_already_queued_reference_from_dequeue() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "source".into(),
+                relative_path: "sources/source.md".into(),
+                title: "Source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSource".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        ConsentRegistry::new(&db)
+            .grant(ConsentGrant {
+                id: "consent-1".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/reference".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/reference",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        assert_eq!(
+            pending_reference_jobs_at(&db, 10, "2026-08-10T01:00:00Z")
+                .unwrap()
+                .len(),
+            1
+        );
+        assert!(ConsentRegistry::new(&db)
+            .revoke("consent-1", "2026-08-10T01:30:00Z")
+            .unwrap());
+        assert!(pending_reference_jobs_at(&db, 10, "2026-08-10T02:00:00Z")
+            .unwrap()
+            .is_empty());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn revoked_consent_blocks_reference_job_before_fetch_claim() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "source".into(),
+                relative_path: "sources/source.md".into(),
+                title: "Source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSource".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        let registry = ConsentRegistry::new(&db);
+        registry
+            .grant(ConsentGrant {
+                id: "consent-1".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/reference".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/reference",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        let job = pending_reference_jobs_at(&db, 1, "2026-08-10T01:00:00Z")
+            .unwrap()
+            .pop()
+            .unwrap();
+        assert!(registry
+            .revoke("consent-1", "2026-08-10T01:30:00Z")
+            .unwrap());
+
+        assert!(!claim_reference_fetch_if_consented(&db, &job, "2026-08-10T02:00:00Z",).unwrap());
+        assert_eq!(
+            db.query_row(
+                "SELECT status FROM reference_fetches WHERE source_document_id = ?1 AND target_url = ?2",
+                rusqlite::params![job.source_document_id, job.target_url],
+                |row| row.get::<_, String>(0),
+            )
+            .unwrap(),
+            "blocked"
+        );
         let _ = std::fs::remove_dir_all(root);
     }
 

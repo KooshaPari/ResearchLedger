@@ -87,6 +87,7 @@ impl DomainConcurrency {
         }
     }
 
+    #[cfg(test)]
     pub fn active_for(&self, raw_url: &str) -> usize {
         let Ok(url) = url::Url::parse(raw_url) else {
             return 0;
@@ -122,7 +123,8 @@ pub fn validate_public_url(raw: &str) -> Result<url::Url, FetchError> {
     if host.eq_ignore_ascii_case("localhost") || host.ends_with(".localhost") {
         return Err(FetchError::UnsafeUrl("localhost is not allowed".into()));
     }
-    if let Ok(ip) = host.parse::<IpAddr>() {
+    let literal_host = host.trim_matches(['[', ']']);
+    if let Ok(ip) = literal_host.parse::<IpAddr>() {
         if is_private_or_local(ip) {
             return Err(FetchError::UnsafeUrl(
                 "private or local address is not allowed".into(),
@@ -146,10 +148,23 @@ pub fn validate_public_url(raw: &str) -> Result<url::Url, FetchError> {
 fn is_private_or_local(ip: IpAddr) -> bool {
     match ip {
         IpAddr::V4(ip) => {
-            ip.is_loopback() || ip.is_private() || ip.is_link_local() || ip.is_unspecified()
+            let [first, second, third, _] = ip.octets();
+            ip.is_loopback()
+                || ip.is_private()
+                || ip.is_link_local()
+                || ip.is_unspecified()
+                || (first == 0)
+                || (first == 100 && (64..=127).contains(&second))
+                || (first == 192 && second == 0 && (third == 0 || third == 2))
+                || (first == 198 && (second == 18 || second == 19))
+                || (first == 198 && second == 51 && third == 100)
+                || (first == 203 && second == 0 && third == 113)
+                || first >= 224
         }
         IpAddr::V6(ip) => {
-            ip.is_loopback()
+            ip.to_ipv4_mapped()
+                .is_some_and(|mapped| is_private_or_local(IpAddr::V4(mapped)))
+                || ip.is_loopback()
                 || ip.is_unspecified()
                 || ip.is_unique_local()
                 || ip.is_unicast_link_local()
@@ -326,6 +341,11 @@ mod tests {
     #[test]
     fn rejects_private_and_credentialed_urls() {
         assert!(validate_public_url("http://127.0.0.1:8000/a").is_err());
+        assert!(validate_public_url("http://[::ffff:127.0.0.1]/a").is_err());
+        assert!(validate_public_url("http://100.64.0.1/a").is_err());
+        assert!(validate_public_url("http://192.0.2.1/a").is_err());
+        assert!(validate_public_url("http://224.0.0.1/a").is_err());
+        assert!(validate_public_url("http://255.255.255.255/a").is_err());
         assert!(validate_public_url("https://user:pass@example.com/a").is_err());
         assert!(validate_public_url("file:///tmp/a").is_err());
     }

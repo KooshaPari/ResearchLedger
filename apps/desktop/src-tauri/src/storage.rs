@@ -41,6 +41,17 @@ pub struct ReferenceJob {
     pub target_url: String,
 }
 
+pub struct ReferenceFetchUpdate<'a> {
+    pub status: &'a str,
+    pub artifact_path: Option<&'a str>,
+    pub content_type: Option<&'a str>,
+    pub http_status: Option<u16>,
+    pub byte_count: Option<usize>,
+    pub content_hash: Option<&'a str>,
+    pub fetched_at: Option<&'a str>,
+    pub error: Option<&'a str>,
+}
+
 pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     fs::create_dir_all(root).map_err(|_| rusqlite::Error::InvalidPath(root.to_path_buf()))?;
     let database = root.join(".researchledger.db");
@@ -163,9 +174,8 @@ fn chunk_index_matches(
     document_id: &str,
     expected: &[(Option<String>, String)],
 ) -> SqlResult<bool> {
-    let mut statement = connection.prepare(
-        "SELECT heading_path, text FROM chunks WHERE document_id = ?1 ORDER BY ordinal",
-    )?;
+    let mut statement = connection
+        .prepare("SELECT heading_path, text FROM chunks WHERE document_id = ?1 ORDER BY ordinal")?;
     let rows = statement.query_map(params![document_id], |row| {
         Ok((row.get::<_, Option<String>>(0)?, row.get::<_, String>(1)?))
     })?;
@@ -187,7 +197,7 @@ pub fn upsert_document(
             "SELECT content_hash FROM documents WHERE id = ?1",
             params![document.id],
             |row| row.get(0),
-    )
+        )
         .optional()?;
     if previous.as_deref() == Some(hash.as_str()) {
         let expected_chunks = crate::chunking::split_document(&document.content);
@@ -377,11 +387,14 @@ pub fn pending_reference_jobs_at(
     limit: u32,
     now: &str,
 ) -> SqlResult<Vec<ReferenceJob>> {
+    if limit == 0 {
+        return Ok(Vec::new());
+    }
     let mut statement = connection.prepare(
         "SELECT source_document_id, target_url FROM reference_fetches
-         WHERE status = 'pending' ORDER BY id LIMIT ?1",
+         WHERE status = 'pending' ORDER BY id",
     )?;
-    let rows = statement.query_map(params![limit], |row| {
+    let rows = statement.query_map([], |row| {
         Ok(ReferenceJob {
             source_document_id: row.get(0)?,
             target_url: row.get(1)?,
@@ -395,6 +408,9 @@ pub fn pending_reference_jobs_at(
             .allowed
         {
             jobs.push(job);
+            if jobs.len() == limit as usize {
+                break;
+            }
         }
     }
     Ok(jobs)
@@ -420,26 +436,42 @@ pub fn queue_reference_fetch(
     Ok(true)
 }
 
-pub fn mark_reference_fetch_started(connection: &Connection, job: &ReferenceJob) -> SqlResult<()> {
-    connection.execute(
+/// Recheck consent at the claim boundary immediately before a network fetch.
+/// A revoked job is retained as auditable blocked work rather than fetched.
+pub fn claim_reference_fetch_if_consented(
+    connection: &Connection,
+    job: &ReferenceJob,
+    now: &str,
+) -> SqlResult<bool> {
+    let decision = crate::consent::ConsentRegistry::new(connection).decide(&job.target_url, now)?;
+    if !decision.allowed {
+        record_reference_fetch(
+            connection,
+            job,
+            &ReferenceFetchUpdate {
+                status: "blocked",
+                artifact_path: None,
+                content_type: None,
+                http_status: None,
+                byte_count: None,
+                content_hash: None,
+                fetched_at: Some(now),
+                error: Some(&decision.reason),
+            },
+        )?;
+        return Ok(false);
+    }
+    Ok(connection.execute(
         "UPDATE reference_fetches SET status = 'running', error = NULL
-         WHERE source_document_id = ?1 AND target_url = ?2",
+         WHERE source_document_id = ?1 AND target_url = ?2 AND status = 'pending'",
         params![job.source_document_id, job.target_url],
-    )?;
-    Ok(())
+    )? == 1)
 }
 
 pub fn record_reference_fetch(
     connection: &Connection,
     job: &ReferenceJob,
-    status: &str,
-    artifact_path: Option<&str>,
-    content_type: Option<&str>,
-    http_status: Option<u16>,
-    byte_count: Option<usize>,
-    content_hash: Option<&str>,
-    fetched_at: Option<&str>,
-    error: Option<&str>,
+    update: &ReferenceFetchUpdate<'_>,
 ) -> SqlResult<()> {
     connection.execute(
         "UPDATE reference_fetches SET status = ?3, artifact_path = ?4, content_type = ?5,
@@ -448,14 +480,14 @@ pub fn record_reference_fetch(
         params![
             job.source_document_id,
             job.target_url,
-            status,
-            artifact_path,
-            content_type,
-            http_status.map(i64::from),
-            byte_count.map(|value| value as i64),
-            content_hash,
-            fetched_at,
-            error,
+            update.status,
+            update.artifact_path,
+            update.content_type,
+            update.http_status.map(i64::from),
+            update.byte_count.map(|value| value as i64),
+            update.content_hash,
+            update.fetched_at,
+            update.error,
         ],
     )?;
     Ok(())

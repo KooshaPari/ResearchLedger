@@ -237,8 +237,10 @@ describe("smoke_retrieval_reranker helper parsing and transport helpers", () => 
 
   it("runs a candidate fully through order validation before PASS", async () => {
     let called = false;
-    const fetchImpl = async () => {
+    let request;
+    const fetchImpl = async (_endpoint, options) => {
       called = true;
+      request = JSON.parse(options.body);
       return {
         ok: true,
         status: 200,
@@ -257,7 +259,6 @@ describe("smoke_retrieval_reranker helper parsing and transport helpers", () => 
       const result = await runSmokeForCandidate({
         endpoint: "http://127.0.0.1:0/rerank",
         engine: "tei",
-        requestText: "{}",
         documents: ["a", "b", "c"],
         model: "x",
         timeoutMs: 1000,
@@ -269,6 +270,12 @@ describe("smoke_retrieval_reranker helper parsing and transport helpers", () => 
       expect(result.engine).toBe("tei");
       expect(result.attemptNumber).toBe(1);
       expect(result.responseOrder).toEqual([2, 1, 0]);
+      expect(request).toEqual({
+        query: "q",
+        texts: ["a", "b", "c"],
+        raw_scores: false,
+        truncate: true,
+      });
     } finally {
       global.fetch = originalFetch;
     }

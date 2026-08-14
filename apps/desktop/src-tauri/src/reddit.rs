@@ -185,7 +185,7 @@ mod tests {
     #[test]
     fn reddit_path_shape_guard_drops_malformed_urls() {
         use crate::provider_html::is_reddit_post_path;
-        let urls = vec![
+        let urls = [
             "https://www.reddit.com/r/rust/comments/abc/well_formed",
             "https://www.reddit.com/user/koosha/comments/abc/not_real_post",
             "https://www.reddit.com/r/rust/comments/",
@@ -204,7 +204,7 @@ mod tests {
         );
         assert!(kept.contains(&"https://www.reddit.com/r/rust/comments/abc/well_formed"));
         assert!(kept.contains(&"https://www.reddit.com/r/rust/comments/def/another_well_formed"));
-        assert_eq!(urls.iter().filter(|u| is_reddit_post_path(**u)).count(), 2);
+        assert_eq!(urls.iter().filter(|u| is_reddit_post_path(u)).count(), 2);
     }
 
     /// `parse_capture_json` returns `Err` (and the import is abandoned) when the

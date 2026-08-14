@@ -118,6 +118,7 @@ struct TeiRerankResponseItem {
 impl LocalCrossEncoder {
     /// Creates a reranker that is strictly local. This prevents a user query or vault text
     /// from leaving the machine through a misconfigured endpoint.
+    #[cfg(test)]
     pub fn new(endpoint: impl Into<String>, model: impl Into<String>) -> Result<Self, String> {
         Self::new_with_engine(RerankEngine::for_current_target(), endpoint, model)
     }
@@ -164,6 +165,7 @@ impl LocalCrossEncoder {
         Self::new_with_engine(engine, endpoint, model).map(Some)
     }
 
+    #[cfg(test)]
     pub fn engine(&self) -> RerankEngine {
         self.engine
     }

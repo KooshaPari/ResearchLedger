@@ -7,7 +7,9 @@
 //! `ensure_within_acceptable_roots`, and every URL passed to a browser
 //! capture command must pass through `ensure_safe_provider_url`.
 
-use std::path::{Component, Path, PathBuf};
+#[cfg(test)]
+use std::path::PathBuf;
+use std::path::{Component, Path};
 
 /// Return a canonical (".."-free) version of the given path, **only if** it
 /// lives inside one of the acceptable roots. Returns `Err` otherwise.
@@ -16,6 +18,7 @@ use std::path::{Component, Path, PathBuf};
 /// * `acceptable_roots` is a list of directories that contain the vault or
 ///   user-selected folders. The path must resolve to a descendant of one of
 ///   these roots after canonicalisation.
+#[cfg(test)]
 pub fn ensure_within_acceptable_roots(
     user_path: &str,
     label: &str,
@@ -63,8 +66,8 @@ pub fn ensure_safe_provider_url(url: &str, allowed_hosts: &[&str]) -> Result<Str
         return Err("URL must use http(s)://".into());
     }
     let without_scheme = trimmed
-        .splitn(2, "://")
-        .nth(1)
+        .split_once("://")
+        .map(|(_, host)| host)
         .ok_or_else(|| "URL is missing host".to_string())?;
     let host = without_scheme
         .split('/')
@@ -150,7 +153,7 @@ mod tests {
             &[PathBuf::from("/tmp/vault")],
         );
         assert!(
-            matches!(result, Ok(path) if path == PathBuf::from("/tmp/vault/imports/post.html"))
+            matches!(result, Ok(path) if path == std::path::Path::new("/tmp/vault/imports/post.html"))
         );
     }
 

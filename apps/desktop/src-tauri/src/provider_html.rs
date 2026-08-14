@@ -187,28 +187,6 @@ pub fn ancestor_text(
     })
 }
 
-/// Walks up from `start` through ancestors until it finds one whose
-/// text length is in `[min_len, max_len]`, then returns that text.
-/// Returns `None` if no qualified ancestor exists.
-pub fn collect_post_text(start: ElementRef<'_>, min_len: usize, max_len: usize) -> Option<String> {
-    for ancestor in start.ancestors() {
-        let Some(element) = ElementRef::wrap(ancestor) else {
-            continue;
-        };
-        let cleaned = element
-            .text()
-            .collect::<Vec<_>>()
-            .join(" ")
-            .split_whitespace()
-            .collect::<Vec<_>>()
-            .join(" ");
-        if cleaned.len() >= min_len && cleaned.len() <= max_len {
-            return Some(cleaned);
-        }
-    }
-    None
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -250,7 +228,7 @@ mod tests {
         let doc = Html::parse_document(html);
         let sel = Selector::parse("h2").unwrap();
         let h2 = doc.select(&sel).next().unwrap();
-        let txt = collect_post_text(h2, 8, 20_000).unwrap();
+        let txt = ancestor_text(h2, 8, 20_000).unwrap();
         assert!(txt.contains("Title"));
         assert!(txt.contains("Long enough body text."));
     }
@@ -262,7 +240,7 @@ mod tests {
         let sel = Selector::parse("p").unwrap();
         let p = doc.select(&sel).next().unwrap();
         // "hi" has length 2 — below min_len=8
-        assert!(collect_post_text(p, 8, 20_000).is_none());
+        assert!(ancestor_text(p, 8, 20_000).is_none());
     }
 
     #[test]

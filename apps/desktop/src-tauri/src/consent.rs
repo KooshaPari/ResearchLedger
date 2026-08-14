@@ -86,32 +86,57 @@ impl<'a> ConsentRegistry<'a> {
             let revoked_at: Option<String> = row.get(6)?;
             let row_reason = if purpose != REFERENCE_FETCH_PURPOSE {
                 "purpose_mismatch"
-            } else if !categories.split(',').any(|value| value == PUBLIC_WEB_CATEGORY) {
+            } else if !categories
+                .split(',')
+                .any(|value| value == PUBLIC_WEB_CATEGORY)
+            {
                 "category_mismatch"
             } else if revoked_at.is_some() {
                 "revoked"
             } else if !is_at_or_before(&granted_at, now) {
                 "not_yet_granted"
-            } else if expires_at.as_deref().is_some_and(|expiry| is_at_or_before(expiry, now)) {
+            } else if expires_at
+                .as_deref()
+                .is_some_and(|expiry| is_at_or_before(expiry, now))
+            {
                 "expired"
             } else if scope != target {
                 "out_of_scope"
             } else {
                 self.audit(&id, &target, true, "allowed", now)?;
-                return Ok(ConsentDecision { allowed: true, reason: "allowed".into() });
+                return Ok(ConsentDecision {
+                    allowed: true,
+                    reason: "allowed".into(),
+                });
             };
             reason = row_reason;
         }
         self.audit("none", &target, false, reason, now)?;
-        Ok(ConsentDecision { allowed: false, reason: reason.into() })
+        Ok(ConsentDecision {
+            allowed: false,
+            reason: reason.into(),
+        })
     }
 
-    fn audit(&self, grant_id: &str, target: &str, allowed: bool, reason: &str, at: &str) -> SqlResult<()> {
+    fn audit(
+        &self,
+        grant_id: &str,
+        target: &str,
+        allowed: bool,
+        reason: &str,
+        at: &str,
+    ) -> SqlResult<()> {
         let target_hash = format!("{:x}", Sha256::digest(target.as_bytes()));
         self.connection.execute(
             "INSERT INTO consent_audit (grant_id, target_hash, decision, reason, decided_at)
              VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![grant_id, target_hash, if allowed { "allow" } else { "deny" }, reason, at],
+            params![
+                grant_id,
+                target_hash,
+                if allowed { "allow" } else { "deny" },
+                reason,
+                at
+            ],
         )?;
         Ok(())
     }
@@ -122,7 +147,10 @@ pub fn canonical_scope(raw: &str) -> String {
 }
 
 fn is_at_or_before(value: &str, now: &str) -> bool {
-    match (DateTime::parse_from_rfc3339(value), DateTime::parse_from_rfc3339(now)) {
+    match (
+        DateTime::parse_from_rfc3339(value),
+        DateTime::parse_from_rfc3339(now),
+    ) {
         (Ok(value), Ok(now)) => value.with_timezone(&Utc) <= now.with_timezone(&Utc),
         _ => value <= now,
     }
@@ -134,59 +162,89 @@ mod tests {
 
     fn connection() -> Connection {
         let connection = Connection::open_in_memory().unwrap();
-        connection.execute_batch(include_str!("../migrations/001_initial.sql")).unwrap();
+        connection
+            .execute_batch(include_str!("../migrations/001_initial.sql"))
+            .unwrap();
         connection
     }
 
     fn grant(connection: &Connection, expires_at: Option<&str>) {
-        ConsentRegistry::new(connection).grant(ConsentGrant {
-            id: "grant-1".into(), local_profile: "default".into(), provider: "manual".into(),
-            purpose: REFERENCE_FETCH_PURPOSE.into(), data_categories: vec![PUBLIC_WEB_CATEGORY.into()],
-            url_scope: "https://example.com/reference".into(), expires_at: expires_at.map(str::to_owned),
-            version: 1, granted_at: "2026-08-10T00:00:00Z".into(),
-        }).unwrap();
+        ConsentRegistry::new(connection)
+            .grant(ConsentGrant {
+                id: "grant-1".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: REFERENCE_FETCH_PURPOSE.into(),
+                data_categories: vec![PUBLIC_WEB_CATEGORY.into()],
+                url_scope: "https://example.com/reference".into(),
+                expires_at: expires_at.map(str::to_owned),
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
     }
 
     fn assert_denied_and_redacted(connection: &Connection, url: &str, reason: &str) {
-        let decision = ConsentRegistry::new(connection).decide(url, "2026-08-10T01:00:00Z").unwrap();
+        let decision = ConsentRegistry::new(connection)
+            .decide(url, "2026-08-10T01:00:00Z")
+            .unwrap();
         assert!(!decision.allowed);
         assert_eq!(decision.reason, reason);
-        let (hash, decision, audit_reason): (String, String, String) = connection.query_row(
-            "SELECT target_hash, decision, reason FROM consent_audit ORDER BY id DESC LIMIT 1", [],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?))).unwrap();
+        let (hash, decision, audit_reason): (String, String, String) = connection
+            .query_row(
+                "SELECT target_hash, decision, reason FROM consent_audit ORDER BY id DESC LIMIT 1",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            )
+            .unwrap();
         assert_eq!(decision, "deny");
         assert_eq!(audit_reason, reason);
-        assert_eq!(hash, format!("{:x}", Sha256::digest(canonical_scope(url).as_bytes())));
+        assert_eq!(
+            hash,
+            format!("{:x}", Sha256::digest(canonical_scope(url).as_bytes()))
+        );
         assert_ne!(hash, url);
     }
 
     #[test]
     fn canonical_scope_removes_fragment_and_trailing_slash() {
-        assert_eq!(canonical_scope("https://example.com/a/#section"), "https://example.com/a");
+        assert_eq!(
+            canonical_scope("https://example.com/a/#section"),
+            "https://example.com/a"
+        );
     }
 
     #[test]
     fn no_consent_is_denied_and_audited_without_raw_url() {
         let connection = connection();
-        assert_denied_and_redacted(&connection, "https://example.com/reference", "no_matching_consent");
+        assert_denied_and_redacted(
+            &connection,
+            "https://example.com/reference",
+            "no_matching_consent",
+        );
     }
 
     #[test]
     fn revoked_consent_is_denied_and_audited_without_raw_url() {
-        let connection = connection(); grant(&connection, None);
-        assert!(ConsentRegistry::new(&connection).revoke("grant-1", "2026-08-10T00:30:00Z").unwrap());
+        let connection = connection();
+        grant(&connection, None);
+        assert!(ConsentRegistry::new(&connection)
+            .revoke("grant-1", "2026-08-10T00:30:00Z")
+            .unwrap());
         assert_denied_and_redacted(&connection, "https://example.com/reference", "revoked");
     }
 
     #[test]
     fn expired_consent_is_denied_and_audited_without_raw_url() {
-        let connection = connection(); grant(&connection, Some("2026-08-10T00:30:00Z"));
+        let connection = connection();
+        grant(&connection, Some("2026-08-10T00:30:00Z"));
         assert_denied_and_redacted(&connection, "https://example.com/reference", "expired");
     }
 
     #[test]
     fn out_of_scope_consent_is_denied_and_audited_without_raw_url() {
-        let connection = connection(); grant(&connection, None);
+        let connection = connection();
+        grant(&connection, None);
         assert_denied_and_redacted(&connection, "https://example.com/other", "out_of_scope");
     }
 }

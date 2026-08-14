@@ -25,32 +25,6 @@ struct ReadmeResponse {
     encoding: String,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct DeviceAuthorization {
-    #[serde(alias = "device_code")]
-    pub device_code: String,
-    #[serde(alias = "user_code")]
-    pub user_code: String,
-    #[serde(alias = "verification_uri")]
-    pub verification_uri: String,
-    #[serde(alias = "expires_in")]
-    pub expires_in: u64,
-    #[serde(alias = "interval")]
-    pub interval: u64,
-}
-
-#[derive(Debug, serde::Deserialize)]
-struct DeviceTokenResponse {
-    access_token: Option<String>,
-    error: Option<String>,
-    error_description: Option<String>,
-}
-
-fn device_authorization_form(client_id: &str) -> [(&str, &str); 1] {
-    [("client_id", client_id)]
-}
-
 #[derive(Debug)]
 pub enum GithubError {
     Http(reqwest::Error),
@@ -164,80 +138,6 @@ impl GithubClient {
             .map(Some)
             .map_err(|error| GithubError::Decode(error.to_string()))
     }
-
-    pub async fn request_device_authorization(
-        &self,
-        client_id: &str,
-    ) -> Result<DeviceAuthorization, GithubError> {
-        let response = self
-            .client
-            .post("https://github.com/login/device/code")
-            // GitHub returns form-encoded data unless this endpoint is
-            // explicitly negotiated as JSON. The shared API default is not
-            // sufficient for the OAuth host.
-            .header(header::ACCEPT, "application/json")
-            .form(&device_authorization_form(client_id))
-            .send()
-            .await
-            .map_err(GithubError::Http)?;
-        if !response.status().is_success() {
-            let status = response.status();
-            let detail = response.text().await.unwrap_or_default();
-            return Err(GithubError::InvalidResponse(format!("{status}: {detail}")));
-        }
-        response.json().await.map_err(GithubError::Http)
-    }
-
-    pub async fn poll_device_token(
-        &self,
-        client_id: &str,
-        device_code: &str,
-        interval: u64,
-        expires_in: u64,
-    ) -> Result<String, GithubError> {
-        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(expires_in);
-        let mut delay = interval.max(5);
-        while std::time::Instant::now() < deadline {
-            tokio::time::sleep(std::time::Duration::from_secs(delay)).await;
-            let response = self
-                .client
-                .post("https://github.com/login/oauth/access_token")
-                .header(header::ACCEPT, "application/json")
-                .form(&[
-                    ("client_id", client_id),
-                    ("device_code", device_code),
-                    ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
-                ])
-                .send()
-                .await
-                .map_err(GithubError::Http)?;
-            let status = response.status();
-            let payload: DeviceTokenResponse = response.json().await.map_err(GithubError::Http)?;
-            if let Some(token) = payload.access_token {
-                return Ok(token);
-            }
-            if payload.error.as_deref() == Some("slow_down") {
-                delay += 5;
-            }
-            if payload.error.as_deref() != Some("authorization_pending")
-                && payload.error.as_deref() != Some("slow_down")
-            {
-                let error = payload
-                    .error
-                    .unwrap_or_else(|| "authorization failed".into());
-                let description = payload.error_description.unwrap_or_default();
-                let detail = if description.is_empty() {
-                    error
-                } else {
-                    format!("{error}: {description}")
-                };
-                return Err(GithubError::InvalidResponse(format!("{status}: {detail}")));
-            }
-        }
-        Err(GithubError::InvalidResponse(
-            "device authorization expired".into(),
-        ))
-    }
 }
 
 #[cfg(test)]
@@ -251,33 +151,5 @@ mod tests {
             .decode(value)
             .unwrap();
         assert_eq!(String::from_utf8(decoded).unwrap(), "# Hello\n");
-    }
-
-    #[test]
-    fn device_flow_authorization_uses_only_the_github_app_client_id() {
-        assert_eq!(
-            device_authorization_form("Iv1.example"),
-            [("client_id", "Iv1.example")]
-        );
-    }
-
-    #[test]
-    fn decodes_github_snake_case_device_authorization_json() {
-        let value: DeviceAuthorization = serde_json::from_str(
-            r#"{"device_code":"device","user_code":"ABCD-1234","verification_uri":"https://github.com/login/device","expires_in":600,"interval":5}"#,
-        )
-        .unwrap();
-        assert_eq!(value.verification_uri, "https://github.com/login/device");
-        assert_eq!(value.expires_in, 600);
-    }
-
-    #[test]
-    fn decodes_device_error_description() {
-        let value: DeviceTokenResponse = serde_json::from_str(
-            r#"{"error":"authorization_pending","error_description":"The user has not yet completed"}"#,
-        )
-        .unwrap();
-        assert_eq!(value.error.as_deref(), Some("authorization_pending"));
-        assert!(value.error_description.unwrap().contains("not yet"));
     }
 }

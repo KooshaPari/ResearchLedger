@@ -101,8 +101,7 @@ pub fn build_context(query: &str, results: Vec<SearchResult>) -> RetrievalContex
         .collect::<Vec<_>>();
     let context = citations
         .iter()
-        .enumerate()
-        .map(|(index, citation)| {
+        .map(|citation| {
             format!(
                 "[{}] {}\n{}",
                 citation.citation_id, citation.title, citation.snippet

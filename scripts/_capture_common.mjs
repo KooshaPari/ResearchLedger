@@ -739,6 +739,38 @@ export function makeProviderBuilder(provider) {
  *   urlFieldName?: string,           // default: "savedUrl" for Reddit, "bookmarksUrl" for X
  * }} params
  */
+export async function collectAndWriteCapture({
+  context,
+  collectPosts,
+  providerName,
+  output,
+  url,
+  sourceTag,
+  urlFieldName,
+  payloadExtras = {},
+  write = writeCapture,
+}) {
+  try {
+    const posts = await collectPosts();
+    assertNonEmptyCapture({ providerName, posts });
+    const payload = {
+      version: 1,
+      capturedAt: new Date().toISOString(),
+      source: sourceTag,
+      [urlFieldName]: url,
+      posts: [...posts.values()],
+      ...payloadExtras,
+    };
+    await write(
+      output,
+      payload,
+      `Captured ${payload.posts.length} unique ${providerName} posts to ${output}`,
+    );
+  } finally {
+    await context.close();
+  }
+}
+
 export async function runCaptureSession(params) {
   const {
     providerName,
@@ -770,29 +802,22 @@ export async function runCaptureSession(params) {
   });
 
   const probe = getProbe({ mode: probeMode });
-  const posts = await scrollAndCollect({
-    page,
-    selector,
-    probe,
-    build,
-    minLength,
-    maxRounds,
-    waitMs,
-  });
-
-  const payload = {
-    version: 1,
-    capturedAt: new Date().toISOString(),
-    source: sourceTag,
-    [urlFieldName]: url,
-    posts: [...posts.values()],
-    ...payloadExtras,
-  };
-
-  await writeCapture(
+  await collectAndWriteCapture({
+    context,
+    collectPosts: () => scrollAndCollect({
+      page,
+      selector,
+      probe,
+      build,
+      minLength,
+      maxRounds,
+      waitMs,
+    }),
+    providerName,
     output,
-    payload,
-    `Captured ${payload.posts.length} unique ${providerName} posts to ${output}`,
-  );
-  await context.close();
+    url,
+    sourceTag,
+    urlFieldName,
+    payloadExtras,
+  });
 }

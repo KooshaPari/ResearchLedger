@@ -19,15 +19,11 @@ pub struct HNPost {
 /// On-disk wire format written by `scripts/hackernews_capture.mjs`.
 /// The `provider` field is a string literal so a downstream loader can
 /// sanity-check the file at deserialisation time even if the JSON has been
-/// hand-edited. `captured_at` accepts either snake_case (canonical) or
-/// camelCase `capturedAt` (JS-friendly) via the `alias`.
+/// hand-edited. Other capture metadata is intentionally ignored by Serde:
+/// it is not part of the persisted post contract.
 #[derive(Debug, serde::Deserialize)]
 pub struct HNCaptureFile {
     pub provider: String,
-    #[serde(default)]
-    pub profile: Option<String>,
-    #[serde(alias = "capturedAt")]
-    pub captured_at: String,
     pub posts: Vec<HNPost>,
 }
 
@@ -36,10 +32,11 @@ pub struct HNCaptureFile {
 /// verified to equal `"hackernews"`.
 pub fn parse_capture_json(input: &str) -> Result<Vec<HNPost>, HackerNewsReaderError> {
     let parsed: HNCaptureFile = serde_json::from_str(input).map_err(HackerNewsReaderError::Json)?;
-    if !parsed.provider.is_empty() && parsed.provider != "hackernews" {
-        return Err(HackerNewsReaderError::UnknownProvider(parsed.provider));
+    let HNCaptureFile { provider, posts } = parsed;
+    if !provider.is_empty() && provider != "hackernews" {
+        return Err(HackerNewsReaderError::UnknownProvider(provider));
     }
-    Ok(parsed.posts)
+    Ok(posts)
 }
 
 /// Custom error type for HN ingestion. We wrap `serde_json::Error` so the
