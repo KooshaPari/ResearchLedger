@@ -31,6 +31,7 @@ describe("hosted CI contracts", () => {
     const rust = workflow.slice(workflow.indexOf("  rust:"), workflow.indexOf("  cargo-deny:"));
 
     expect(rust).toContain("runs-on: macos-latest");
+    expect(rust).toContain("RESEARCHLEDGER_SKIP_BUNDLE_RESOURCE_VALIDATION: \"1\"");
     expect(rust).not.toContain("Swatinem/rust-cache");
   });
 
