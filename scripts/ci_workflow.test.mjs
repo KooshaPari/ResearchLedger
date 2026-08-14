@@ -84,4 +84,15 @@ describe("hosted CI contracts", () => {
     expect(scorecard).not.toContain("    security:\n      permissions: read-all");
     expect(config).toContain("blacksmith-2vcpu-ubuntu-2204");
   });
+
+  test("uses current Mergify rule syntax", async () => {
+    const config = await readFile(path.join(root, ".mergify.yml"), "utf8");
+
+    expect(config).toContain("- or:");
+    expect(config).toContain("updated-at < 30 days ago");
+    expect(config).toContain("        users:\n          - KooshaPari");
+    expect(config).not.toContain("github_accounts:");
+    expect(config).not.toContain("post_merge:");
+    expect(config).not.toContain("age>=30d");
+  });
 });
