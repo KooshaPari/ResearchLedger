@@ -59,8 +59,17 @@ describe("hosted CI contracts", () => {
     expect(config).toContain("lint:");
     expect(config).not.toContain("linters:");
     expect(config).not.toContain("formatters:");
-    expect(config).toContain("- actionlint");
+    expect(config).toContain("- git-diff-check");
+    expect(config).not.toContain("- actionlint");
     expect(config).not.toContain("- prettier");
     expect(config).not.toContain("- taplo");
+  });
+
+  test("runs the pinned workflow linter independently of Trunk plugins", async () => {
+    const workflow = await readWorkflow("trunk-check.yml");
+
+    expect(workflow).toContain("actions/setup-go@v7");
+    expect(workflow).toContain("github.com/rhysd/actionlint/cmd/actionlint@v1.7.10");
+    expect(workflow).toContain('"$(go env GOPATH)/bin/actionlint" .github/workflows');
   });
 });
