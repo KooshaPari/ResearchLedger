@@ -84,6 +84,42 @@ mod read_model_tests {
         assert_eq!(claims[0].source_uri.as_deref(), Some("https://example.com/claim"));
         let _ = std::fs::remove_dir_all(root);
     }
+
+    #[test]
+    fn rejects_claim_records_with_out_of_range_positions() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut connection = open(&paths).unwrap();
+        upsert_document(
+            &mut connection,
+            &root,
+            &SourceDocument {
+                id: "claim-overflow".into(),
+                relative_path: "claim-overflow.md".into(),
+                title: "Overflow claim".into(),
+                source_kind: "article".into(),
+                source_uri: None,
+                content: "---\ntype: Test Document\n---\n\nA durable ledger is local.".into(),
+                captured_at: "2026-07-20T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        connection
+            .execute(
+                "UPDATE claims SET ordinal = ?2 WHERE document_id = ?1",
+                rusqlite::params!["claim-overflow", i64::from(u32::MAX) + 1],
+            )
+            .unwrap();
+
+        let error = super::list_document_claims(
+            root.to_string_lossy().into_owned(),
+            "claim-overflow".into(),
+        )
+        .unwrap_err();
+
+        assert!(error.contains("ordinal"));
+        let _ = std::fs::remove_dir_all(root);
+    }
 }
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -126,6 +162,15 @@ pub struct ClaimRecord {
     pub evidence_quote: String,
     pub span_start: u32,
     pub span_end: u32,
+}
+
+fn claim_u32(row: &rusqlite::Row<'_>, column: usize, field: &str) -> rusqlite::Result<u32> {
+    let value = row.get::<_, i64>(column)?;
+    u32::try_from(value).map_err(|_| {
+        rusqlite::Error::InvalidParameterName(format!(
+            "claim {field} must fit within an unsigned 32-bit integer"
+        ))
+    })
 }
 
 fn connection(vault_path: &str) -> Result<rusqlite::Connection, String> {
@@ -194,13 +239,13 @@ pub fn list_document_claims(
         .query_map(rusqlite::params![document_id], |row| {
             Ok(ClaimRecord {
                 document_id: row.get(0)?,
-                ordinal: row.get::<_, i64>(1)? as u32,
+                ordinal: claim_u32(row, 1, "ordinal")?,
                 claim: row.get(2)?,
                 source_uri: row.get(3)?,
                 citation_id: row.get(4)?,
                 evidence_quote: row.get(5)?,
-                span_start: row.get::<_, i64>(6)? as u32,
-                span_end: row.get::<_, i64>(7)? as u32,
+                span_start: claim_u32(row, 6, "span start")?,
+                span_end: claim_u32(row, 7, "span end")?,
             })
         })
         .map_err(|error| error.to_string())?;
