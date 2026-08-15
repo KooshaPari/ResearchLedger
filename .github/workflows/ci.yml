@@ -108,6 +108,7 @@ jobs:
         uses: EmbarkStudios/cargo-deny-action@v2
         with:
           arguments: --all-features
+          manifest-path: apps/desktop/src-tauri/Cargo.toml
 
   python:
     name: Python
