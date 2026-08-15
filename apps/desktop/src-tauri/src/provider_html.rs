@@ -22,9 +22,12 @@ pub fn is_reddit_post_path(cleaned: &str) -> bool {
         .split('#')
         .next()
         .unwrap_or(cleaned);
-    // Find the `/r/` prefix when the URL is absolute.
-    let after_r = match path.find("/r/") {
-        Some(idx) => &path[idx + 3..],
+    // A path-shaped URL from another origin must not be attributed to Reddit.
+    let after_r = match path
+        .strip_prefix("https://www.reddit.com/r/")
+        .or_else(|| path.strip_prefix("https://old.reddit.com/r/"))
+    {
+        Some(rest) => rest,
         None => return false,
     };
     // Must not be `/user/...` masquerading. We already matched `/r/` so this
@@ -261,6 +264,10 @@ mod tests {
         // user profile comments — must NOT match
         assert!(!is_reddit_post_path(
             "https://www.reddit.com/user/koosha/comments/abc/def"
+        ));
+        // path-shaped external URLs must not be attributed to Reddit
+        assert!(!is_reddit_post_path(
+            "https://evil.example/r/rust/comments/abc123/post"
         ));
         // missing id
         assert!(!is_reddit_post_path(
