@@ -100,7 +100,7 @@ semantic ordering independently of a downloaded model artifact.
 For release verification, run:
 
 ```sh
-npm run smoke:rerank
+bun run smoke:rerank
 ```
 
 The script emits deterministic evidence (`engine`, `endpoint`, `model`, `request_hash`,

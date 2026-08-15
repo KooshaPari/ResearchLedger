@@ -1,6 +1,6 @@
 # macOS Developer ID Release
 
-ResearchLedger's normal `npm run dev`, `npm run build`, and `npm run tauri` workflows do not
+ResearchLedger's normal `bun run dev`, `bun run build`, and `bun run tauri` workflows do not
 access the Keychain or Apple services. The separate release lane creates a signed `app` and `dmg`,
 submits the DMG with `notarytool`, staples the returned ticket, and verifies the final artifacts.
 
@@ -24,7 +24,7 @@ This command prints every protected action without querying the Keychain, buildi
 uploading, stapling, or changing artifacts:
 
 ```sh
-npm run release:macos -- --dry-run
+bun run release:macos -- --dry-run
 ```
 
 ## Production release gate
@@ -33,7 +33,7 @@ The operator supplies only the identity name; no credential value is supplied th
 
 ```sh
 export RESEARCHLEDGER_DEVELOPER_IDENTITY='Developer ID Application: Legal Name (TEAMID)'
-npm run release:macos -- --confirm-release
+bun run release:macos -- --confirm-release
 ```
 
 The command fails before building if it is not running on macOS, the required Xcode tools are

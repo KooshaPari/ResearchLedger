@@ -3,8 +3,8 @@
 Frontend checks:
 
 ```bash
-npm test -- --run
-npm run build
+bun run test
+bun run build
 ```
 
 Rust checks:
