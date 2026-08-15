@@ -34,6 +34,15 @@ impl<'a> ConsentRegistry<'a> {
     }
 
     pub fn grant(&self, grant: ConsentGrant) -> SqlResult<()> {
+        if grant
+            .data_categories
+            .iter()
+            .any(|category| category.contains(','))
+        {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "consent data categories must not contain commas".into(),
+            ));
+        }
         let scope = canonical_scope(&grant.url_scope);
         self.connection.execute(
             "INSERT INTO consent_grants
@@ -246,5 +255,25 @@ mod tests {
         let connection = connection();
         grant(&connection, None);
         assert_denied_and_redacted(&connection, "https://example.com/other", "out_of_scope");
+    }
+
+    #[test]
+    fn rejects_categories_that_cannot_round_trip_through_the_storage_delimiter() {
+        let connection = connection();
+        let error = ConsentRegistry::new(&connection)
+            .grant(ConsentGrant {
+                id: "grant-comma".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: REFERENCE_FETCH_PURPOSE.into(),
+                data_categories: vec!["other,public_web".into()],
+                url_scope: "https://example.com/reference".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap_err();
+
+        assert!(error.to_string().contains("comma"));
     }
 }
