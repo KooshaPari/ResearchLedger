@@ -975,7 +975,6 @@ mod commands {
         let jobs = storage::pending_reference_jobs(&connection, limit.unwrap_or(10).min(25))
             .map_err(|error| error.to_string())?;
         drop(connection);
-        let client = reference_fetch::client().map_err(|error| error.to_string())?;
         let mut domain_budget = reference_fetch::DomainConcurrency::new(2);
         let mut summary = ImportSummary {
             created: 0,
@@ -1001,7 +1000,7 @@ mod commands {
                 continue;
             }
 
-            let fetched_result = reference_fetch::fetch_with_retry(&client, &job.target_url).await;
+            let fetched_result = reference_fetch::fetch_with_retry(&job.target_url).await;
             domain_budget.release(&job.target_url);
             match fetched_result {
                 Ok(fetched) => {

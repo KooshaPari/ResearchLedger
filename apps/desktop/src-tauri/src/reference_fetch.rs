@@ -2,7 +2,7 @@ use reqwest::{Client, StatusCode};
 use scraper::Html;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use std::net::{IpAddr, ToSocketAddrs};
+use std::net::{IpAddr, SocketAddr, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -39,6 +39,13 @@ pub enum FetchError {
     InvalidUtf8,
     #[error("reference artifact write failed: {0}")]
     Io(#[from] std::io::Error),
+}
+
+#[derive(Debug, Clone)]
+struct ResolvedTarget {
+    url: url::Url,
+    host: String,
+    addrs: Vec<SocketAddr>,
 }
 
 /// Small in-process domain budget. The worker is currently deliberately
@@ -108,6 +115,10 @@ pub fn retryable(error: &FetchError) -> bool {
 }
 
 pub fn validate_public_url(raw: &str) -> Result<url::Url, FetchError> {
+    Ok(resolve_public_url(raw)?.url)
+}
+
+fn resolve_public_url(raw: &str) -> Result<ResolvedTarget, FetchError> {
     let url = url::Url::parse(raw).map_err(|error| FetchError::UnsafeUrl(error.to_string()))?;
     if !matches!(url.scheme(), "http" | "https") {
         return Err(FetchError::UnsafeUrl(
@@ -119,30 +130,37 @@ pub fn validate_public_url(raw: &str) -> Result<url::Url, FetchError> {
     }
     let host = url
         .host_str()
-        .ok_or_else(|| FetchError::UnsafeUrl("host is required".into()))?;
-    if host.eq_ignore_ascii_case("localhost") || host.ends_with(".localhost") {
+        .ok_or_else(|| FetchError::UnsafeUrl("host is required".into()))?
+        .to_ascii_lowercase();
+    if host == "localhost" || host.ends_with(".localhost") {
         return Err(FetchError::UnsafeUrl("localhost is not allowed".into()));
     }
+    let port = url.port_or_known_default().unwrap_or(443);
     let literal_host = host.trim_matches(['[', ']']);
-    if let Ok(ip) = literal_host.parse::<IpAddr>() {
-        if is_private_or_local(ip) {
+    let addrs = if let Ok(ip) = literal_host.parse::<IpAddr>() {
+        vec![SocketAddr::new(ip, 0)]
+    } else {
+        let resolved = (host.as_str(), port)
+            .to_socket_addrs()
+            .map_err(|error| FetchError::UnsafeUrl(format!("host could not be resolved: {error}")))?
+            .map(|address| SocketAddr::new(address.ip(), 0))
+            .collect::<Vec<_>>();
+        if resolved.is_empty() {
             return Err(FetchError::UnsafeUrl(
-                "private or local address is not allowed".into(),
+                "host did not resolve to an address".into(),
             ));
         }
-    } else if let Ok(addresses) =
-        (host, url.port_or_known_default().unwrap_or(443)).to_socket_addrs()
+        resolved
+    };
+    if addrs
+        .iter()
+        .any(|address| is_private_or_local(address.ip()))
     {
-        if addresses
-            .into_iter()
-            .any(|address| is_private_or_local(address.ip()))
-        {
-            return Err(FetchError::UnsafeUrl(
-                "host resolves to a private address".into(),
-            ));
-        }
+        return Err(FetchError::UnsafeUrl(
+            "host resolves to a private or local address".into(),
+        ));
     }
-    Ok(url)
+    Ok(ResolvedTarget { url, host, addrs })
 }
 
 fn is_private_or_local(ip: IpAddr) -> bool {
@@ -155,7 +173,7 @@ fn is_private_or_local(ip: IpAddr) -> bool {
                 || ip.is_unspecified()
                 || (first == 0)
                 || (first == 100 && (64..=127).contains(&second))
-                || (first == 192 && second == 0 && (third == 0 || third == 2))
+                || (first == 192 && second == 0 && (third == 0 || third == 1 || third == 2))
                 || (first == 198 && (second == 18 || second == 19))
                 || (first == 198 && second == 51 && third == 100)
                 || (first == 203 && second == 0 && third == 113)
@@ -217,23 +235,29 @@ async fn read_bounded(mut response: reqwest::Response) -> Result<Vec<u8>, FetchE
     Ok(bytes)
 }
 
-pub async fn fetch(client: &Client, raw_url: &str) -> Result<FetchedReference, FetchError> {
-    let url = validate_public_url(raw_url)?;
-    let robots_url = url
+pub async fn fetch(raw_url: &str) -> Result<FetchedReference, FetchError> {
+    let target = resolve_public_url(raw_url)?;
+    let client = pinned_client(&target)?;
+    let robots_url = target
+        .url
         .join("/robots.txt")
         .map_err(|error| FetchError::UnsafeUrl(error.to_string()))?;
     let robots = client.get(robots_url).send().await?;
     if robots.status().is_success() {
         let robots_body =
             String::from_utf8(read_bounded(robots).await?).map_err(|_| FetchError::InvalidUtf8)?;
-        if !robots_allows(&robots_body, url.path()) {
+        if !robots_allows(&robots_body, target.url.path()) {
             return Err(FetchError::RobotsDenied);
         }
     } else if robots.status() != StatusCode::NOT_FOUND {
         return Err(FetchError::Request(robots.error_for_status().unwrap_err()));
     }
 
-    let response = client.get(url.clone()).send().await?.error_for_status()?;
+    let response = client
+        .get(target.url.clone())
+        .send()
+        .await?
+        .error_for_status()?;
     let status = response.status().as_u16();
     let content_type = response
         .headers()
@@ -268,13 +292,10 @@ pub async fn fetch(client: &Client, raw_url: &str) -> Result<FetchedReference, F
 
 /// Retry transient request failures with bounded exponential backoff. Policy,
 /// robots, content-type, and byte-limit failures remain deterministic.
-pub async fn fetch_with_retry(
-    client: &Client,
-    raw_url: &str,
-) -> Result<FetchedReference, FetchError> {
+pub async fn fetch_with_retry(raw_url: &str) -> Result<FetchedReference, FetchError> {
     let mut last_error = None;
     for attempt in 0..MAX_ATTEMPTS {
-        match fetch(client, raw_url).await {
+        match fetch(raw_url).await {
             Ok(result) => return Ok(result),
             Err(error) if retryable(&error) && attempt + 1 < MAX_ATTEMPTS => {
                 last_error = Some(error);
@@ -286,18 +307,13 @@ pub async fn fetch_with_retry(
     Err(last_error.expect("retry loop records a transient failure"))
 }
 
-pub fn client() -> Result<Client, FetchError> {
+fn pinned_client(target: &ResolvedTarget) -> Result<Client, FetchError> {
     Client::builder()
         .user_agent(USER_AGENT)
         .timeout(TIMEOUT)
-        .redirect(reqwest::redirect::Policy::custom(|attempt| {
-            if attempt.previous().len() >= 3 || validate_public_url(attempt.url().as_str()).is_err()
-            {
-                attempt.stop()
-            } else {
-                attempt.follow()
-            }
-        }))
+        .no_proxy()
+        .resolve_to_addrs(&target.host, &target.addrs)
+        .redirect(reqwest::redirect::Policy::none())
         .build()
         .map_err(FetchError::Request)
 }
@@ -343,11 +359,17 @@ mod tests {
         assert!(validate_public_url("http://127.0.0.1:8000/a").is_err());
         assert!(validate_public_url("http://[::ffff:127.0.0.1]/a").is_err());
         assert!(validate_public_url("http://100.64.0.1/a").is_err());
+        assert!(validate_public_url("http://192.0.1.0/a").is_err());
         assert!(validate_public_url("http://192.0.2.1/a").is_err());
         assert!(validate_public_url("http://224.0.0.1/a").is_err());
         assert!(validate_public_url("http://255.255.255.255/a").is_err());
         assert!(validate_public_url("https://user:pass@example.com/a").is_err());
         assert!(validate_public_url("file:///tmp/a").is_err());
+    }
+
+    #[test]
+    fn rejects_hosts_that_cannot_be_resolved_before_fetching() {
+        assert!(validate_public_url("https://does-not-resolve.invalid/research").is_err());
     }
 
     #[test]
