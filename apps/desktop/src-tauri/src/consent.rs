@@ -43,6 +43,18 @@ impl<'a> ConsentRegistry<'a> {
                 "consent data categories must not contain commas".into(),
             ));
         }
+        parse_rfc3339(&grant.granted_at).map_err(|_| {
+            rusqlite::Error::InvalidParameterName(
+                "consent granted_at must be an RFC3339 timestamp".into(),
+            )
+        })?;
+        if let Some(expires_at) = &grant.expires_at {
+            parse_rfc3339(expires_at).map_err(|_| {
+                rusqlite::Error::InvalidParameterName(
+                    "consent expires_at must be an RFC3339 timestamp".into(),
+                )
+            })?;
+        }
         let scope = canonical_scope(&grant.url_scope);
         self.connection.execute(
             "INSERT INTO consent_grants
@@ -79,6 +91,16 @@ impl<'a> ConsentRegistry<'a> {
 
     pub fn decide(&self, target_url: &str, now: &str) -> SqlResult<ConsentDecision> {
         let target = canonical_scope(target_url);
+        let now_at = match parse_rfc3339(now) {
+            Ok(now_at) => now_at,
+            Err(()) => {
+                self.audit("none", &target, false, "invalid_decision_time", now)?;
+                return Ok(ConsentDecision {
+                    allowed: false,
+                    reason: "invalid_decision_time".into(),
+                });
+            }
+        };
         let mut statement = self.connection.prepare(
             "SELECT id, purpose, data_categories, url_scope, granted_at, expires_at, revoked_at
              FROM consent_grants ORDER BY version DESC, granted_at DESC, id",
@@ -102,21 +124,37 @@ impl<'a> ConsentRegistry<'a> {
                 "category_mismatch"
             } else if revoked_at.is_some() {
                 "revoked"
-            } else if !is_at_or_before(&granted_at, now) {
-                "not_yet_granted"
-            } else if expires_at
-                .as_deref()
-                .is_some_and(|expiry| is_at_or_before(expiry, now))
-            {
-                "expired"
-            } else if scope != target {
-                "out_of_scope"
             } else {
-                self.audit(&id, &target, true, "allowed", now)?;
-                return Ok(ConsentDecision {
-                    allowed: true,
-                    reason: "allowed".into(),
-                });
+                let granted_at = match parse_rfc3339(&granted_at) {
+                    Ok(granted_at) => granted_at,
+                    Err(()) => {
+                        reason = "invalid_granted_at";
+                        continue;
+                    }
+                };
+                let expires_at = match expires_at.as_deref() {
+                    Some(expires_at) => match parse_rfc3339(expires_at) {
+                        Ok(expires_at) => Some(expires_at),
+                        Err(()) => {
+                            reason = "invalid_expires_at";
+                            continue;
+                        }
+                    },
+                    None => None,
+                };
+                if granted_at > now_at {
+                    "not_yet_granted"
+                } else if expires_at.is_some_and(|expires_at| expires_at <= now_at) {
+                    "expired"
+                } else if scope != target {
+                    "out_of_scope"
+                } else {
+                    self.audit(&id, &target, true, "allowed", now)?;
+                    return Ok(ConsentDecision {
+                        allowed: true,
+                        reason: "allowed".into(),
+                    });
+                }
             };
             reason = row_reason;
         }
@@ -155,14 +193,10 @@ pub fn canonical_scope(raw: &str) -> String {
     crate::enrichment::canonical_url(raw)
 }
 
-fn is_at_or_before(value: &str, now: &str) -> bool {
-    match (
-        DateTime::parse_from_rfc3339(value),
-        DateTime::parse_from_rfc3339(now),
-    ) {
-        (Ok(value), Ok(now)) => value.with_timezone(&Utc) <= now.with_timezone(&Utc),
-        _ => value <= now,
-    }
+fn parse_rfc3339(value: &str) -> Result<DateTime<Utc>, ()> {
+    DateTime::parse_from_rfc3339(value)
+        .map(|value| value.with_timezone(&Utc))
+        .map_err(|_| ())
 }
 
 #[cfg(test)]
@@ -251,6 +285,42 @@ mod tests {
     }
 
     #[test]
+    fn malformed_stored_expiry_is_denied_and_audited_without_raw_url() {
+        let connection = connection();
+        grant(&connection, None);
+        connection
+            .execute(
+                "UPDATE consent_grants SET expires_at = 'zzzz' WHERE id = 'grant-1'",
+                [],
+            )
+            .unwrap();
+
+        assert_denied_and_redacted(
+            &connection,
+            "https://example.com/reference",
+            "invalid_expires_at",
+        );
+    }
+
+    #[test]
+    fn malformed_stored_grant_time_is_denied_and_audited_without_raw_url() {
+        let connection = connection();
+        grant(&connection, None);
+        connection
+            .execute(
+                "UPDATE consent_grants SET granted_at = 'zzzz' WHERE id = 'grant-1'",
+                [],
+            )
+            .unwrap();
+
+        assert_denied_and_redacted(
+            &connection,
+            "https://example.com/reference",
+            "invalid_granted_at",
+        );
+    }
+
+    #[test]
     fn out_of_scope_consent_is_denied_and_audited_without_raw_url() {
         let connection = connection();
         grant(&connection, None);
@@ -275,5 +345,27 @@ mod tests {
             .unwrap_err();
 
         assert!(error.to_string().contains("comma"));
+    }
+
+    #[test]
+    fn rejects_malformed_grant_timestamps() {
+        let connection = connection();
+        let registry = ConsentRegistry::new(&connection);
+        let grant = |granted_at: &str, expires_at: Option<&str>| ConsentGrant {
+            id: format!("grant-{granted_at}"),
+            local_profile: "default".into(),
+            provider: "manual".into(),
+            purpose: REFERENCE_FETCH_PURPOSE.into(),
+            data_categories: vec![PUBLIC_WEB_CATEGORY.into()],
+            url_scope: "https://example.com/reference".into(),
+            expires_at: expires_at.map(str::to_owned),
+            version: 1,
+            granted_at: granted_at.into(),
+        };
+
+        assert!(registry.grant(grant("not-a-date", None)).is_err());
+        assert!(registry
+            .grant(grant("2026-08-10T00:00:00Z", Some("not-a-date")))
+            .is_err());
     }
 }
