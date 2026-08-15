@@ -89,8 +89,9 @@ export RESEARCHLEDGER_RERANK_MODEL=BAAI/bge-reranker-large
 ```
 
 Without `RESEARCHLEDGER_RERANK_ENGINE`, ResearchLedger selects `mlx` on macOS, `tei` on Linux,
-and `onnx` on Windows. The adapter accepts only `http` loopback endpoints (`localhost`,
-`127.0.0.1`, or `::1`), times out after three seconds, validates every returned candidate index
+and `onnx` on Windows. The adapter accepts only `http` numeric loopback endpoints
+(`127.0.0.0/8` or `::1`), disables proxy routing and redirects, times out after three seconds,
+validates every returned candidate index
 and finite score, and falls back to deterministic ranking if the service is unavailable or
 malformed. The versioned contract fixture at
 `apps/desktop/src-tauri/tests/fixtures/retrieval/cross_encoder_contract.json` locks MLX and TEI

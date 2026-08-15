@@ -133,12 +133,19 @@ impl LocalCrossEncoder {
         let endpoint = endpoint.into();
         let url = url::Url::parse(&endpoint)
             .map_err(|error| format!("invalid rerank endpoint: {error}"))?;
-        let local_host = matches!(
-            url.host_str(),
-            Some("localhost") | Some("127.0.0.1") | Some("::1")
-        );
-        if url.scheme() != "http" || !local_host {
-            return Err("rerank endpoint must be an http loopback URL".into());
+        let local_host = match url.host() {
+            Some(url::Host::Ipv4(address)) => address.is_loopback(),
+            Some(url::Host::Ipv6(address)) => address.is_loopback(),
+            _ => false,
+        };
+        if url.scheme() != "http"
+            || !local_host
+            || !url.username().is_empty()
+            || url.password().is_some()
+        {
+            return Err(
+                "rerank endpoint must be an http numeric loopback URL without credentials".into(),
+            );
         }
         let model = model.into();
         if model.trim().is_empty() {
@@ -203,6 +210,8 @@ impl LocalCrossEncoder {
         }
         let response = reqwest::Client::builder()
             .timeout(Duration::from_secs(3))
+            .no_proxy()
+            .redirect(reqwest::redirect::Policy::none())
             .build()
             .map_err(|error| format!("could not initialize local reranker: {error}"))?
             .post(&self.endpoint)
@@ -324,6 +333,18 @@ mod tests {
     #[test]
     fn cross_encoder_rejects_a_remote_endpoint() {
         assert!(LocalCrossEncoder::new("https://rerank.example.com/v1/rerank", "model").is_err());
+    }
+
+    #[test]
+    fn cross_encoder_requires_a_numeric_loopback_endpoint() {
+        assert!(LocalCrossEncoder::new("http://127.0.0.1:8082/v1/rerank", "model").is_ok());
+        assert!(LocalCrossEncoder::new("http://[::1]:8082/v1/rerank", "model").is_ok());
+        assert!(LocalCrossEncoder::new("http://localhost:8082/v1/rerank", "model").is_err());
+        assert!(LocalCrossEncoder::new("http://127.0.0.2:8082/v1/rerank", "model").is_ok());
+        assert!(LocalCrossEncoder::new("http://192.168.1.2:8082/v1/rerank", "model").is_err());
+        assert!(
+            LocalCrossEncoder::new("http://user:pass@127.0.0.1:8082/v1/rerank", "model").is_err()
+        );
     }
 
     #[test]
