@@ -105,6 +105,21 @@ describe("ResearchLedger shell", () => {
     expect(screen.getByRole("textbox", { name: /Hacker News username/ })).toBeInTheDocument();
   });
 
+  it("requires a vault before starting a browser capture", async () => {
+    resetTauriMocks();
+    await renderApp();
+
+    fireEvent.click(screen.getByRole("button", { name: "Capture saved stories in browser" }));
+
+    await waitFor(() =>
+      expect(screen.getByText("Select a vault before running a source action.")).toBeInTheDocument(),
+    );
+    expect(invokeMock).not.toHaveBeenCalledWith(
+      "capture_hackernews_browser",
+      expect.anything(),
+    );
+  });
+
   it("renders the consent-safe source actions", async () => {
     await renderApp();
     const connectButtons = screen.getAllByRole("button", { name: "Connect browser" });

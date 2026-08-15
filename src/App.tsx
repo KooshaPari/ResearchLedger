@@ -119,15 +119,17 @@ export function App() {
     });
     if (typeof selected === "string") setVaultPath(selected);
   };
+  const requireVault = () => {
+    if (vaultPath) return true;
+    setMessage("Select a vault before running a source action.");
+    return false;
+  };
   const run = async (
     command: string,
     args: Record<string, unknown>,
     success: (value: any) => string,
   ) => {
-    if (!vaultPath) {
-      setMessage("Select a vault before running a source action.");
-      return;
-    }
+    if (!requireVault()) return;
     try {
       setMessage(success(await invoke(command, args)));
     } catch (error) {
@@ -209,6 +211,7 @@ export function App() {
             status={status}
             setVaultPath={setVaultPath}
             chooseVault={chooseVault}
+            requireVault={requireVault}
             run={run}
             message={message}
             setMessage={setMessage}
@@ -251,6 +254,7 @@ function Inbox({
   status,
   setVaultPath,
   chooseVault,
+  requireVault,
   run,
   message,
   setMessage,
@@ -259,6 +263,7 @@ function Inbox({
   status: VaultStatus | null;
   setVaultPath: (path: string) => void;
   chooseVault: () => Promise<void>;
+  requireVault: () => boolean;
   run: (
     command: string,
     args: Record<string, unknown>,
@@ -323,6 +328,7 @@ function Inbox({
     );
   };
   const captureHackerNews = async () => {
+    if (!requireVault()) return;
     if (hackernewsProfile && typeof localStorage !== "undefined")
       localStorage.setItem(
         "researchledger.hackernewsProfile",
@@ -358,6 +364,7 @@ function Inbox({
     setHnState("ready");
   };
   const captureReddit = async () => {
+    if (!requireVault()) return;
     if (redditProfile)
       localStorage.setItem("researchledger.redditProfile", redditProfile);
     const username = redditUsername.trim();
@@ -386,6 +393,7 @@ function Inbox({
     setRedditState("ready");
   };
   const captureX = async () => {
+    if (!requireVault()) return;
     if (xProfile) localStorage.setItem("researchledger.xProfile", xProfile);
     setXState("capturing");
     try {

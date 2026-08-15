@@ -29,7 +29,14 @@ export function HackerNewsPanel({ vaultPath, setMessage }: HackerNewsPanelProps)
     }
   }, [hackernewsUsername]);
 
+  const requireVault = () => {
+    if (vaultPath) return true;
+    setMessage("Select a vault before running a source action.");
+    return false;
+  };
+
   const captureHackerNews = async () => {
+    if (!requireVault()) return;
     const username = hackernewsUsername.trim();
     if (!username) {
       setHnState("needs-auth");
@@ -107,6 +114,7 @@ export function HackerNewsPanel({ vaultPath, setMessage }: HackerNewsPanelProps)
           className="button secondary"
           type="button"
           onClick={async () => {
+            if (!requireVault()) return;
             try {
               const value = await invoke<ImportResult>("import_hackernews_capture", {
                 vaultPath,
