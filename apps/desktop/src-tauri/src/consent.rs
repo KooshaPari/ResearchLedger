@@ -124,6 +124,8 @@ impl<'a> ConsentRegistry<'a> {
                 "category_mismatch"
             } else if revoked_at.is_some() {
                 "revoked"
+            } else if scope != target {
+                "out_of_scope"
             } else {
                 let granted_at = match parse_rfc3339(&granted_at) {
                     Ok(granted_at) => granted_at,
@@ -152,8 +154,6 @@ impl<'a> ConsentRegistry<'a> {
                     "not_yet_granted"
                 } else if expires_at.is_some_and(|expires_at| expires_at <= now_at) {
                     "expired"
-                } else if scope != target {
-                    "out_of_scope"
                 } else {
                     self.audit(&id, &target, true, "allowed", now)?;
                     return Ok(ConsentDecision {
@@ -357,6 +357,42 @@ mod tests {
             "https://example.com/reference",
             "invalid_expires_at",
         );
+    }
+
+    #[test]
+    fn malformed_out_of_scope_grant_cannot_block_valid_scoped_consent() {
+        let connection = connection();
+        let registry = ConsentRegistry::new(&connection);
+        for (id, scope, version) in [
+            ("in-scope", "https://example.com/reference", 1),
+            ("out-of-scope", "https://example.com/other", 2),
+        ] {
+            registry
+                .grant(ConsentGrant {
+                    id: id.into(),
+                    local_profile: "default".into(),
+                    provider: "manual".into(),
+                    purpose: REFERENCE_FETCH_PURPOSE.into(),
+                    data_categories: vec![PUBLIC_WEB_CATEGORY.into()],
+                    url_scope: scope.into(),
+                    expires_at: None,
+                    version,
+                    granted_at: "2026-08-10T00:00:00Z".into(),
+                })
+                .unwrap();
+        }
+        connection
+            .execute(
+                "UPDATE consent_grants SET expires_at = 'zzzz' WHERE id = 'out-of-scope'",
+                [],
+            )
+            .unwrap();
+
+        let decision = registry
+            .decide("https://example.com/reference", "2026-08-10T01:00:00Z")
+            .unwrap();
+        assert!(decision.allowed);
+        assert_eq!(decision.reason, "allowed");
     }
 
     #[test]
