@@ -114,7 +114,8 @@ pub fn retryable(error: &FetchError) -> bool {
     matches!(error, FetchError::Request(_))
 }
 
-pub fn validate_public_url(raw: &str) -> Result<url::Url, FetchError> {
+#[cfg(test)]
+fn validate_public_url(raw: &str) -> Result<url::Url, FetchError> {
     Ok(resolve_public_url(raw)?.url)
 }
 

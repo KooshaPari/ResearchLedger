@@ -201,8 +201,9 @@ pub fn upsert_document(
         .optional()?;
     if previous.as_deref() == Some(hash.as_str()) {
         let expected_chunks = crate::chunking::split_document(&document.content);
-        if !chunk_index_matches(connection, &document.id, &expected_chunks)? {
-            let transaction = connection.transaction()?;
+        let chunks_match = chunk_index_matches(connection, &document.id, &expected_chunks)?;
+        let transaction = connection.transaction()?;
+        if !chunks_match {
             transaction.execute(
                 "DELETE FROM chunk_fts WHERE rowid IN (SELECT id FROM chunks WHERE document_id = ?1)",
                 params![document.id],
@@ -216,20 +217,19 @@ pub fn upsert_document(
                 params![document.id],
             )?;
             write_chunks(&transaction, &document.id, &expected_chunks)?;
-            transaction.commit()?;
         }
         if let Some(source_uri) = document.source_uri.as_deref() {
             let quote = provenance_quote(&document.content);
-            connection.execute(
+            transaction.execute(
                 "DELETE FROM provenance WHERE document_id = ?1",
                 params![document.id],
             )?;
-            connection.execute(
+            transaction.execute(
                 "INSERT INTO provenance(document_id, source_uri, locator, quote, captured_at) VALUES(?1, ?2, ?3, ?4, ?5)",
                 params![document.id, source_uri, document.relative_path, quote, document.captured_at],
             )?;
         }
-        connection.execute(
+        transaction.execute(
             "DELETE FROM claims WHERE document_id = ?1",
             params![document.id],
         )?;
@@ -237,11 +237,12 @@ pub fn upsert_document(
             .into_iter()
             .enumerate()
         {
-            connection.execute(
+            transaction.execute(
                 "INSERT INTO claims(document_id, ordinal, claim, source_uri, citation_id, evidence_quote, span_start, span_end, created_at) VALUES(?1, ?2, ?3, ?4, '1', ?5, ?6, ?7, ?8)",
                 params![document.id, ordinal as i64, evidence.claim, document.source_uri, evidence.quote, evidence.start, evidence.end, document.captured_at],
             )?;
         }
+        transaction.commit()?;
         return Ok(UpsertResult::Unchanged);
     }
 
@@ -637,5 +638,68 @@ impl<T> OptionalRow<T> for SqlResult<T> {
             Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
             Err(error) => Err(error),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_root() -> PathBuf {
+        std::env::temp_dir().join(format!(
+            "researchledger-storage-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("system clock is after Unix epoch")
+                .as_nanos()
+        ))
+    }
+
+    fn document() -> SourceDocument {
+        SourceDocument {
+            id: "unchanged-with-error".into(),
+            relative_path: "sources/unchanged.md".into(),
+            title: "Unchanged document".into(),
+            source_kind: "article".into(),
+            source_uri: Some("https://example.com/source".into()),
+            content: "---\ntype: Test Document\n---\n\nA durable ledger preserves complete metadata on failure."
+                .into(),
+            captured_at: "2026-08-15T00:00:00Z".into(),
+        }
+    }
+
+    #[test]
+    fn unchanged_upsert_rolls_back_provenance_and_claims_when_claim_write_fails() {
+        let root = temp_root();
+        let paths = initialize(&root).expect("initialize vault");
+        let mut connection = open(&paths).expect("open vault");
+        let document = document();
+        upsert_document(&mut connection, &root, &document).expect("create document");
+
+        connection
+            .execute_batch(
+                "CREATE TRIGGER reject_replacement_claim
+                 BEFORE INSERT ON claims
+                 WHEN NEW.document_id = 'unchanged-with-error'
+                 BEGIN
+                   SELECT RAISE(ABORT, 'forced claim insertion failure');
+                 END;",
+            )
+            .expect("install deterministic failure trigger");
+
+        assert!(upsert_document(&mut connection, &root, &document).is_err());
+        let (provenance, claims): (i64, i64) = connection
+            .query_row(
+                "SELECT
+                   (SELECT COUNT(*) FROM provenance WHERE document_id = ?1),
+                   (SELECT COUNT(*) FROM claims WHERE document_id = ?1)",
+                params![document.id],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .expect("query derived metadata after failed replacement");
+        assert_eq!((provenance, claims), (1, 1));
+
+        let _ = fs::remove_dir_all(root);
     }
 }
