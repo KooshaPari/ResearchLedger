@@ -695,15 +695,19 @@ impl<T> OptionalRow<T> for SqlResult<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{SystemTime, UNIX_EPOCH};
+
+    static TEMP_ROOT_COUNTER: AtomicU64 = AtomicU64::new(0);
 
     fn temp_root() -> PathBuf {
         std::env::temp_dir().join(format!(
-            "researchledger-storage-{}",
+            "researchledger-storage-{}-{}",
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .expect("system clock is after Unix epoch")
-                .as_nanos()
+                .as_nanos(),
+            TEMP_ROOT_COUNTER.fetch_add(1, Ordering::Relaxed),
         ))
     }
 
