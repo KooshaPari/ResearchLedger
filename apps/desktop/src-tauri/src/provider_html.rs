@@ -82,7 +82,10 @@ pub fn is_hackernews_post_path(cleaned: &str) -> bool {
     // already-cleaned canonical form `https://news.ycombinator.com/item`
     // (in which case `cleaned` would have stripped the query — and we treat
     // that as malformed).
-    let query = cleaned.split('?').nth(1).unwrap_or("");
+    let query = cleaned
+        .split_once('?')
+        .map(|(_, query)| query.split('#').next().unwrap_or(""))
+        .unwrap_or("");
     let id = query
         .split('&')
         .find_map(|pair| pair.strip_prefix("id="))
@@ -305,6 +308,9 @@ mod tests {
         ));
         assert!(is_hackernews_post_path(
             "https://news.ycombinator.com/item?id=42380912"
+        ));
+        assert!(is_hackernews_post_path(
+            "https://news.ycombinator.com/item?id=42380912#comment"
         ));
     }
 

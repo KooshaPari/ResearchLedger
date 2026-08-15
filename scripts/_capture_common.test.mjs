@@ -144,6 +144,14 @@ describe("defaultCapturePath", () => {
 });
 
 describe("writeCapture", () => {
+  it("rejects a relative output path before it can write into the working tree", async () => {
+    await expect(writeCapture(
+      "./captures/reddit.json",
+      { version: 1, posts: [] },
+      "should not write",
+    )).rejects.toThrow("Capture output path must be absolute");
+  });
+
   it("round-trips a 2-post Reddit fixture and produces JSON-stable output", async () => {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "cap-reddit-"));
     const output = path.join(directory, "reddit.json");

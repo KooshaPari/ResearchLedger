@@ -597,6 +597,9 @@ export async function probeLinks({ page, selector, probe }) { // NOSONAR
  * @param {string} successMessage
  */
 export async function writeCapture(outputPath, payload, successMessage) {
+  if (!path.isAbsolute(outputPath)) {
+    throw new Error("Capture output path must be absolute");
+  }
   await fs.mkdir(path.dirname(path.resolve(outputPath)), { recursive: true });
   await fs.writeFile(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
   console.error(successMessage);

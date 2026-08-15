@@ -27,9 +27,10 @@ function isForbiddenProductionSource(source) {
   if (source === "*" || source.startsWith("ws:") || source.startsWith("wss:")) return true;
   try {
     const url = new URL(source);
+    const hostname = url.hostname.replace(/^\[|\]$/g, "");
     return ["http:", "https:"].includes(url.protocol)
-      && ["localhost", "127.0.0.1", "::1"].includes(url.hostname)
-      && !["ipc.localhost", "asset.localhost"].includes(url.hostname);
+      && ["localhost", "127.0.0.1", "::1"].includes(hostname)
+      && !["ipc.localhost", "asset.localhost"].includes(hostname);
   } catch {
     return false;
   }

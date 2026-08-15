@@ -1,8 +1,18 @@
 use crate::{enrichment, storage::SourceDocument};
 
 fn body_lines(content: &str) -> Vec<String> {
-    content
-        .lines()
+    let mut lines = content.lines();
+    if lines.next() != Some("---") {
+        lines = content.lines();
+    } else {
+        for line in lines.by_ref() {
+            if line == "---" {
+                break;
+            }
+        }
+    }
+
+    lines
         .map(str::trim)
         .filter(|line| !line.is_empty() && !line.starts_with("---") && !line.starts_with('#'))
         .map(|line| line.trim_start_matches(['-', '*', '>']).trim().to_string())
@@ -192,5 +202,14 @@ mod tests {
             content.find(&evidence[0].claim).unwrap() as i64
         );
         assert!(evidence[0].end <= evidence[1].start);
+    }
+
+    #[test]
+    fn claims_exclude_yaml_frontmatter() {
+        let claims = extract_claims(
+            "---\ntitle: A frontmatter sentence that must not become distilled research evidence.\ntype: Research Note\n---\nA durable ledger is local and reviewable.",
+        );
+
+        assert_eq!(claims, vec!["A durable ledger is local and reviewable."]);
     }
 }

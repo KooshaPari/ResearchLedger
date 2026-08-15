@@ -40,7 +40,9 @@ pub fn validate_concept(markdown: &str) -> Result<ConceptMetadata, ValidationErr
             break;
         }
         if let Some(value) = line.strip_prefix("type:") {
-            type_name = Some(unquote_yaml_scalar(value.trim()));
+            if matches!(value.as_bytes().first(), None | Some(b' ' | b'\t')) {
+                type_name = Some(unquote_yaml_scalar(value.trim()));
+            }
         }
     }
     if !closed {
@@ -62,5 +64,20 @@ fn unquote_yaml_scalar(value: &str) -> String {
         value[1..value.len() - 1].trim().to_string()
     } else {
         value.to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_type_key_without_yaml_delimiter_whitespace() {
+        let result = validate_concept("---\ntype:evil\n---\n# Not an OKF concept");
+
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "OKF concept requires a `type` field"
+        );
     }
 }
