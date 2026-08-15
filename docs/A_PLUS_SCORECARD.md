@@ -15,7 +15,7 @@ local cross-encoder contract are evidenced in the current integration.
 | Search/RAG | FTS5 lexical search, deterministic chunking, model/version/input-hashed vectors, hybrid fusion including vector-only candidates, and a numeric-loopback local cross-encoder contract with deterministic fallback; adapter prevents model-download fallback | IMPLEMENTED / local-model quality and restart validation pending |
 | Frontend and interoperability | Workspace workflows and OKF-style Markdown/JSON interchange are implemented | IMPLEMENTED / validation and packaged-app parity pending |
 | Privacy and security | Renderer credential boundary, URL/path guards, consent and audit code are implemented | IMPLEMENTED / security review and installed-app verification pending |
-| Verification | Current source validation: `bun run test` (118 tests), Rust library tests (112), strict Clippy, formatting, resource parity, and Cargo Deny passed; hosted Rust, TS/JS, Cargo Deny, security, and aggregate CI passed on `fb8dc6c` | IMPLEMENTED / package, installed-binary, and authenticated-provider evidence pending |
+| Verification | Current source validation: `bun run test` (118 tests), Rust library tests (114), strict Clippy, formatting, resource parity, and Cargo Deny passed; hosted Rust, TS/JS, Cargo Deny, security, and aggregate CI passed on `fb8dc6c` | IMPLEMENTED / package, installed-binary, and authenticated-provider evidence pending |
 
 ## Remaining A+ gates
 
