@@ -7,12 +7,21 @@ implicitly and never sends document text off-device.
 
 import json
 import os
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
+MODEL = os.environ.get("RESEARCHLEDGER_RERANK_MODEL_PATH")
+if not MODEL:
+    print(
+        "RESEARCHLEDGER_RERANK_MODEL_PATH must be set to a local model directory",
+        file=sys.stderr,
+    )
+    raise SystemExit(2)
+
 from sentence_transformers import CrossEncoder
 
-MODEL = os.environ["RESEARCHLEDGER_RERANK_MODEL_PATH"]
 PORT = int(os.environ.get("RESEARCHLEDGER_RERANK_PORT", "8082"))
 encoder = CrossEncoder(MODEL, max_length=512)
 
