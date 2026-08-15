@@ -128,16 +128,22 @@ impl<'a> ConsentRegistry<'a> {
                 let granted_at = match parse_rfc3339(&granted_at) {
                     Ok(granted_at) => granted_at,
                     Err(()) => {
-                        reason = "invalid_granted_at";
-                        continue;
+                        self.audit(&id, &target, false, "invalid_granted_at", now)?;
+                        return Ok(ConsentDecision {
+                            allowed: false,
+                            reason: "invalid_granted_at".into(),
+                        });
                     }
                 };
                 let expires_at = match expires_at.as_deref() {
                     Some(expires_at) => match parse_rfc3339(expires_at) {
                         Ok(expires_at) => Some(expires_at),
                         Err(()) => {
-                            reason = "invalid_expires_at";
-                            continue;
+                            self.audit(&id, &target, false, "invalid_expires_at", now)?;
+                            return Ok(ConsentDecision {
+                                allowed: false,
+                                reason: "invalid_expires_at".into(),
+                            });
                         }
                     },
                     None => None,
@@ -317,6 +323,39 @@ mod tests {
             &connection,
             "https://example.com/reference",
             "invalid_granted_at",
+        );
+    }
+
+    #[test]
+    fn malformed_newer_grant_cannot_fall_through_to_an_older_grant() {
+        let connection = connection();
+        let registry = ConsentRegistry::new(&connection);
+        for (id, version) in [("older", 1), ("newer", 2)] {
+            registry
+                .grant(ConsentGrant {
+                    id: id.into(),
+                    local_profile: "default".into(),
+                    provider: "manual".into(),
+                    purpose: REFERENCE_FETCH_PURPOSE.into(),
+                    data_categories: vec![PUBLIC_WEB_CATEGORY.into()],
+                    url_scope: "https://example.com/reference".into(),
+                    expires_at: None,
+                    version,
+                    granted_at: "2026-08-10T00:00:00Z".into(),
+                })
+                .unwrap();
+        }
+        connection
+            .execute(
+                "UPDATE consent_grants SET expires_at = 'zzzz' WHERE id = 'newer'",
+                [],
+            )
+            .unwrap();
+
+        assert_denied_and_redacted(
+            &connection,
+            "https://example.com/reference",
+            "invalid_expires_at",
         );
     }
 
