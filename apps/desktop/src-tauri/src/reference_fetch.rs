@@ -345,9 +345,10 @@ pub fn extract_text(body: &str, content_type: &str) -> String {
 
 pub fn render_markdown(url: &str, fetched: &FetchedReference) -> String {
     let text = extract_text(&fetched.body, &fetched.content_type);
+    let resource = serde_json::to_string(url).expect("serializing a URL string is infallible");
     format!(
-        "---\ntype: \"Fetched Reference\"\ntitle: \"Fetched reference\"\nresource: {url}\ntimestamp: {}\ntags: [reference, fetched]\n---\n\n# Captured Reference\n\n{text}\n\n# Citations\n\n[1] [Original reference]({url})\n",
-        chrono::Utc::now().to_rfc3339()
+        "---\ntype: \"Fetched Reference\"\ntitle: \"Fetched reference\"\nresource: {resource}\ntimestamp: {}\ntags: [reference, fetched]\n---\n\n# Captured Reference\n\n{text}\n\n# Citations\n\n[1] [Original reference]({url})\n",
+        chrono::Utc::now().to_rfc3339(),
     )
 }
 
@@ -387,6 +388,20 @@ mod tests {
             extract_text("<h1>Hello</h1><p>World</p>", "text/html"),
             "Hello World"
         );
+    }
+
+    #[test]
+    fn reference_frontmatter_quotes_the_resource_url() {
+        let fetched = FetchedReference {
+            artifact_path: ".researchledger/references/hash.txt".into(),
+            content_type: "text/plain".into(),
+            http_status: 200,
+            byte_count: 4,
+            content_hash: "hash".into(),
+            body: "body".into(),
+        };
+        let markdown = render_markdown("https://example.com/a?title=What%3A%20now", &fetched);
+        assert!(markdown.contains("resource: \"https://example.com/a?title=What%3A%20now\""));
     }
 
     #[test]
