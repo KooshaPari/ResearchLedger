@@ -115,6 +115,8 @@ CREATE TABLE IF NOT EXISTS reference_fetches (
   source_document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
   target_url TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending',
+  started_at TEXT,
+  lease_expires_at INTEGER NOT NULL DEFAULT 0,
   artifact_path TEXT,
   content_type TEXT,
   http_status INTEGER,

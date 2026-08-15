@@ -52,6 +52,8 @@ pub struct ReferenceFetchUpdate<'a> {
     pub error: Option<&'a str>,
 }
 
+const REFERENCE_FETCH_LEASE_SECS: i64 = 180;
+
 pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     fs::create_dir_all(root).map_err(|_| rusqlite::Error::InvalidPath(root.to_path_buf()))?;
     let database = root.join(".researchledger.db");
@@ -90,6 +92,26 @@ pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
             )?;
         }
     }
+    for (name, definition) in [
+        ("started_at", "TEXT"),
+        ("lease_expires_at", "INTEGER NOT NULL DEFAULT 0"),
+    ] {
+        let exists: bool = connection.query_row(
+            "SELECT EXISTS(SELECT 1 FROM pragma_table_info('reference_fetches') WHERE name = ?1)",
+            params![name],
+            |row| row.get(0),
+        )?;
+        if !exists {
+            connection.execute(
+                &format!("ALTER TABLE reference_fetches ADD COLUMN {name} {definition}"),
+                [],
+            )?;
+        }
+    }
+    connection.execute_batch(
+        "CREATE INDEX IF NOT EXISTS idx_reference_fetches_recovery
+           ON reference_fetches(status, lease_expires_at, id);",
+    )?;
     Ok(LedgerPaths { database })
 }
 
@@ -383,6 +405,16 @@ pub fn pending_reference_jobs(connection: &Connection, limit: u32) -> SqlResult<
     pending_reference_jobs_at(connection, limit, &chrono::Utc::now().to_rfc3339())
 }
 
+fn reference_fetch_epoch(now: &str) -> SqlResult<i64> {
+    chrono::DateTime::parse_from_rfc3339(now)
+        .map(|timestamp| timestamp.timestamp())
+        .map_err(|_| {
+            rusqlite::Error::InvalidParameterName(
+                "reference fetch timestamp must be RFC3339".into(),
+            )
+        })
+}
+
 pub fn pending_reference_jobs_at(
     connection: &Connection,
     limit: u32,
@@ -391,11 +423,14 @@ pub fn pending_reference_jobs_at(
     if limit == 0 {
         return Ok(Vec::new());
     }
+    let now_epoch = reference_fetch_epoch(now)?;
     let mut statement = connection.prepare(
         "SELECT source_document_id, target_url FROM reference_fetches
-         WHERE status = 'pending' ORDER BY id",
+         WHERE status = 'pending'
+            OR (status = 'running' AND lease_expires_at <= ?1)
+         ORDER BY id",
     )?;
-    let rows = statement.query_map([], |row| {
+    let rows = statement.query_map(params![now_epoch], |row| {
         Ok(ReferenceJob {
             source_document_id: row.get(0)?,
             target_url: row.get(1)?,
@@ -444,6 +479,14 @@ pub fn claim_reference_fetch_if_consented(
     job: &ReferenceJob,
     now: &str,
 ) -> SqlResult<bool> {
+    let now_epoch = reference_fetch_epoch(now)?;
+    let lease_expires_at = now_epoch
+        .checked_add(REFERENCE_FETCH_LEASE_SECS)
+        .ok_or_else(|| {
+            rusqlite::Error::InvalidParameterName(
+                "reference fetch lease timestamp overflowed".into(),
+            )
+        })?;
     let decision = crate::consent::ConsentRegistry::new(connection).decide(&job.target_url, now)?;
     if !decision.allowed {
         record_reference_fetch(
@@ -463,9 +506,17 @@ pub fn claim_reference_fetch_if_consented(
         return Ok(false);
     }
     Ok(connection.execute(
-        "UPDATE reference_fetches SET status = 'running', error = NULL
-         WHERE source_document_id = ?1 AND target_url = ?2 AND status = 'pending'",
-        params![job.source_document_id, job.target_url],
+        "UPDATE reference_fetches SET status = 'running', started_at = ?3,
+         lease_expires_at = ?4, error = NULL
+         WHERE source_document_id = ?1 AND target_url = ?2
+           AND (status = 'pending' OR (status = 'running' AND lease_expires_at <= ?5))",
+        params![
+            job.source_document_id,
+            job.target_url,
+            now,
+            lease_expires_at,
+            now_epoch,
+        ],
     )? == 1)
 }
 
@@ -700,6 +751,108 @@ mod tests {
             .expect("query derived metadata after failed replacement");
         assert_eq!((provenance, claims), (1, 1));
 
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn claimed_reference_job_is_unavailable_until_its_lease_expires() {
+        let root = temp_root();
+        let paths = initialize(&root).expect("initialize vault");
+        let mut connection = open(&paths).expect("open vault");
+        let document = document();
+        upsert_document(&mut connection, &root, &document).expect("create document");
+        crate::consent::ConsentRegistry::new(&connection)
+            .grant(crate::consent::ConsentGrant {
+                id: "reference-fetch-consent".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/reference".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .expect("grant consent");
+        assert!(queue_reference_fetch(
+            &connection,
+            &document.id,
+            "https://example.com/reference",
+            "2026-08-10T01:00:00Z",
+        )
+        .expect("queue reference"));
+
+        let job = pending_reference_jobs_at(&connection, 1, "2026-08-10T02:00:00Z")
+            .expect("dequeue reference")
+            .pop()
+            .expect("queued job");
+        assert!(
+            claim_reference_fetch_if_consented(&connection, &job, "2026-08-10T02:00:00Z")
+                .expect("claim reference")
+        );
+        let lease_expires_at: i64 = connection
+            .query_row(
+                "SELECT lease_expires_at FROM reference_fetches WHERE source_document_id = ?1 AND target_url = ?2",
+                params![job.source_document_id, job.target_url],
+                |row| row.get(0),
+            )
+            .expect("read durable lease");
+        assert!(lease_expires_at > 0);
+
+        assert!(
+            pending_reference_jobs_at(&connection, 1, "2026-08-10T02:02:59Z")
+                .expect("fresh lease is unavailable")
+                .is_empty()
+        );
+        assert_eq!(
+            pending_reference_jobs_at(&connection, 1, "2026-08-10T02:03:00Z")
+                .expect("expired lease is retryable"),
+            vec![job.clone()]
+        );
+        assert!(
+            claim_reference_fetch_if_consented(&connection, &job, "2026-08-10T02:03:00Z")
+                .expect("expired lease can be reclaimed")
+        );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn initialize_adds_reference_lease_columns_to_existing_vaults() {
+        let root = temp_root();
+        fs::create_dir_all(&root).expect("create legacy vault root");
+        let database = root.join(".researchledger.db");
+        let legacy = Connection::open(&database).expect("open legacy database");
+        legacy
+            .execute_batch(
+                "CREATE TABLE reference_fetches (
+                   id INTEGER PRIMARY KEY AUTOINCREMENT,
+                   source_document_id TEXT NOT NULL,
+                   target_url TEXT NOT NULL,
+                   status TEXT NOT NULL DEFAULT 'pending',
+                   artifact_path TEXT,
+                   content_type TEXT,
+                   http_status INTEGER,
+                   byte_count INTEGER,
+                   content_hash TEXT,
+                   fetched_at TEXT,
+                   error TEXT,
+                   UNIQUE(source_document_id, target_url)
+                 );",
+            )
+            .expect("create pre-lease table");
+        drop(legacy);
+
+        let paths = initialize(&root).expect("migrate existing vault");
+        let connection = open(&paths).expect("open migrated vault");
+        let columns = connection
+            .prepare("SELECT name FROM pragma_table_info('reference_fetches') ORDER BY cid")
+            .expect("prepare column query")
+            .query_map([], |row| row.get::<_, String>(0))
+            .expect("query columns")
+            .collect::<SqlResult<Vec<_>>>()
+            .expect("read columns");
+        assert!(columns.iter().any(|name| name == "started_at"));
+        assert!(columns.iter().any(|name| name == "lease_expires_at"));
         let _ = fs::remove_dir_all(root);
     }
 }
