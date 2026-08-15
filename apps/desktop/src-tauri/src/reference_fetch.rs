@@ -187,6 +187,7 @@ fn is_private_or_local(ip: IpAddr) -> bool {
                 || ip.is_unspecified()
                 || ip.is_unique_local()
                 || ip.is_unicast_link_local()
+                || ip.is_multicast()
         }
     }
 }
@@ -360,6 +361,7 @@ mod tests {
     fn rejects_private_and_credentialed_urls() {
         assert!(validate_public_url("http://127.0.0.1:8000/a").is_err());
         assert!(validate_public_url("http://[::ffff:127.0.0.1]/a").is_err());
+        assert!(validate_public_url("http://[ff02::1]/a").is_err());
         assert!(validate_public_url("http://100.64.0.1/a").is_err());
         assert!(validate_public_url("http://192.0.1.0/a").is_err());
         assert!(validate_public_url("http://192.0.2.1/a").is_err());

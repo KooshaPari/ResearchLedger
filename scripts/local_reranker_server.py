@@ -10,8 +10,6 @@ import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
-
 MODEL = os.environ.get("RESEARCHLEDGER_RERANK_MODEL_PATH")
 if not MODEL:
     print(
@@ -23,7 +21,7 @@ if not MODEL:
 from sentence_transformers import CrossEncoder
 
 PORT = int(os.environ.get("RESEARCHLEDGER_RERANK_PORT", "8082"))
-encoder = CrossEncoder(MODEL, max_length=512)
+encoder = CrossEncoder(MODEL, max_length=512, local_files_only=True)
 
 
 class Handler(BaseHTTPRequestHandler):

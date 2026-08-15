@@ -240,12 +240,12 @@ pub fn upsert_document(
             )?;
             write_chunks(&transaction, &document.id, &expected_chunks)?;
         }
+        transaction.execute(
+            "DELETE FROM provenance WHERE document_id = ?1",
+            params![document.id],
+        )?;
         if let Some(source_uri) = document.source_uri.as_deref() {
             let quote = provenance_quote(&document.content);
-            transaction.execute(
-                "DELETE FROM provenance WHERE document_id = ?1",
-                params![document.id],
-            )?;
             transaction.execute(
                 "INSERT INTO provenance(document_id, source_uri, locator, quote, captured_at) VALUES(?1, ?2, ?3, ?4, ?5)",
                 params![document.id, source_uri, document.relative_path, quote, document.captured_at],
@@ -754,6 +754,33 @@ mod tests {
             )
             .expect("query derived metadata after failed replacement");
         assert_eq!((provenance, claims), (1, 1));
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn unchanged_upsert_removes_provenance_when_source_uri_is_removed() {
+        let root = temp_root();
+        let paths = initialize(&root).expect("initialize vault");
+        let mut connection = open(&paths).expect("open vault");
+        let document = document();
+        upsert_document(&mut connection, &root, &document).expect("create document");
+
+        let mut source_removed = document.clone();
+        source_removed.source_uri = None;
+        assert_eq!(
+            upsert_document(&mut connection, &root, &source_removed)
+                .expect("reimport same content without source URI"),
+            UpsertResult::Unchanged
+        );
+        let provenance: i64 = connection
+            .query_row(
+                "SELECT COUNT(*) FROM provenance WHERE document_id = ?1",
+                params![document.id],
+                |row| row.get(0),
+            )
+            .expect("count provenance after source removal");
+        assert_eq!(provenance, 0);
 
         let _ = fs::remove_dir_all(root);
     }
