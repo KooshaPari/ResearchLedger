@@ -10,12 +10,12 @@ local cross-encoder contract are evidenced in the current integration.
 | Local-first Tauri desktop | Tauri desktop source, SQLite metadata, and Markdown vault paths are present in the integration | IMPLEMENTED / package and installed-app validation pending |
 | GitHub import | Rust-owned local GitHub CLI integration and importer code are present | IMPLEMENTED / authenticated installed-app invocation pending |
 | Provider boundary | Official export/manual permalink path is the intended LinkedIn boundary; no release claim is supported by this merge | IMPLEMENTED boundary / live policy and installed-app validation pending |
-| Consented bounded fetching | Scoped, expiring, revocable consent grants; hashed consent audit targets; post-consent bounded queue selection, reclaimable leases, pre-fetch revocation recheck, and public-address DNS-pinned HTTP clients | IMPLEMENTED / packaged-app and security-review validation pending |
-| Claims and provenance | Persisted provenance and structured claims with source citations and reproducible spans | IMPLEMENTED / validation pending |
-| Search/RAG | FTS5 lexical search, deterministic chunking, model/version/input-hashed vectors, hybrid fusion including vector-only candidates, and a loopback local cross-encoder contract with deterministic fallback | IMPLEMENTED / local-model quality and restart validation pending |
+| Consented bounded fetching | Scoped, expiring, revocable consent grants with malformed timestamp fail-closed behavior; hashed consent audit targets; post-consent bounded queue selection, reclaimable leases, pre-fetch revocation recheck, and public-address DNS-pinned HTTP clients | IMPLEMENTED / packaged-app and security-review validation pending |
+| Claims and provenance | Persisted provenance and structured claims with source citations and reproducible spans; unchanged reimports remove stale provenance atomically | IMPLEMENTED / validation pending |
+| Search/RAG | FTS5 lexical search, deterministic chunking, model/version/input-hashed vectors, hybrid fusion including vector-only candidates, and a numeric-loopback local cross-encoder contract with deterministic fallback; adapter prevents model-download fallback | IMPLEMENTED / local-model quality and restart validation pending |
 | Frontend and interoperability | Workspace workflows and OKF-style Markdown/JSON interchange are implemented | IMPLEMENTED / validation and packaged-app parity pending |
 | Privacy and security | Renderer credential boundary, URL/path guards, consent and audit code are implemented | IMPLEMENTED / security review and installed-app verification pending |
-| Verification | Current source validation: `bun run test` (117 tests), Rust library tests (107), strict Clippy, and Rust formatting passed on the candidate; current PR CI passed | IMPLEMENTED / package, installed-binary, and authenticated-provider evidence pending |
+| Verification | Current source validation: `bun run test` (118 tests), Rust library tests (112), strict Clippy, formatting, resource parity, and Cargo Deny passed; hosted Rust, TS/JS, Cargo Deny, security, and aggregate CI passed on `fb8dc6c` | IMPLEMENTED / package, installed-binary, and authenticated-provider evidence pending |
 
 ## Remaining A+ gates
 

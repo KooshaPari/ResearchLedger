@@ -388,7 +388,7 @@ pub fn load_document(
     if !path.starts_with(root) {
         return Err(rusqlite::Error::InvalidPath(path));
     }
-    document.content = fs::read_to_string(path).unwrap_or_default();
+    document.content = fs::read_to_string(&path).map_err(|_| rusqlite::Error::InvalidPath(path))?;
     Ok(Some(document))
 }
 
@@ -781,6 +781,23 @@ mod tests {
             )
             .expect("count provenance after source removal");
         assert_eq!(provenance, 0);
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn load_document_errors_when_the_stored_markdown_file_is_missing() {
+        let root = temp_root();
+        let paths = initialize(&root).expect("initialize vault");
+        let mut connection = open(&paths).expect("open vault");
+        let document = document();
+        upsert_document(&mut connection, &root, &document).expect("create document");
+        fs::remove_file(root.join(&document.relative_path)).expect("remove stored markdown");
+
+        assert!(
+            load_document(&connection, &root, &document.id).is_err(),
+            "a database record without its Markdown source must not load as empty content"
+        );
 
         let _ = fs::remove_dir_all(root);
     }
