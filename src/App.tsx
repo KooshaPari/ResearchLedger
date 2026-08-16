@@ -75,6 +75,12 @@ type ImportResult = {
   unchanged: number;
   failed: number;
 };
+type LocalPreferences = {
+  vaultPath: string | null;
+  hackernewsProfile: string | null;
+  redditProfile: string | null;
+  xProfile: string | null;
+};
 const views: Array<{ id: PrimaryView; label: string; hint: string }> = [
   {
     id: "inbox",
@@ -96,16 +102,35 @@ const views: Array<{ id: PrimaryView; label: string; hint: string }> = [
 
 export function App() {
   const [activeView, setActiveView] = useState<PrimaryView>("inbox");
-  const [vaultPath, setVaultPath] = useState(() =>
-    typeof localStorage === "undefined"
-      ? ""
-      : (localStorage.getItem("researchledger.vaultPath") ?? ""),
-  );
+  const [vaultPath, setVaultPath] = useState("");
+  const [hackernewsProfile, setHackernewsProfile] = useState("");
+  const [redditProfile, setRedditProfile] = useState("");
+  const [xProfile, setXProfile] = useState("");
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [status, setStatus] = useState<VaultStatus | null>(null);
   const [message, setMessage] = useState("");
   useEffect(() => {
-    if (vaultPath) localStorage.setItem("researchledger.vaultPath", vaultPath);
-  }, [vaultPath]);
+    invoke<LocalPreferences>("load_local_preferences")
+      .then((preferences) => {
+        setVaultPath(preferences.vaultPath ?? "");
+        setHackernewsProfile(preferences.hackernewsProfile ?? "");
+        setRedditProfile(preferences.redditProfile ?? "");
+        setXProfile(preferences.xProfile ?? "");
+      })
+      .catch(() => undefined)
+      .finally(() => setPreferencesLoaded(true));
+  }, []);
+  useEffect(() => {
+    if (!preferencesLoaded) return;
+    void invoke("save_local_preferences", {
+      preferences: {
+        vaultPath: vaultPath || null,
+        hackernewsProfile: hackernewsProfile || null,
+        redditProfile: redditProfile || null,
+        xProfile: xProfile || null,
+      },
+    });
+  }, [preferencesLoaded, vaultPath, hackernewsProfile, redditProfile, xProfile]);
   useEffect(() => {
     invoke<VaultStatus>("get_vault_status", { vaultPath: vaultPath || null })
       .then(setStatus)
@@ -215,6 +240,12 @@ export function App() {
             run={run}
             message={message}
             setMessage={setMessage}
+            hackernewsProfile={hackernewsProfile}
+            setHackernewsProfile={setHackernewsProfile}
+            redditProfile={redditProfile}
+            setRedditProfile={setRedditProfile}
+            xProfile={xProfile}
+            setXProfile={setXProfile}
           />
         </section>
         <section
@@ -258,6 +289,12 @@ function Inbox({
   run,
   message,
   setMessage,
+  hackernewsProfile,
+  setHackernewsProfile,
+  redditProfile,
+  setRedditProfile,
+  xProfile,
+  setXProfile,
 }: {
   vaultPath: string;
   status: VaultStatus | null;
@@ -271,17 +308,14 @@ function Inbox({
   ) => Promise<void>;
   message: string;
   setMessage: (value: string) => void;
+  hackernewsProfile: string;
+  setHackernewsProfile: (value: string) => void;
+  redditProfile: string;
+  setRedditProfile: (value: string) => void;
+  xProfile: string;
+  setXProfile: (value: string) => void;
 }) {
-  const [hackernewsProfile, setHackernewsProfile] = useState(() =>
-    typeof localStorage === "undefined"
-      ? ""
-      : (localStorage.getItem("researchledger.hackernewsProfile") ?? ""),
-  );
-  const [hackernewsUsername, setHackernewsUsername] = useState(() =>
-    typeof localStorage === "undefined"
-      ? ""
-      : (localStorage.getItem("researchledger.hackernewsUsername") ?? ""),
-  );
+  const [hackernewsUsername, setHackernewsUsername] = useState("");
   const [linkedinPermalink, setLinkedinPermalink] = useState("");
   const [linkedinContent, setLinkedinContent] = useState("");
   const [query, setQuery] = useState("");
@@ -299,22 +333,8 @@ function Inbox({
     "needs-auth",
   );
   const [redditPath, setRedditPath] = useState("");
-  const [redditProfile, setRedditProfile] = useState(() =>
-    typeof localStorage === "undefined"
-      ? ""
-      : (localStorage.getItem("researchledger.redditProfile") ?? ""),
-  );
-  const [redditUsername, setRedditUsername] = useState(() =>
-    typeof localStorage === "undefined"
-      ? ""
-      : (localStorage.getItem("researchledger.redditUsername") ?? ""),
-  );
+  const [redditUsername, setRedditUsername] = useState("");
   const [xPath, setXPath] = useState("");
-  const [xProfile, setXProfile] = useState(() =>
-    typeof localStorage === "undefined"
-      ? ""
-      : (localStorage.getItem("researchledger.xProfile") ?? ""),
-  );
   const importGithubStars = async () => {
     if (!vaultPath) {
       setMessage("Select a vault before running a source action.");
@@ -329,11 +349,6 @@ function Inbox({
   };
   const captureHackerNews = async () => {
     if (!requireVault()) return;
-    if (hackernewsProfile && typeof localStorage !== "undefined")
-      localStorage.setItem(
-        "researchledger.hackernewsProfile",
-        hackernewsProfile,
-      );
     const username = hackernewsUsername ? hackernewsUsername.trim() : "";
     if (!username) {
       setHnState("needs-auth");
@@ -365,8 +380,6 @@ function Inbox({
   };
   const captureReddit = async () => {
     if (!requireVault()) return;
-    if (redditProfile)
-      localStorage.setItem("researchledger.redditProfile", redditProfile);
     const username = redditUsername.trim();
     if (!username) {
       setRedditState("needs-auth");
@@ -394,7 +407,6 @@ function Inbox({
   };
   const captureX = async () => {
     if (!requireVault()) return;
-    if (xProfile) localStorage.setItem("researchledger.xProfile", xProfile);
     setXState("capturing");
     try {
       const value = await invoke("capture_x_browser", {
@@ -730,7 +742,12 @@ function Inbox({
           </button>
         </div>
       </section>
-      <HackerNewsPanel vaultPath={vaultPath} setMessage={setMessage} />
+      <HackerNewsPanel
+        vaultPath={vaultPath}
+        setMessage={setMessage}
+        hackernewsProfile={hackernewsProfile}
+        setHackernewsProfile={setHackernewsProfile}
+      />
       <section className="vault-strip">
         <div>
           <p className="eyebrow">VAULT</p>

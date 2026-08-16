@@ -15,6 +15,81 @@ mod safe_paths;
 mod storage;
 mod x;
 
+/// Paths are local machine preferences, not browser data. They are kept in
+/// the Tauri app configuration directory so the webview never persists raw
+/// filesystem locations in `localStorage`.
+mod native_preferences {
+    use serde::{Deserialize, Serialize};
+    use std::path::{Component, Path};
+
+    const FILE_NAME: &str = "local-preferences.json";
+
+    #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct LocalPreferences {
+        pub vault_path: Option<String>,
+        pub hackernews_profile: Option<String>,
+        pub reddit_profile: Option<String>,
+        pub x_profile: Option<String>,
+    }
+
+    pub fn load(config_dir: &Path) -> Result<LocalPreferences, String> {
+        let path = config_dir.join(FILE_NAME);
+        if !path.exists() {
+            return Ok(LocalPreferences::default());
+        }
+        let contents = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
+        let preferences = serde_json::from_str(&contents)
+            .map_err(|_| "local preferences could not be read".to_string())?;
+        validate(preferences)
+    }
+
+    pub fn save(config_dir: &Path, preferences: LocalPreferences) -> Result<(), String> {
+        let preferences = validate(preferences)?;
+        std::fs::create_dir_all(config_dir).map_err(|error| error.to_string())?;
+        let path = config_dir.join(FILE_NAME);
+        let temporary_path = config_dir.join(format!(".{FILE_NAME}.tmp"));
+        let contents = serde_json::to_vec(&preferences).map_err(|error| error.to_string())?;
+        std::fs::write(&temporary_path, contents).map_err(|error| error.to_string())?;
+        std::fs::rename(temporary_path, path).map_err(|error| error.to_string())
+    }
+
+    pub fn validate(mut preferences: LocalPreferences) -> Result<LocalPreferences, String> {
+        preferences.vault_path = validate_path(preferences.vault_path, "vault")?;
+        preferences.hackernews_profile =
+            validate_path(preferences.hackernews_profile, "Hacker News profile")?;
+        preferences.reddit_profile = validate_path(preferences.reddit_profile, "Reddit profile")?;
+        preferences.x_profile = validate_path(preferences.x_profile, "X profile")?;
+        Ok(preferences)
+    }
+
+    fn validate_path(value: Option<String>, label: &str) -> Result<Option<String>, String> {
+        let Some(value) = value else {
+            return Ok(None);
+        };
+        let value = value.trim();
+        if value.is_empty() {
+            return Ok(None);
+        }
+        if value.chars().any(|character| character.is_control()) {
+            return Err(format!("{label} path must not contain control characters"));
+        }
+        let path = Path::new(value);
+        if !path.is_absolute() {
+            return Err(format!("{label} path must be absolute"));
+        }
+        if path
+            .components()
+            .any(|component| matches!(component, Component::ParentDir))
+        {
+            return Err(format!(
+                "{label} path must not contain `..` traversal segments"
+            ));
+        }
+        Ok(Some(value.to_string()))
+    }
+}
+
 mod commands {
     include!("commands.rs");
 
@@ -24,7 +99,8 @@ mod commands {
         distill,
         embeddings::{LocalCrossEncoder, OllamaEmbedder},
         github::GithubClient,
-        hackernews, rag, reddit, reference_fetch, safe_paths, storage, x, VaultStatus,
+        hackernews, native_preferences, rag, reddit, reference_fetch, safe_paths, storage, x,
+        VaultStatus,
     };
     use serde::{Deserialize, Serialize};
     use sha2::{Digest, Sha256};
@@ -68,6 +144,29 @@ mod commands {
         pub source_document_id: String,
         pub target_url: String,
         pub queued: bool,
+    }
+
+    #[tauri::command]
+    pub fn load_local_preferences(
+        app: tauri::AppHandle,
+    ) -> Result<native_preferences::LocalPreferences, String> {
+        let config_dir = app
+            .path()
+            .app_config_dir()
+            .map_err(|error| error.to_string())?;
+        native_preferences::load(&config_dir)
+    }
+
+    #[tauri::command]
+    pub fn save_local_preferences(
+        app: tauri::AppHandle,
+        preferences: native_preferences::LocalPreferences,
+    ) -> Result<(), String> {
+        let config_dir = app
+            .path()
+            .app_config_dir()
+            .map_err(|error| error.to_string())?;
+        native_preferences::save(&config_dir, preferences)
     }
 
     #[tauri::command]
@@ -1197,6 +1296,8 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
+            commands::load_local_preferences,
+            commands::save_local_preferences,
             commands::get_vault_status,
             commands::grant_consent,
             commands::revoke_consent,
@@ -1232,6 +1333,7 @@ pub fn run() {
 mod tests {
     use super::commands;
     use super::consent::{ConsentGrant, ConsentRegistry};
+    use super::native_preferences::{self, LocalPreferences};
     use super::storage::*;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -1739,5 +1841,30 @@ mod tests {
         );
         assert!(commands::parse_gh_token_output(false, b"secret-token").is_err());
         assert!(commands::parse_gh_token_output(true, b"\n").is_err());
+    }
+
+    #[test]
+    fn native_preferences_persist_valid_paths_and_reject_unsafe_ones() {
+        let root = temp_root();
+        let preferences = LocalPreferences {
+            vault_path: Some("/tmp/research-vault".into()),
+            hackernews_profile: Some("/tmp/hackernews-profile".into()),
+            reddit_profile: None,
+            x_profile: Some("/tmp/x-profile".into()),
+        };
+
+        native_preferences::save(&root, preferences.clone()).unwrap();
+        assert_eq!(native_preferences::load(&root).unwrap(), preferences);
+        assert!(native_preferences::validate(LocalPreferences {
+            vault_path: Some("../escaped-vault".into()),
+            ..LocalPreferences::default()
+        })
+        .is_err());
+        assert!(native_preferences::validate(LocalPreferences {
+            x_profile: Some("/tmp/profile\nwith-control-character".into()),
+            ..LocalPreferences::default()
+        })
+        .is_err());
+        let _ = std::fs::remove_dir_all(root);
     }
 }

@@ -1,33 +1,24 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type ImportResult = { created: number; updated: number; unchanged: number; failed: number };
 type CaptureState = "needs-auth" | "ready" | "capturing";
 type HackerNewsPanelProps = {
   vaultPath: string;
   setMessage: (value: string) => void;
+  hackernewsProfile: string;
+  setHackernewsProfile: (value: string) => void;
 };
 
-export function HackerNewsPanel({ vaultPath, setMessage }: HackerNewsPanelProps) {
+export function HackerNewsPanel({
+  vaultPath,
+  setMessage,
+  hackernewsProfile,
+  setHackernewsProfile,
+}: HackerNewsPanelProps) {
   const [hackernewsPath, setHackernewsPath] = useState("");
-  const [hackernewsProfile, setHackernewsProfile] = useState(() =>
-    typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.hackernewsProfile") ?? ""
-  );
-  const [hackernewsUsername, setHackernewsUsername] = useState(() =>
-    typeof localStorage === "undefined" ? "" : localStorage.getItem("researchledger.hackernewsUsername") ?? ""
-  );
+  const [hackernewsUsername, setHackernewsUsername] = useState("");
   const [hnState, setHnState] = useState<CaptureState>("needs-auth");
-
-  useEffect(() => {
-    if (hackernewsProfile && typeof localStorage !== "undefined") {
-      localStorage.setItem("researchledger.hackernewsProfile", hackernewsProfile);
-    }
-  }, [hackernewsProfile]);
-  useEffect(() => {
-    if (hackernewsUsername && typeof localStorage !== "undefined") {
-      localStorage.setItem("researchledger.hackernewsUsername", hackernewsUsername);
-    }
-  }, [hackernewsUsername]);
 
   const requireVault = () => {
     if (vaultPath) return true;

@@ -32,6 +32,45 @@ beforeEach(() => {
 });
 
 describe("ResearchLedger shell", () => {
+  it("loads persisted filesystem preferences through the native command, never browser storage", async () => {
+    resetTauriMocks();
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      get() {
+        throw new Error("browser storage must not receive local filesystem paths");
+      },
+    });
+    invokeMock.mockImplementation((command: string) => {
+      if (command === "load_local_preferences") {
+        return Promise.resolve({
+          vaultPath: "/tmp/research-vault",
+          hackernewsProfile: "/tmp/hn-profile",
+          redditProfile: "/tmp/reddit-profile",
+          xProfile: "/tmp/x-profile",
+        });
+      }
+      if (command === "get_vault_status") {
+        return Promise.resolve({ selected: true, path: "/tmp/research-vault", documentCount: 0 });
+      }
+      return Promise.resolve([]);
+    });
+
+    render(<App />);
+
+    await waitFor(() =>
+      expect(invokeMock).toHaveBeenCalledWith("load_local_preferences"),
+    );
+    expect(await screen.findByRole("textbox", { name: "Vault path" })).toHaveValue(
+      "/tmp/research-vault",
+    );
+    expect(screen.getByRole("textbox", { name: "Reddit browser profile" })).toHaveValue(
+      "/tmp/reddit-profile",
+    );
+    expect(screen.getByRole("textbox", { name: "X browser profile" })).toHaveValue(
+      "/tmp/x-profile",
+    );
+  });
+
   it("uses one Rust-owned authenticated GitHub import without exposing a token", async () => {
     resetTauriMocks();
     invokeMock.mockImplementation((command: string) => {

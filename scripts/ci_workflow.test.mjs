@@ -26,6 +26,17 @@ describe("hosted CI contracts", () => {
     expect(security).toContain("fetch-depth: 0");
   });
 
+  test("pins checkout and does not persist its workflow credential", async () => {
+    const workflow = await readWorkflow("ci.yml");
+
+    expect(workflow).not.toContain("actions/checkout@v7");
+    expect(workflow).toContain("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1");
+    const checkoutCount = (workflow.match(/uses: actions\/checkout@/g) ?? []).length;
+    const disabledCredentialCount = (workflow.match(/persist-credentials: false/g) ?? []).length;
+    expect(checkoutCount).toBeGreaterThan(0);
+    expect(disabledCredentialCount).toBe(checkoutCount);
+  });
+
   test("runs the desktop Rust gate on its supported macOS target", async () => {
     const workflow = await readWorkflow("ci.yml");
     const rust = workflow.slice(workflow.indexOf("  rust:"), workflow.indexOf("  cargo-deny:"));
