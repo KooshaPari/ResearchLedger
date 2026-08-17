@@ -315,7 +315,6 @@ function Inbox({
   xProfile: string;
   setXProfile: (value: string) => void;
 }) {
-  const [hackernewsUsername, setHackernewsUsername] = useState("");
   const [linkedinPermalink, setLinkedinPermalink] = useState("");
   const [linkedinContent, setLinkedinContent] = useState("");
   const [query, setQuery] = useState("");
@@ -323,9 +322,6 @@ function Inbox({
   const [retrievalContext, setRetrievalContext] =
     useState<RetrievalContext | null>(null);
   const [retrieving, setRetrieving] = useState(false);
-  const [hnState, setHnState] = useState<"needs-auth" | "ready" | "capturing">(
-    "needs-auth",
-  );
   const [redditState, setRedditState] = useState<
     "needs-auth" | "ready" | "capturing"
   >("needs-auth");
@@ -346,37 +342,6 @@ function Inbox({
       (value: ImportResult) =>
         `Imported ${value.created + value.updated} repositories; ${value.unchanged} unchanged.`,
     );
-  };
-  const captureHackerNews = async () => {
-    if (!requireVault()) return;
-    const username = hackernewsUsername ? hackernewsUsername.trim() : "";
-    if (!username) {
-      setHnState("needs-auth");
-      setMessage(
-        "Sign in to news.ycombinator.com first, then enter your Hacker News username.",
-      );
-      return;
-    }
-    setHnState("capturing");
-    const url =
-      "https://news.ycombinator.com/saved?id=" + encodeURIComponent(username);
-    try {
-      const value = await invoke("capture_hackernews_browser", {
-        vaultPath,
-        activityUrl: url,
-        profilePath: hackernewsProfile || null,
-      } as any);
-      setMessage(
-        "Captured " +
-          ((value as any).created + (value as any).updated) +
-          " Hacker News stories; " +
-          (value as any).unchanged +
-          " unchanged.",
-      );
-    } catch (error) {
-      setMessage(formatCommandError("capture_hackernews_browser", error));
-    }
-    setHnState("ready");
   };
   const captureReddit = async () => {
     if (!requireVault()) return;
@@ -479,25 +444,6 @@ function Inbox({
           </div>
         </div>
         <div className="action-stack">
-          <Action
-            title="Hacker News"
-            label={
-              hnState === "needs-auth"
-                ? "Connect browser"
-                : hnState === "capturing"
-                  ? "Capturing..."
-                  : "Connected"
-            }
-            state={
-              hnState === "needs-auth"
-                ? "Needs authentication"
-                : hnState === "capturing"
-                  ? "Capture in progress"
-                  : "Ready to capture"
-            }
-            onClick={() => void captureHackerNews()}
-            disabled={hnState === "capturing"}
-          />
           <Action
             title="Reddit"
             label={

@@ -139,6 +139,7 @@ describe("ResearchLedger shell", () => {
   it("exposes a Hacker News saved-stories capture pathway", async () => {
     await renderApp();
     expect(screen.getByText("HACKER NEWS CONNECTION")).toBeInTheDocument();
+    expect(screen.queryByText("Hacker News")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open Hacker News sign-in" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Capture saved stories in browser" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: /Hacker News username/ })).toBeInTheDocument();

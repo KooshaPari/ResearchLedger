@@ -46,6 +46,15 @@ describe("hosted CI contracts", () => {
     expect(rust).not.toContain("Swatinem/rust-cache");
   });
 
+  test("pins Rust toolchain and Cargo Deny actions to immutable revisions", async () => {
+    const workflow = await readWorkflow("ci.yml");
+
+    expect(workflow).toContain("dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c");
+    expect(workflow).toContain("EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25");
+    expect(workflow).not.toContain("dtolnay/rust-toolchain@stable");
+    expect(workflow).not.toContain("EmbarkStudios/cargo-deny-action@v2");
+  });
+
   test("pins a valid Trunk action commit", async () => {
     const workflow = await readWorkflow("trunk-check.yml");
 
