@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
@@ -63,12 +63,59 @@ describe("ResearchLedger shell", () => {
     expect(await screen.findByRole("textbox", { name: "Vault path" })).toHaveValue(
       "/tmp/research-vault",
     );
+    expect(screen.getByRole("textbox", { name: "Hacker News browser profile" })).toHaveValue(
+      "/tmp/hn-profile",
+    );
     expect(screen.getByRole("textbox", { name: "Reddit browser profile" })).toHaveValue(
       "/tmp/reddit-profile",
     );
     expect(screen.getByRole("textbox", { name: "X browser profile" })).toHaveValue(
       "/tmp/x-profile",
     );
+  });
+
+  it("debounces preference writes and never rewrites hydrated values", async () => {
+    resetTauriMocks();
+    invokeMock.mockImplementation((command: string) => {
+      if (command === "load_local_preferences") {
+        return Promise.resolve({
+          vaultPath: "/tmp/research-vault",
+          hackernewsProfile: "/tmp/hn-profile",
+          redditProfile: "/tmp/reddit-profile",
+          xProfile: "/tmp/x-profile",
+        });
+      }
+      return Promise.resolve({ selected: false, path: null, documentCount: 0 });
+    });
+
+    render(<App />);
+    await screen.findByRole("textbox", { name: "Vault path" });
+    await waitFor(() => expect(invokeMock).toHaveBeenCalledWith("load_local_preferences"));
+    expect(invokeMock).not.toHaveBeenCalledWith("save_local_preferences", expect.anything());
+    const callCountBeforeTyping = invokeMock.mock.calls.length;
+
+    vi.useFakeTimers();
+    try {
+      const profile = screen.getByRole("textbox", { name: "Hacker News browser profile" });
+      fireEvent.change(profile, { target: { value: "/tmp/hn-a" } });
+      fireEvent.change(profile, { target: { value: "/tmp/hn-final" } });
+      expect(invokeMock).not.toHaveBeenCalledWith("save_local_preferences", expect.anything());
+
+      await act(async () => {
+        vi.advanceTimersByTime(300);
+      });
+      expect(invokeMock).toHaveBeenCalledTimes(callCountBeforeTyping + 1);
+      expect(invokeMock).toHaveBeenLastCalledWith("save_local_preferences", {
+        preferences: {
+          vaultPath: "/tmp/research-vault",
+          hackernewsProfile: "/tmp/hn-final",
+          redditProfile: "/tmp/reddit-profile",
+          xProfile: "/tmp/x-profile",
+        },
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("uses one Rust-owned authenticated GitHub import without exposing a token", async () => {

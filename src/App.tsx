@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { HackerNewsPanel } from "./HackerNewsPanel";
 
 function formatCommandError(command: string, error: unknown): string {
@@ -107,6 +107,7 @@ export function App() {
   const [redditProfile, setRedditProfile] = useState("");
   const [xProfile, setXProfile] = useState("");
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const preferencesHydrated = useRef(false);
   const [status, setStatus] = useState<VaultStatus | null>(null);
   const [message, setMessage] = useState("");
   useEffect(() => {
@@ -122,14 +123,20 @@ export function App() {
   }, []);
   useEffect(() => {
     if (!preferencesLoaded) return;
-    void invoke("save_local_preferences", {
-      preferences: {
-        vaultPath: vaultPath || null,
-        hackernewsProfile: hackernewsProfile || null,
-        redditProfile: redditProfile || null,
-        xProfile: xProfile || null,
-      },
-    });
+    if (!preferencesHydrated.current) {
+      preferencesHydrated.current = true;
+      return;
+    }
+    const preferences = {
+      vaultPath: vaultPath || null,
+      hackernewsProfile: hackernewsProfile || null,
+      redditProfile: redditProfile || null,
+      xProfile: xProfile || null,
+    };
+    const timer = window.setTimeout(() => {
+      void invoke("save_local_preferences", { preferences });
+    }, 300);
+    return () => window.clearTimeout(timer);
   }, [preferencesLoaded, vaultPath, hackernewsProfile, redditProfile, xProfile]);
   useEffect(() => {
     invoke<VaultStatus>("get_vault_status", { vaultPath: vaultPath || null })

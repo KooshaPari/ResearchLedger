@@ -29,7 +29,12 @@
         "object-src": ["'none'"]
       },
       "devCsp": {
-        "default-src": ["'self'", "customprotocol:", "asset:", "http://127.0.0.1:5173"],
+        "default-src": [
+          "'self'",
+          "customprotocol:",
+          "asset:",
+          "http://127.0.0.1:5173"
+        ],
         "base-uri": ["'none'"],
         "connect-src": [
           "ipc:",
@@ -44,13 +49,18 @@
       }
     }
   },
-  "bundle": { "active": true, "targets": "all", "icon": ["icons/researchledger.icns"], "resources": {
-    "../../../scripts/hackernews_capture.mjs": "scripts/hackernews_capture.mjs",
-    "../../../scripts/reddit_capture.mjs": "scripts/reddit_capture.mjs",
-    "../../../scripts/x_capture.mjs": "scripts/x_capture.mjs",
-    "../../../scripts/_capture_common.mjs": "scripts/_capture_common.mjs",
-    "../../../scripts/_path_shapes.mjs": "scripts/_path_shapes.mjs",
-    "../../../node_modules/playwright": "node_modules/playwright",
-    "../../../node_modules/playwright-core": "node_modules/playwright-core"
-  } }
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/researchledger.icns"],
+    "resources": {
+      "../../../scripts/hackernews_capture.mjs": "scripts/hackernews_capture.mjs",
+      "../../../scripts/reddit_capture.mjs": "scripts/reddit_capture.mjs",
+      "../../../scripts/x_capture.mjs": "scripts/x_capture.mjs",
+      "../../../scripts/_capture_common.mjs": "scripts/_capture_common.mjs",
+      "../../../scripts/_path_shapes.mjs": "scripts/_path_shapes.mjs",
+      "../../../node_modules/playwright": "node_modules/playwright",
+      "../../../node_modules/playwright-core": "node_modules/playwright-core"
+    }
+  }
 }

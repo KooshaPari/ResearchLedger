@@ -7,12 +7,12 @@ base**. The desktop app keeps Markdown and SQLite data local,
 preserves source provenance, and serves as the durable store for
 research notes, citations, and machine-readable evidence.
 
-| Aspect | Value |
-|---|---|
-| Language stack | React + TypeScript (Bun), Tauri 2 desktop shell, Rust |
-| Storage | Local SQLite + local Markdown files |
-| Audience | Researchers, knowledge workers, agents writing research notes |
-| Distribution | Local desktop app (no telemetry) |
+| Aspect         | Value                                                         |
+| -------------- | ------------------------------------------------------------- |
+| Language stack | React + TypeScript (Bun), Tauri 2 desktop shell, Rust         |
+| Storage        | Local SQLite + local Markdown files                           |
+| Audience       | Researchers, knowledge workers, agents writing research notes |
+| Distribution   | Local desktop app (no telemetry)                              |
 
 ## Workspace Layout
 

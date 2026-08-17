@@ -13,6 +13,7 @@
 ### Task 1: Make reference job selection and execution consent-safe
 
 **Files:**
+
 - Modify: `apps/desktop/src-tauri/src/storage.rs:374-400`
 - Modify: `apps/desktop/src-tauri/src/lib.rs:971-1045, tests`
 
@@ -39,6 +40,7 @@ Expected: both new tests pass.
 ### Task 2: Expand public URL policy without overstating DNS guarantees
 
 **Files:**
+
 - Modify: `apps/desktop/src-tauri/src/reference_fetch.rs:109-158, tests`
 - Modify: `docs/A_PLUS_SCORECARD.md`
 
@@ -65,6 +67,7 @@ Expected: all listed unsafe URLs reject.
 ### Task 3: Make scripts fail closed and protocol-correct
 
 **Files:**
+
 - Modify: `scripts/_capture_common.mjs:742-835`
 - Modify: `scripts/smoke_retrieval_reranker.mjs:440-525`
 - Modify: `scripts/verify_csp.mjs:32-55`
@@ -94,6 +97,7 @@ Expected: all focused script tests pass.
 ### Task 4: Regress the release candidate
 
 **Files:**
+
 - Modify: `docs/A_PLUS_SCORECARD.md` only if evidence/status wording changed
 
 - [ ] **Step 1: Run suites**

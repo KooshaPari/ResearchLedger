@@ -107,6 +107,7 @@ impl<'a> ConsentRegistry<'a> {
         )?;
         let mut rows = statement.query([])?;
         let mut reason = "no_matching_consent";
+        let mut matching_scope_seen = false;
         while let Some(row) = rows.next()? {
             let id: String = row.get(0)?;
             let purpose: String = row.get(1)?;
@@ -162,7 +163,12 @@ impl<'a> ConsentRegistry<'a> {
                     });
                 }
             };
-            reason = row_reason;
+            if scope == target {
+                matching_scope_seen = true;
+                reason = row_reason;
+            } else if !matching_scope_seen {
+                reason = row_reason;
+            }
         }
         self.audit("none", &target, false, reason, now)?;
         Ok(ConsentDecision {
@@ -400,6 +406,33 @@ mod tests {
         let connection = connection();
         grant(&connection, None);
         assert_denied_and_redacted(&connection, "https://example.com/other", "out_of_scope");
+    }
+
+    #[test]
+    fn matching_revoked_consent_reason_outweighs_later_out_of_scope_row() {
+        let connection = connection();
+        let registry = ConsentRegistry::new(&connection);
+        for (id, scope, version) in [
+            ("unrelated", "https://example.com/other", 1),
+            ("revoked", "https://example.com/reference", 2),
+        ] {
+            registry
+                .grant(ConsentGrant {
+                    id: id.into(),
+                    local_profile: "default".into(),
+                    provider: "manual".into(),
+                    purpose: REFERENCE_FETCH_PURPOSE.into(),
+                    data_categories: vec![PUBLIC_WEB_CATEGORY.into()],
+                    url_scope: scope.into(),
+                    expires_at: None,
+                    version,
+                    granted_at: "2026-08-10T00:00:00Z".into(),
+                })
+                .unwrap();
+        }
+        assert!(registry.revoke("revoked", "2026-08-10T00:30:00Z").unwrap());
+
+        assert_denied_and_redacted(&connection, "https://example.com/reference", "revoked");
     }
 
     #[test]
