@@ -55,11 +55,13 @@ describe("hosted CI contracts", () => {
     expect(workflow).not.toContain("EmbarkStudios/cargo-deny-action@v2");
   });
 
-  test("pins a valid Trunk action commit", async () => {
+  test("uses a pinned checkout and deterministic Prettier instead of broken Trunk", async () => {
     const workflow = await readWorkflow("trunk-check.yml");
 
-    expect(workflow).toContain("trunk-io/trunk-action@04ba50e7658c81db7356da96657e6e77f220bfa3");
-    expect(workflow).not.toContain("d90b9166660d5e5afae248a58172a3a0e99d56d5");
+    expect(workflow).toContain("actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683");
+    expect(workflow).toContain("npm install --global prettier@3.6.2");
+    expect(workflow).toContain("prettier --check");
+    expect(workflow).not.toContain("uses: trunk-io/trunk-action@");
   });
 
   test("keeps release verification on the Bun toolchain", async () => {
@@ -86,15 +88,14 @@ describe("hosted CI contracts", () => {
     expect(config).not.toContain("- taplo");
   });
 
-  test("runs the pinned workflow linter independently of Trunk plugins", async () => {
+  test("scopes Prettier to changed supported files outside scheduled full checks", async () => {
     const workflow = await readWorkflow("trunk-check.yml");
-    const ci = await readWorkflow("ci.yml");
 
-    expect(workflow).toContain("actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e");
-    expect(ci).toContain("actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e");
-    expect(workflow).toContain("github.com/rhysd/actionlint/cmd/actionlint@v1.7.10");
-    expect(workflow).toContain("find .github/workflows -type f");
-    expect(workflow).toContain("xargs -0 -r \"$(go env GOPATH)/bin/actionlint\"");
+    expect(workflow).toContain("git diff --diff-filter=ACMR --name-only FETCH_HEAD HEAD");
+    expect(workflow).toContain("if [[ \"${{ github.event_name }}\" == \"schedule\" ]]");
+    expect(workflow).toContain("No changed Prettier-supported files to check.");
+    expect(workflow).not.toContain("uses: actions/setup-go@");
+    expect(workflow).not.toContain("github.com/rhysd/actionlint/cmd/actionlint@");
   });
 
   test("keeps all repository workflows valid for actionlint", async () => {
