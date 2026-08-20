@@ -50,6 +50,22 @@ CREATE TABLE IF NOT EXISTS provenance (
   captured_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS claims (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  ordinal INTEGER NOT NULL,
+  claim TEXT NOT NULL,
+  source_uri TEXT,
+  citation_id TEXT NOT NULL DEFAULT '1',
+  evidence_quote TEXT NOT NULL,
+  span_start INTEGER NOT NULL,
+  span_end INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE(document_id, ordinal)
+);
+
+CREATE INDEX IF NOT EXISTS idx_claims_document ON claims(document_id, ordinal);
+
 CREATE TABLE IF NOT EXISTS import_jobs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   source_kind TEXT NOT NULL,
@@ -84,6 +100,8 @@ CREATE TABLE IF NOT EXISTS enrichment_jobs (
 CREATE TABLE IF NOT EXISTS chunk_embeddings (
   chunk_id INTEGER PRIMARY KEY REFERENCES chunks(id) ON DELETE CASCADE,
   model TEXT NOT NULL,
+  embedding_version TEXT NOT NULL DEFAULT 'v1',
+  input_hash TEXT NOT NULL DEFAULT '',
   dimensions INTEGER NOT NULL,
   vector_json TEXT NOT NULL,
   created_at TEXT NOT NULL
@@ -97,6 +115,8 @@ CREATE TABLE IF NOT EXISTS reference_fetches (
   source_document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
   target_url TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending',
+  started_at TEXT,
+  lease_expires_at INTEGER NOT NULL DEFAULT 0,
   artifact_path TEXT,
   content_type TEXT,
   http_status INTEGER,
@@ -109,3 +129,31 @@ CREATE TABLE IF NOT EXISTS reference_fetches (
 
 CREATE INDEX IF NOT EXISTS idx_reference_fetches_status
   ON reference_fetches(status, id);
+
+CREATE TABLE IF NOT EXISTS consent_grants (
+  id TEXT PRIMARY KEY,
+  local_profile TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  purpose TEXT NOT NULL,
+  data_categories TEXT NOT NULL,
+  url_scope TEXT NOT NULL,
+  granted_at TEXT NOT NULL,
+  expires_at TEXT,
+  revoked_at TEXT,
+  version INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_consent_grants_active
+  ON consent_grants(purpose, url_scope, revoked_at, expires_at);
+
+CREATE TABLE IF NOT EXISTS consent_audit (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  grant_id TEXT NOT NULL,
+  target_hash TEXT NOT NULL,
+  decision TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  decided_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_consent_audit_decided_at
+  ON consent_audit(decided_at, id);

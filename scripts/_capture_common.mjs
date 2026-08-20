@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * ResearchLedger – shared scroll/collect loop for authenticated Playwright
- * capture scripts (LinkedIn, Reddit, X, Hacker News).
+ * capture scripts (Reddit, X, Hacker News).
  *
  * Each provider supplies:
  *   - The URL pattern of the saved/bookmarks page.
@@ -24,6 +24,7 @@
  */
 
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { spawn } from "node:child_process";
@@ -33,7 +34,7 @@ import { pathToFileURL } from "node:url";
  * Detect Playwright's "Executable doesn't exist" / "looks like Playwright was
  * just installed or updated" failure mode from the thrown error's message.
  * The Chromium executable missing on disk is recoverable by running
- * `npx playwright install chromium`, so we surface a friendlier message and
+ * `bunx playwright install chromium`, so we surface a friendlier message and
  * fall through to auto-install rather than letting the raw stack trace reach
  * the React UI.
  *
@@ -103,12 +104,39 @@ export async function assertAuthedPage({ page, target, loggedInMarker, timeoutMs
  * @returns {Promise<{ chromium: any }>}
  */
 export async function loadPlaywright() {
-  const playwrightModule =
-    process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE ?? "playwright";
-  const spec = playwrightModule.startsWith("/")
-    ? pathToFileURL(playwrightModule).href
-    : playwrightModule;
-  return import(spec);
+  const configuredModule = process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE;
+  const candidates = [
+    configuredModule,
+    configuredModule ? path.resolve(configuredModule, "index.js") : undefined,
+    configuredModule ? path.resolve(configuredModule, "index.mjs") : undefined,
+    "node_modules/playwright",
+    "node_modules/playwright/index.js",
+    "node_modules/playwright/index.mjs",
+    "node_modules/playwright-core",
+    "node_modules/playwright-core/index.js",
+    "node_modules/playwright-core/index.mjs",
+    "playwright-core",
+    "playwright",
+  ].filter((value) => typeof value === "string" && value.length > 0);
+
+  /** @param {string} value */
+  const isAbsolutePath = (value) =>
+    process.platform === "win32"
+      ? /[a-z]:[\\/]/i.test(String(value))
+      : String(value).startsWith("/");
+
+  const errors = [];
+  for (const candidate of candidates) {
+    let spec = isAbsolutePath(candidate) ? pathToFileURL(candidate).href : candidate;
+    try {
+      const loaded = await import(spec);
+      return loaded.default ?? loaded;
+    } catch (error) {
+      errors.push(`${candidate}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  throw new Error(`PLAYWRIGHT_IMPORT_FAIL: unable to import Playwright. Tried: ${errors.join(", ")}`);
 }
 
 /**
@@ -221,7 +249,7 @@ export async function detectAuthGate(page) {
  * pending login in the launched window.
  *
  * If Playwright's Chromium browser binary is not installed, run
- * `npx playwright install chromium` once and retry. If the post-navigation
+ * `bunx playwright install chromium` once and retry. If the post-navigation
  * page is detected as an auth gate, the function throws a friendly
  * `AUTH_REQUIRED` error so the UI can surface it instead of silently
  * collecting zero posts.
@@ -237,32 +265,68 @@ export async function detectAuthGate(page) {
  * }} params
  */
 export async function openAuthenticatedSession(params) {
-  const { chromium, profile, url, warmupMs = 2500, logMessage, onAuthInstall, execFileSync } = params;
+  const {
+    chromium,
+    profile,
+    url,
+    warmupMs = 2500,
+    authWaitMs = 180_000,
+    launchTimeoutMs = 30_000,
+    logMessage,
+    onAuthInstall,
+    execFileSync,
+  } = params;
   const runInstall = execFileSync ?? defaultInstallRunner;
   let context;
+  // Create the dedicated user-data directory before launching Chromium so
+  // packaged runs persist cookies/MFA in the same path on every invocation.
+  await fs.mkdir(profile, { recursive: true });
   try {
-    context = await chromium.launchPersistentContext(profile, { headless: false });
+    context = await chromium.launchPersistentContext(profile, {
+      headless: false,
+      timeout: launchTimeoutMs,
+    });
   } catch (err) {
+    if (isProfileLaunchTimeout(err)) throw profileLaunchError(profile, launchTimeoutMs);
     if (!isMissingBrowserError(err)) throw err;
-    const msg = `Browser not installed; running \`npx playwright install chromium\` (one-time, ~150 MB).`;
+    const msg = `Browser not installed; running \`bunx playwright install chromium\` (one-time, ~150 MB).`;
     if (typeof onAuthInstall === "function") onAuthInstall(msg);
     console.error(msg);
-    runInstall("npx", ["playwright", "install", "chromium"]);
-    context = await chromium.launchPersistentContext(profile, { headless: false });
+    runInstall("bunx", ["playwright", "install", "chromium"]);
+    try {
+      context = await chromium.launchPersistentContext(profile, {
+        headless: false,
+        timeout: launchTimeoutMs,
+      });
+    } catch (err) {
+      if (isProfileLaunchTimeout(err)) throw profileLaunchError(profile, launchTimeoutMs);
+      throw err;
+    }
   }
   const page = context.pages()[0] ?? (await context.newPage());
   await page.goto(url, { waitUntil: "domcontentloaded" });
   if (await detectAuthGate(page)) {
-    try {
-      await context.close();
-    } catch {
-      /* ignore */
-    }
-    const friendly = new Error(
-      "AUTH_REQUIRED: page landed on login or consent screen. Complete the login in the browser window, then re-run capture.",
+    console.error(
+      "ResearchLedger is waiting for sign-in/MFA in the browser window. " +
+        "Finish authentication there; capture will continue automatically.",
     );
-    friendly.code = "AUTH_REQUIRED";
-    throw friendly;
+    const deadline = Date.now() + authWaitMs;
+    while (Date.now() < deadline && (await detectAuthGate(page))) {
+      await page.waitForTimeout(500);
+    }
+    if (await detectAuthGate(page)) {
+      try {
+        await context.close();
+      } catch {
+        /* ignore */
+      }
+      const friendly = new Error(
+        "AUTH_REQUIRED: Sign-in did not complete within 3 minutes. " +
+          "Finish authentication in the browser window, then run capture again.",
+      );
+      friendly.code = "AUTH_REQUIRED";
+      throw friendly;
+    }
   }
   console.error(logMessage);
   await page.waitForTimeout(warmupMs);
@@ -280,6 +344,36 @@ function isMissingBrowserError(err) {
     /Looks like Playwright was just installed or updated/i.test(msg) ||
     /playwright install/i.test(msg) && /chrome|chromium/i.test(msg)
   );
+}
+
+/**
+ * Playwright waits up to its launch timeout when the profile is already open,
+ * the profile lock is stale, or Chromium cannot initialize the user-data
+ * directory (often because the disk is full). Surface a bounded, actionable
+ * error rather than leaving the app stuck for three minutes.
+ *
+ * @param {unknown} err
+ * @returns {boolean}
+ */
+function isProfileLaunchTimeout(err) {
+  const msg = err instanceof Error ? `${err.message}\n${err.stack ?? ""}` : String(err);
+  return /launchPersistentContext: Timeout|browserType\.launchPersistentContext.*Timeout/i.test(msg);
+}
+
+/**
+ * @param {string} profile
+ * @param {number} timeoutMs
+ * @returns {Error & {code?: string}}
+ */
+function profileLaunchError(profile, timeoutMs) {
+  const friendly = new Error(
+    `BROWSER_PROFILE_UNAVAILABLE: Chromium could not open the ResearchLedger profile ` +
+      `within ${Math.round(timeoutMs / 1000)} seconds (${profile}). ` +
+      "Close any Chrome/Chromium window using this profile, check available disk space, " +
+      "or choose a new dedicated profile directory. No profile data was deleted.",
+  );
+  friendly.code = "BROWSER_PROFILE_UNAVAILABLE";
+  return friendly;
 }
 
 import { execFileSync } from "node:child_process";
@@ -368,6 +462,26 @@ export async function scrollAndCollect(params) {
 }
 
 /**
+ * Refuse to turn an authenticated-page/selector failure into a successful
+ * zero-row import. Providers that can legitimately return no rows should
+ * only call this after their own empty-state check.
+ *
+ * @param {{ providerName: string, posts: { url?: string }[] | Map<unknown, unknown> }} params
+ * @returns {void}
+ */
+export function assertNonEmptyCapture({ providerName, posts }) {
+  const count = posts instanceof Map ? posts.size : Array.isArray(posts) ? posts.length : 0;
+  if (count > 0) return;
+  const error = new Error(
+    `CAPTURE_EMPTY: ${providerName} returned no posts. ` +
+      "The page may still require sign-in, or its feed did not load; " +
+      "finish authentication in the browser and try again.",
+  );
+  error.code = "CAPTURE_EMPTY";
+  throw error;
+}
+
+/**
  * Extract the rendered text from a DOM element. Always returns a string —
  * null, undefined, missing text content, and whitespace-only all collapse to
  * the empty string so callers can call `.length` without null-guards.
@@ -404,22 +518,15 @@ function xProbe(link) {
   return { href: hrefAttr, text: textOf(link.closest("article") || link.closest('[data-testid="tweet"]')) };
 }
 
-function linkedinProbe(link) {
-  if (link.tagName !== "A") return null;
-  const hrefAttr = link.getAttribute("href") || "";
-  if (!/urn:li:activity:/.test(hrefAttr)) return null;
-  return { href: hrefAttr, text: textOf(link.closest("article") || link.closest(".feed-shared-update-v2")) };
-}
-
 /**
  * Hacker News saved-stories probe: rows are `<tr class="athing submission"
  * id="<numeric>">` and the persisted item-id / canonical permalink comes
  * from the parent `<tr>`'s `id` attribute, not from the `.titlelink` href
  * (which points to the external blog post the story links to).
  *
- * The probe intentionally differs in shape from `redditProbe` / `xProbe` /
- * `linkedinProbe` so SonarCloud's `new_duplicated_lines_density` rule does
- * not flag the quartet as duplicated code: we filter by class name rather
+ * The probe intentionally differs in shape from the other probes so
+ * SonarCloud's `new_duplicated_lines_density` rule does
+ * not flag the probes as duplicated code: we filter by class name rather
  * than by href regex, walk up to a `<tr>` ancestor rather than an
  * `<article>`, and the build pipeline uses the parent's `id` attribute to
  * construct the canonical `/item?id=<id>` permalink rather than splitting
@@ -452,7 +559,6 @@ function hnProbe(link) {
 export const PROBES = Object.freeze({
   "reddit-article": redditProbe,
   "x-article": xProbe,
-  "linkedin-article": linkedinProbe,
   "hn-athing": hnProbe,
 });
 
@@ -491,15 +597,37 @@ export async function probeLinks({ page, selector, probe }) { // NOSONAR
  * @param {string} successMessage
  */
 export async function writeCapture(outputPath, payload, successMessage) {
+  if (!path.isAbsolute(outputPath)) {
+    throw new Error("Capture output path must be absolute");
+  }
   await fs.mkdir(path.dirname(path.resolve(outputPath)), { recursive: true });
   await fs.writeFile(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
   console.error(successMessage);
 }
 
 /**
+ * Resolve the external user-owned default location for raw captures.
+ * Relative overrides are rejected so provider data cannot silently land in a
+ * repository or vault working tree.
+ *
+ * @param {string} provider
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {string}
+ */
+export function defaultCapturePath(provider, env = process.env) {
+  const configured = env.RESEARCHLEDGER_CAPTURE_ROOT?.trim();
+  if (configured && !path.isAbsolute(configured)) {
+    throw new Error("RESEARCHLEDGER_CAPTURE_ROOT must be an absolute path");
+  }
+  const home = env.HOME?.trim() || env.USERPROFILE?.trim() || os.homedir();
+  const root = configured || path.join(home, ".phenotype", "researchledger", "captures");
+  return path.join(root, `${provider}-capture.json`);
+}
+
+/**
  * Build a post record from a `probed` sample and a per-provider match config.
  *
- * The capture scripts (reddit, x, linkedin) all followed the same shape:
+ * The capture scripts (reddit and x) share the same shape:
  * run a regex over `href`, pull out named/positional captures, build a record
  * whose fields are `{url, text, ...captures}`. This helper replaces that
  * shape with a single shared implementation so the three call sites each
@@ -507,8 +635,8 @@ export async function writeCapture(outputPath, payload, successMessage) {
  *
  * The shape of the returned record is documented here because it is the
  * canonical contract between the capture scripts and the Tauri import
- * commands (`import_linkedin_capture`, `import_reddit_capture`,
- * `import_x_capture`). Changing it requires updating all three Rust parsers
+ * commands (`import_reddit_capture`, `import_x_capture`). Changing it requires
+ * updating the matching Rust parsers
  * in `apps/desktop/src-tauri/src/`.
  *
  * @param {{
@@ -524,10 +652,9 @@ export function buildPostFromMatch(params) {
   const { sample, hrefRegex, fields } = params;
   const urlFieldName = params.urlFieldName ?? "url";
   const textFieldName = params.textFieldName ?? "text";
-  // `transform` is an optional hook so providers that need to re-shape a raw
-  // capture group (e.g. LinkedIn prefixing the digits with `urn:li:activity:`)
-  // don't have to re-implement the matcher scaffolding here. Default: identity
-  // — the captured string becomes the field value verbatim.
+  // `transform` is an optional hook for providers that need to reshape a raw
+  // capture group without re-implementing the matcher scaffolding. Default:
+  // identity — the captured string becomes the field value verbatim.
   const transform = params.transform ?? ((_name, value) => value);
   const match = hrefRegex.exec(sample.href);
   if (match === null) return null;
@@ -559,11 +686,6 @@ export const MATCHERS = Object.freeze({
   x: {
     regex: /\/([^/]+)\/status\/(\d+)/,
     fields: ["user", "statusId"],
-  },
-  linkedin: {
-    regex: /urn:li:activity:(\d+)/,
-    fields: ["activityUrn"],
-    transform: (_name, value) => `urn:li:activity:${value}`,
   },
   // HN does not use a href-regex: it walks to the enclosing
   // `tr.athing.submission` and reads the row's numeric `id` attribute
@@ -620,6 +742,38 @@ export function makeProviderBuilder(provider) {
  *   urlFieldName?: string,           // default: "savedUrl" for Reddit, "bookmarksUrl" for X
  * }} params
  */
+export async function collectAndWriteCapture({
+  context,
+  collectPosts,
+  providerName,
+  output,
+  url,
+  sourceTag,
+  urlFieldName,
+  payloadExtras = {},
+  write = writeCapture,
+}) {
+  try {
+    const posts = await collectPosts();
+    assertNonEmptyCapture({ providerName, posts });
+    const payload = {
+      version: 1,
+      capturedAt: new Date().toISOString(),
+      source: sourceTag,
+      [urlFieldName]: url,
+      posts: [...posts.values()],
+      ...payloadExtras,
+    };
+    await write(
+      output,
+      payload,
+      `Captured ${payload.posts.length} unique ${providerName} posts to ${output}`,
+    );
+  } finally {
+    await context.close();
+  }
+}
+
 export async function runCaptureSession(params) {
   const {
     providerName,
@@ -636,8 +790,7 @@ export async function runCaptureSession(params) {
 
   const args = parseFlags(argv);
   const profile = resolveProfile(args, profileSubdir);
-  const output = args.get("--output");
-  if (!output) throw new Error("Missing required flag: --output <path>");
+  const output = args.get("--output") ?? defaultCapturePath(providerName.toLowerCase());
   const url = args.get("--url") ?? defaultUrl;
   const maxRounds = readInt(args, "--max-rounds", 240);
   const waitMs = readInt(args, "--wait-ms", 1200);
@@ -652,29 +805,22 @@ export async function runCaptureSession(params) {
   });
 
   const probe = getProbe({ mode: probeMode });
-  const posts = await scrollAndCollect({
-    page,
-    selector,
-    probe,
-    build,
-    minLength,
-    maxRounds,
-    waitMs,
-  });
-
-  const payload = {
-    version: 1,
-    capturedAt: new Date().toISOString(),
-    source: sourceTag,
-    [urlFieldName]: url,
-    posts: [...posts.values()],
-    ...payloadExtras,
-  };
-
-  await writeCapture(
+  await collectAndWriteCapture({
+    context,
+    collectPosts: () => scrollAndCollect({
+      page,
+      selector,
+      probe,
+      build,
+      minLength,
+      maxRounds,
+      waitMs,
+    }),
+    providerName,
     output,
-    payload,
-    `Captured ${payload.posts.length} unique ${providerName} posts to ${output}`,
-  );
-  await context.close();
+    url,
+    sourceTag,
+    urlFieldName,
+    payloadExtras,
+  });
 }

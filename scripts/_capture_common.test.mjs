@@ -18,12 +18,16 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   getProbe,
   parseFlags,
+  assertNonEmptyCapture,
   writeCapture,
+  defaultCapturePath,
+  loadPlaywright,
+  collectAndWriteCapture,
 } from "./_capture_common.mjs";
 import {
   isHackerNewsItemUrl,
@@ -108,7 +112,46 @@ describe("parseFlags", () => {
   });
 });
 
+describe("loadPlaywright", () => {
+  it("loads playwright from a configured absolute module directory path", async () => {
+    const previous = process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE;
+    process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE = `${process.cwd()}/node_modules/playwright`;
+    const module = await loadPlaywright();
+    process.env.RESEARCHLEDGER_PLAYWRIGHT_MODULE = previous;
+
+    expect(module.chromium).toBeTruthy();
+  });
+});
+
+describe("defaultCapturePath", () => {
+  it("defaults to the external phenotype data home", () => {
+    expect(defaultCapturePath("reddit", { HOME: "/Users/tester" })).toBe(
+      "/Users/tester/.phenotype/researchledger/captures/reddit-capture.json",
+    );
+  });
+
+  it("honors an absolute external override", () => {
+    expect(defaultCapturePath("reddit", {
+      HOME: "/Users/tester",
+      RESEARCHLEDGER_CAPTURE_ROOT: "/Volumes/ResearchLedgerData/captures",
+    })).toBe("/Volumes/ResearchLedgerData/captures/reddit-capture.json");
+  });
+
+  it("rejects a relative override", () => {
+    expect(() => defaultCapturePath("x", { RESEARCHLEDGER_CAPTURE_ROOT: "./captures" }))
+      .toThrow("must be an absolute path");
+  });
+});
+
 describe("writeCapture", () => {
+  it("rejects a relative output path before it can write into the working tree", async () => {
+    await expect(writeCapture(
+      "./captures/reddit.json",
+      { version: 1, posts: [] },
+      "should not write",
+    )).rejects.toThrow("Capture output path must be absolute");
+  });
+
   it("round-trips a 2-post Reddit fixture and produces JSON-stable output", async () => {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "cap-reddit-"));
     const output = path.join(directory, "reddit.json");
@@ -201,6 +244,59 @@ describe("getProbe", () => {
 
   it("throws on unknown mode names", () => {
     expect(() => getProbe({ mode: "no-such-mode" })).toThrow();
+  });
+});
+
+describe("assertNonEmptyCapture", () => {
+  it("rejects an empty capture instead of writing a false zero", () => {
+    expect(() => assertNonEmptyCapture({ providerName: "Reddit", posts: [] }))
+      .toThrow(/CAPTURE_EMPTY.*Reddit/i);
+  });
+
+  it("accepts a capture containing at least one post", () => {
+    expect(() => assertNonEmptyCapture({
+      providerName: "Reddit",
+      posts: [{ url: "https://www.reddit.com/r/rust/comments/a1b2c3d/post", text: "post" }],
+    })).not.toThrow();
+  });
+});
+
+describe("collectAndWriteCapture", () => {
+  it("rejects an empty collection before writing and always closes the context", async () => {
+    const context = { close: vi.fn().mockResolvedValue(undefined) };
+    const write = vi.fn();
+
+    await expect(collectAndWriteCapture({
+      context,
+      collectPosts: async () => new Map(),
+      providerName: "Reddit",
+      output: "/tmp/reddit.json",
+      url: "https://www.reddit.com/user/me/saved",
+      sourceTag: "reddit-playwright-authenticated-session",
+      urlFieldName: "savedUrl",
+      write,
+    })).rejects.toThrow(/CAPTURE_EMPTY.*Reddit/i);
+
+    expect(write).not.toHaveBeenCalled();
+    expect(context.close).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes the context when capture writing fails", async () => {
+    const context = { close: vi.fn().mockResolvedValue(undefined) };
+    const write = vi.fn().mockRejectedValue(new Error("disk full"));
+
+    await expect(collectAndWriteCapture({
+      context,
+      collectPosts: async () => new Map([["post", { url: "https://example.com/post" }]]),
+      providerName: "Reddit",
+      output: "/tmp/reddit.json",
+      url: "https://www.reddit.com/user/me/saved",
+      sourceTag: "reddit-playwright-authenticated-session",
+      urlFieldName: "savedUrl",
+      write,
+    })).rejects.toThrow("disk full");
+
+    expect(context.close).toHaveBeenCalledTimes(1);
   });
 });
 

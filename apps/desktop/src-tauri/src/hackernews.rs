@@ -19,15 +19,11 @@ pub struct HNPost {
 /// On-disk wire format written by `scripts/hackernews_capture.mjs`.
 /// The `provider` field is a string literal so a downstream loader can
 /// sanity-check the file at deserialisation time even if the JSON has been
-/// hand-edited. `captured_at` accepts either snake_case (canonical) or
-/// camelCase `capturedAt` (JS-friendly) via the `alias`.
+/// hand-edited. Other capture metadata is intentionally ignored by Serde:
+/// it is not part of the persisted post contract.
 #[derive(Debug, serde::Deserialize)]
 pub struct HNCaptureFile {
     pub provider: String,
-    #[serde(default)]
-    pub profile: Option<String>,
-    #[serde(alias = "capturedAt")]
-    pub captured_at: String,
     pub posts: Vec<HNPost>,
 }
 
@@ -36,10 +32,11 @@ pub struct HNCaptureFile {
 /// verified to equal `"hackernews"`.
 pub fn parse_capture_json(input: &str) -> Result<Vec<HNPost>, HackerNewsReaderError> {
     let parsed: HNCaptureFile = serde_json::from_str(input).map_err(HackerNewsReaderError::Json)?;
-    if !parsed.provider.is_empty() && parsed.provider != "hackernews" {
-        return Err(HackerNewsReaderError::UnknownProvider(parsed.provider));
+    let HNCaptureFile { provider, posts } = parsed;
+    if !provider.is_empty() && provider != "hackernews" {
+        return Err(HackerNewsReaderError::UnknownProvider(provider));
     }
-    Ok(parsed.posts)
+    Ok(posts)
 }
 
 /// Custom error type for HN ingestion. We wrap `serde_json::Error` so the
@@ -89,8 +86,7 @@ pub fn parse_saved_html(html: &str) -> Vec<HNPost> {
     let submission_selector =
         Selector::parse("tr.athing.submission").expect("static selector parses");
     let link_selector = Selector::parse("a.titlelink").expect("static selector parses");
-    let hnuser_selector =
-        Selector::parse("a.hnuser").expect("static selector parses");
+    let hnuser_selector = Selector::parse("a.hnuser").expect("static selector parses");
     let mut posts = BTreeMap::new();
     for row in document.select(&submission_selector) {
         let Some(row_id) = row.value().attr("id") else {
@@ -121,19 +117,10 @@ pub fn parse_saved_html(html: &str) -> Vec<HNPost> {
         let author = row
             .select(&hnuser_selector)
             .next()
-            .map(|node| {
-                node.text()
-                    .collect::<Vec<_>>()
-                    .join(" ")
-                    .trim()
-                    .to_string()
-            })
+            .map(|node| node.text().collect::<Vec<_>>().join(" ").trim().to_string())
             .filter(|value| !value.is_empty())
             .or_else(|| {
-                let row_text = row
-                    .text()
-                    .collect::<Vec<_>>()
-                    .join(" ");
+                let row_text = row.text().collect::<Vec<_>>().join(" ");
                 row_text
                     .split(" by ")
                     .nth(1)
@@ -211,12 +198,20 @@ mod tests {
         // The canonical URL is always /item?id=<id>; the parser rejects
         // any underlying-href `id` field via `is_hackernews_post_path`.
         for post in &posts {
-            assert!(post.url.starts_with("https://news.ycombinator.com/item?id="));
+            assert!(post
+                .url
+                .starts_with("https://news.ycombinator.com/item?id="));
             assert!(is_hackernews_post_path(&post.url));
         }
-        assert!(posts.iter().any(|post| post.title.contains("Local-first research ledgers")));
-        assert!(posts.iter().any(|post| post.title.contains("Deterministic enrichment passes")));
-        assert!(posts.iter().any(|post| post.title.contains("Offline embeddings for local RAG")));
+        assert!(posts
+            .iter()
+            .any(|post| post.title.contains("Local-first research ledgers")));
+        assert!(posts
+            .iter()
+            .any(|post| post.title.contains("Deterministic enrichment passes")));
+        assert!(posts
+            .iter()
+            .any(|post| post.title.contains("Offline embeddings for local RAG")));
         assert!(posts.iter().any(|post| post.author == "koosha"));
         assert!(posts.iter().any(|post| post.author == "daboross"));
         assert!(posts.iter().any(|post| post.author == "Meadows"));
@@ -295,7 +290,10 @@ mod tests {
             );
         }
         for post in &posts {
-            assert!(post.text.len() > 40, "captured text must satisfy capture min-length");
+            assert!(
+                post.text.len() > 40,
+                "captured text must satisfy capture min-length"
+            );
             assert!(!post.url.is_empty());
             assert!(!post.title.is_empty());
         }
@@ -324,7 +322,10 @@ mod tests {
     fn parse_capture_json_rejects_wrong_provider_field() {
         let json = r#"{"provider":"reddit","posts":[]}"#;
         let result = parse_capture_json(json);
-        assert!(result.is_err(), "non-empty provider field must fail loudly; got {result:?}");
+        assert!(
+            result.is_err(),
+            "non-empty provider field must fail loudly; got {result:?}"
+        );
     }
 
     /// Empty `posts: []` is acceptable — the user may have legitimately run
@@ -381,10 +382,19 @@ mod tests {
 </tbody</table>"#;
         let posts = parse_saved_html(row_open);
         let saved_ids: Vec<&str> = posts.iter().map(|p| p.id.as_str()).collect();
-        let unique_count = saved_ids.iter().collect::<std::collections::HashSet<_>>().len();
-        assert_eq!(unique_count, saved_ids.len(), "all emitted ids must be unique");
+        let unique_count = saved_ids
+            .iter()
+            .collect::<std::collections::HashSet<_>>()
+            .len();
+        assert_eq!(
+            unique_count,
+            saved_ids.len(),
+            "all emitted ids must be unique"
+        );
         assert_eq!(saved_ids.iter().filter(|id| **id == "5550001").count(), 1);
         // No phantom post should escape the .titlelink filter
-        assert!(posts.iter().all(|p| !p.title.is_empty() && !p.url.is_empty()));
+        assert!(posts
+            .iter()
+            .all(|p| !p.title.is_empty() && !p.url.is_empty()));
     }
 }

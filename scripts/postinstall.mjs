@@ -2,10 +2,10 @@
 /**
  * ResearchLedger – postinstall hook.
  *
- * Runs `npx playwright install chromium` automatically when `npm install`
+ * Runs `bunx playwright install chromium` automatically when `bun install`
  * completes, so users never see the "Browser not installed" prompt at
  * first capture. The capture scripts (`scripts/_capture_common.mjs`) still
- * run a lazy auto-install as a safety net for users who skip npm install.
+ * run a lazy auto-install as a safety net for users who skip bun install.
  *
  * Idempotent:
  *   - Playwright's install is a no-op if the browser is already cached at
@@ -17,12 +17,12 @@
  *
  * Non-fatal:
  *   - Exits 0 even on install failure so a transient network / permission
- *     issue doesn't break `npm install`. The capture-time auto-install
+ *     issue doesn't break `bun install`. The capture-time auto-install
  *     remains the safety net.
  *
  * Platform handling:
- *   - macOS / Windows: `npx playwright install chromium`
- *   - Linux: `npx playwright install chromium --with-deps` first (needs
+ *   - macOS / Windows: `bunx playwright install chromium`
+ *   - Linux: `bunx playwright install chromium --with-deps` first (needs
  *     sudo / root for system libraries). If `--with-deps` fails, fall
  *     back to a plain `install chromium` and warn the user that they may
  *     need to install system libs manually.
@@ -79,14 +79,14 @@ async function main() {
   const platform = detectPlatform();
   console.log(`${TAG} ensuring Playwright Chromium is installed (one-time, ~150 MB)…`);
 
-  // Always run via `npx playwright` so users without a global Playwright still
+  // Always run via `bunx playwright` so users without a global Playwright still
   // resolve the binary out of node_modules.
   const baseArgs = ["playwright", "install", "chromium"];
 
   try {
     if (platform === "linux") {
       try {
-        await run("npx", [...baseArgs, "--with-deps"]);
+        await run("bunx", [...baseArgs, "--with-deps"]);
         console.log(`${TAG} Chromium ready.`);
         return;
       } catch (err) {
@@ -96,15 +96,15 @@ async function main() {
         console.warn(`${TAG} falling back to plain install; system libs may be missing.`);
       }
     }
-    await run("npx", baseArgs);
+    await run("bunx", baseArgs);
     console.log(`${TAG} Chromium ready.`);
   } catch (err) {
     // Non-fatal: capture-time auto-install remains as a safety net.
     console.warn(
       `${TAG} browser install failed (${err.message}). ` +
-        `The first capture will retry automatically, or run \`npx playwright install chromium\` manually.`,
+        `The first capture will retry automatically, or run \`bunx playwright install chromium\` manually.`,
     );
-    // Exit 0 — npm install must not fail because the browser download failed.
+    // Exit 0 — bun install must not fail because the browser download failed.
   }
 }
 

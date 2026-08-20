@@ -7,25 +7,23 @@ base**. The desktop app keeps Markdown and SQLite data local,
 preserves source provenance, and serves as the durable store for
 research notes, citations, and machine-readable evidence.
 
-| Aspect | Value |
-|---|---|
-| Language stack | TypeScript + Node (npm), Electron desktop app (BrowserWindow) |
-| Storage | Local SQLite + local Markdown files |
-| Audience | Researchers, knowledge workers, agents writing research notes |
-| Distribution | Local desktop app (no telemetry) |
+| Aspect         | Value                                                         |
+| -------------- | ------------------------------------------------------------- |
+| Language stack | React + TypeScript (Bun), Tauri 2 desktop shell, Rust         |
+| Storage        | Local SQLite + local Markdown files                           |
+| Audience       | Researchers, knowledge workers, agents writing research notes |
+| Distribution   | Local desktop app (no telemetry)                              |
 
 ## Workspace Layout
 
 ```
 ResearchLedger/
-├── apps/                       # Workspace apps (TS + Electron)
+├── apps/desktop/src-tauri/     # Tauri shell, Rust core, SQLite migrations
 ├── docs/                       # User-facing docs
 ├── dist/                       # Built artifacts
 ├── index.html                  # Entry point
 ├── package.json                # Root package manifest
-├── package-lock.json           # npm lockfile
-├── bun.lock                    # Bun lockfile (cross-runtime)
-├── linkedin-capture.json       # Sample data (template)
+├── bun.lock                    # Bun lockfile
 ├── LICENSE                     # License
 ├── CHANGELOG.md                # Release notes
 └── audits/                     # Audit-trail artifacts (added 2026-08-11)
@@ -54,18 +52,18 @@ ResearchLedger/
 
 ## Quality Gates
 
-- `npm install` (or `bun install`)
-- `npm run typecheck` (tsc --noEmit)
-- `npm run lint` (eslint)
-- `npm run test` (vitest)
-- `npm run build` (tsc + electron-builder)
+- `bun install --frozen-lockfile`
+- `bun run lint` (tsc --noEmit)
+- `bun run test` (vitest)
+- `bun run build` (tsc + Vite)
+- `RESEARCHLEDGER_SKIP_BUNDLE_RESOURCE_VALIDATION=1 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --lib`
 
 ## Key Commands
 
-- `npm run dev` — start the desktop app in dev mode
-- `npm run build` — produce a packaged build
-- `npm run note:new` — create a new dated note from a template
-- `npm run search` — query the SQLite knowledge base
+- `bun run dev` — start the frontend development server
+- `bun run tauri dev` — start the local Tauri desktop app
+- `bun run build` — build the frontend bundle
+- `bun run release:macos -- --dry-run` — print the non-mutating macOS release plan
 
 ## Important Notes
 
@@ -73,8 +71,8 @@ ResearchLedger/
   require sending data to a remote server.
 - Source provenance is non-negotiable. Every note must link back to
   at least one source (URL, paper, conversation reference).
-- The `linkedin-capture.json` is a sample file; real captures go
-  under a per-user directory.
+- LinkedIn is manual permalink/content import only. Do not add browser capture,
+  cookie extraction, session cloning, or CAPTCHA automation for it.
 
 ## Cross-references
 

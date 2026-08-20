@@ -1,26 +1,109 @@
 use serde::Serialize;
 mod chunking;
+mod consent;
 mod distill;
 mod embeddings;
 mod enrichment;
 mod github;
 mod hackernews;
-mod linkedin;
+mod okf;
 mod provider_html;
 mod rag;
 mod reddit;
+mod reference_fetch;
 mod safe_paths;
 mod storage;
 mod x;
 
+/// Paths are local machine preferences, not browser data. They are kept in
+/// the Tauri app configuration directory so the webview never persists raw
+/// filesystem locations in `localStorage`.
+mod native_preferences {
+    use serde::{Deserialize, Serialize};
+    use std::path::{Component, Path};
+
+    const FILE_NAME: &str = "local-preferences.json";
+
+    #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct LocalPreferences {
+        pub vault_path: Option<String>,
+        pub hackernews_profile: Option<String>,
+        pub reddit_profile: Option<String>,
+        pub x_profile: Option<String>,
+    }
+
+    pub fn load(config_dir: &Path) -> Result<LocalPreferences, String> {
+        let path = config_dir.join(FILE_NAME);
+        if !path.exists() {
+            return Ok(LocalPreferences::default());
+        }
+        let contents = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
+        let preferences = serde_json::from_str(&contents)
+            .map_err(|_| "local preferences could not be read".to_string())?;
+        validate(preferences)
+    }
+
+    pub fn save(config_dir: &Path, preferences: LocalPreferences) -> Result<(), String> {
+        let preferences = validate(preferences)?;
+        std::fs::create_dir_all(config_dir).map_err(|error| error.to_string())?;
+        let path = config_dir.join(FILE_NAME);
+        let temporary_path = config_dir.join(format!(".{FILE_NAME}.tmp"));
+        let contents = serde_json::to_vec(&preferences).map_err(|error| error.to_string())?;
+        std::fs::write(&temporary_path, contents).map_err(|error| error.to_string())?;
+        std::fs::rename(temporary_path, path).map_err(|error| error.to_string())
+    }
+
+    pub fn validate(mut preferences: LocalPreferences) -> Result<LocalPreferences, String> {
+        preferences.vault_path = validate_path(preferences.vault_path, "vault")?;
+        preferences.hackernews_profile =
+            validate_path(preferences.hackernews_profile, "Hacker News profile")?;
+        preferences.reddit_profile = validate_path(preferences.reddit_profile, "Reddit profile")?;
+        preferences.x_profile = validate_path(preferences.x_profile, "X profile")?;
+        Ok(preferences)
+    }
+
+    fn validate_path(value: Option<String>, label: &str) -> Result<Option<String>, String> {
+        let Some(value) = value else {
+            return Ok(None);
+        };
+        let value = value.trim();
+        if value.is_empty() {
+            return Ok(None);
+        }
+        if value.chars().any(|character| character.is_control()) {
+            return Err(format!("{label} path must not contain control characters"));
+        }
+        let path = Path::new(value);
+        if !path.is_absolute() {
+            return Err(format!("{label} path must be absolute"));
+        }
+        if path
+            .components()
+            .any(|component| matches!(component, Component::ParentDir))
+        {
+            return Err(format!(
+                "{label} path must not contain `..` traversal segments"
+            ));
+        }
+        Ok(Some(value.to_string()))
+    }
+}
+
 mod commands {
     include!("commands.rs");
 
+    use super::consent;
     use super::{
-        distill, embeddings::OllamaEmbedder, github, github::GithubClient, hackernews, linkedin,
-        rag, reddit, safe_paths, storage, x, VaultStatus,
+        consent::{ConsentGrant, ConsentRegistry},
+        distill,
+        embeddings::{LocalCrossEncoder, OllamaEmbedder},
+        github::GithubClient,
+        hackernews, native_preferences, rag, reddit, reference_fetch, safe_paths, storage, x,
+        VaultStatus,
     };
-    use serde::Serialize;
+    use serde::{Deserialize, Serialize};
+    use sha2::{Digest, Sha256};
     use tauri::Manager;
 
     #[derive(Debug, Serialize)]
@@ -30,6 +113,226 @@ mod commands {
         pub updated: u64,
         pub unchanged: u64,
         pub failed: u64,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ConsentGrantInput {
+        pub vault_path: String,
+        pub id: String,
+        pub local_profile: String,
+        pub provider: String,
+        pub data_categories: Vec<String>,
+        pub url_scope: String,
+        pub expires_at: Option<String>,
+        pub version: i64,
+        pub granted_at: String,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct QueueReferenceFetchInput {
+        pub vault_path: String,
+        pub source_document_id: String,
+        pub target_url: String,
+        pub requested_at: String,
+    }
+
+    #[derive(Debug, Serialize, PartialEq, Eq)]
+    #[serde(rename_all = "camelCase")]
+    pub struct QueueReferenceFetchResult {
+        pub source_document_id: String,
+        pub target_url: String,
+        pub queued: bool,
+    }
+
+    #[tauri::command]
+    pub fn load_local_preferences(
+        app: tauri::AppHandle,
+    ) -> Result<native_preferences::LocalPreferences, String> {
+        let config_dir = app
+            .path()
+            .app_config_dir()
+            .map_err(|error| error.to_string())?;
+        native_preferences::load(&config_dir)
+    }
+
+    #[tauri::command]
+    pub fn save_local_preferences(
+        app: tauri::AppHandle,
+        preferences: native_preferences::LocalPreferences,
+    ) -> Result<(), String> {
+        let config_dir = app
+            .path()
+            .app_config_dir()
+            .map_err(|error| error.to_string())?;
+        native_preferences::save(&config_dir, preferences)
+    }
+
+    #[tauri::command]
+    pub fn queue_reference_fetch(
+        input: QueueReferenceFetchInput,
+    ) -> Result<QueueReferenceFetchResult, String> {
+        let root = std::path::PathBuf::from(&input.vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let source_exists: bool = connection
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM documents WHERE id = ?1)",
+                rusqlite::params![input.source_document_id],
+                |row| row.get(0),
+            )
+            .map_err(|error| error.to_string())?;
+        if !source_exists {
+            return Err("source document not found".into());
+        }
+        let target_url = consent::canonical_scope(&input.target_url);
+        let link_exists: bool = connection
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM document_links WHERE source_document_id = ?1 AND target_url = ?2)",
+                rusqlite::params![input.source_document_id, target_url],
+                |row| row.get(0),
+            )
+            .map_err(|error| error.to_string())?;
+        if !link_exists {
+            return Err("reference link not found for source document".into());
+        }
+        let queued = storage::queue_reference_fetch(
+            &connection,
+            &input.source_document_id,
+            &target_url,
+            &input.requested_at,
+        )
+        .map_err(|error| error.to_string())?;
+        Ok(QueueReferenceFetchResult {
+            source_document_id: input.source_document_id,
+            target_url,
+            queued,
+        })
+    }
+
+    #[tauri::command]
+    pub fn grant_consent(input: ConsentGrantInput) -> Result<(), String> {
+        let root = std::path::PathBuf::from(&input.vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        ConsentRegistry::new(&connection)
+            .grant(ConsentGrant {
+                id: input.id,
+                local_profile: input.local_profile,
+                provider: input.provider,
+                purpose: consent::REFERENCE_FETCH_PURPOSE.into(),
+                data_categories: input.data_categories,
+                url_scope: input.url_scope,
+                expires_at: input.expires_at,
+                version: input.version,
+                granted_at: input.granted_at,
+            })
+            .map_err(|error| error.to_string())
+    }
+
+    #[tauri::command]
+    pub fn revoke_consent(
+        vault_path: String,
+        id: String,
+        revoked_at: String,
+    ) -> Result<bool, String> {
+        let root = std::path::PathBuf::from(vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        ConsentRegistry::new(&connection)
+            .revoke(&id, &revoked_at)
+            .map_err(|error| error.to_string())
+    }
+
+    /// Build the Bun command used for browser capture.
+    ///
+    /// GUI-launched macOS applications do not reliably inherit the shell PATH,
+    /// so prefer the user-configured path and the two standard Homebrew/Bun
+    /// locations before falling back to PATH lookup. This keeps the packaged
+    /// app on the repository's Bun runtime contract without requiring a shell
+    /// or a globally installed Node/npm toolchain.
+    fn bun_command() -> tokio::process::Command {
+        let mut candidates = Vec::new();
+        if let Some(path) = std::env::var_os("RESEARCHLEDGER_BUN_PATH") {
+            candidates.push(std::path::PathBuf::from(path));
+        }
+        candidates.push(std::path::PathBuf::from("/opt/homebrew/bin/bun"));
+        candidates.push(std::path::PathBuf::from("/usr/local/bin/bun"));
+        if let Some(home) = std::env::var_os("HOME") {
+            candidates.push(std::path::PathBuf::from(home).join(".bun/bin/bun"));
+        }
+        candidates
+            .into_iter()
+            .find(|candidate| candidate.is_file())
+            .map(tokio::process::Command::new)
+            .unwrap_or_else(|| tokio::process::Command::new("bun"))
+    }
+
+    fn gh_command() -> tokio::process::Command {
+        let mut candidates = Vec::new();
+        if let Some(path) = std::env::var_os("RESEARCHLEDGER_GH_PATH") {
+            candidates.push(std::path::PathBuf::from(path));
+        }
+        candidates.push(std::path::PathBuf::from("/opt/homebrew/bin/gh"));
+        candidates.push(std::path::PathBuf::from("/usr/local/bin/gh"));
+        if let Some(home) = std::env::var_os("HOME") {
+            candidates.push(std::path::PathBuf::from(home).join(".local/bin/gh"));
+        }
+        candidates
+            .into_iter()
+            .find(|candidate| candidate.is_file())
+            .map(tokio::process::Command::new)
+            .unwrap_or_else(|| tokio::process::Command::new("gh"))
+    }
+
+    pub(crate) fn parse_gh_token_output(success: bool, stdout: &[u8]) -> Result<String, String> {
+        if !success {
+            return Err("GitHub CLI is not authenticated. Run `gh auth login`, then retry.".into());
+        }
+        let token = String::from_utf8_lossy(stdout).trim().to_string();
+        if token.is_empty() {
+            return Err("GitHub CLI returned no token. Run `gh auth login`, then retry.".into());
+        }
+        Ok(token)
+    }
+
+    fn configure_playwright_command(app: &tauri::AppHandle, command: &mut tokio::process::Command) {
+        if let Ok(resource_dir) = app.path().resource_dir() {
+            command.current_dir(&resource_dir);
+            let candidates = [
+                resource_dir.join("node_modules/playwright/index.mjs"),
+                resource_dir.join("node_modules/playwright"),
+                resource_dir.join("node_modules/playwright-core"),
+            ];
+            for candidate in candidates {
+                if candidate.exists() {
+                    command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", candidate);
+                    break;
+                }
+            }
+        }
+    }
+
+    fn external_capture_path(provider: &str) -> Result<std::path::PathBuf, String> {
+        let root = if let Some(configured) = std::env::var_os("RESEARCHLEDGER_CAPTURE_ROOT") {
+            let path = std::path::PathBuf::from(configured);
+            if !path.is_absolute() {
+                return Err("RESEARCHLEDGER_CAPTURE_ROOT must be an absolute path".into());
+            }
+            path
+        } else {
+            let home = std::env::var_os("HOME")
+                .map(std::path::PathBuf::from)
+                .ok_or_else(|| {
+                    "HOME is unavailable; configure RESEARCHLEDGER_CAPTURE_ROOT".to_string()
+                })?;
+            home.join(".phenotype")
+                .join("researchledger")
+                .join("captures")
+        };
+        std::fs::create_dir_all(&root).map_err(|error| error.to_string())?;
+        Ok(root.join(format!("{provider}-capture.json")))
     }
 
     #[tauri::command]
@@ -53,15 +356,17 @@ mod commands {
         })
     }
 
-    #[tauri::command]
-    pub async fn import_github(vault_path: String, token: String) -> Result<ImportSummary, String> {
-        if token.trim().is_empty() {
-            return Err("GitHub token is required".into());
+    async fn import_github_with_credential(
+        vault_path: String,
+        credential: String,
+    ) -> Result<ImportSummary, String> {
+        if credential.trim().is_empty() {
+            return Err("GitHub authentication is required".into());
         }
         let root = std::path::PathBuf::from(vault_path);
         let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
         let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let client = GithubClient::new(token).map_err(|error| error.to_string())?;
+        let client = GithubClient::new(credential).map_err(|error| error.to_string())?;
         let repositories = client
             .list_starred()
             .await
@@ -115,148 +420,68 @@ mod commands {
     }
 
     #[tauri::command]
-    pub async fn github_device_start(
-        client_id: String,
-    ) -> Result<github::DeviceAuthorization, String> {
-        GithubClient::new("")
-            .map_err(|error| error.to_string())?
-            .request_device_authorization(&client_id)
+    pub async fn import_github_from_gh(vault_path: String) -> Result<ImportSummary, String> {
+        let output = gh_command()
+            .args(["auth", "token", "--hostname", "github.com"])
+            .output()
             .await
-            .map_err(|error| error.to_string())
+            .map_err(|_| {
+                "GitHub CLI is unavailable. Install `gh` or configure RESEARCHLEDGER_GH_PATH."
+                    .to_string()
+            })?;
+        let credential = parse_gh_token_output(output.status.success(), &output.stdout)?;
+        import_github_with_credential(vault_path, credential).await
     }
 
     #[tauri::command]
-    pub async fn github_device_poll(
-        client_id: String,
-        device_code: String,
-        interval: u64,
-        expires_in: u64,
-    ) -> Result<String, String> {
-        GithubClient::new("")
-            .map_err(|error| error.to_string())?
-            .poll_device_token(&client_id, &device_code, interval, expires_in)
-            .await
-            .map_err(|error| error.to_string())
-    }
-
-    #[tauri::command]
-    pub fn import_linkedin_html(
+    pub fn import_linkedin_manual(
         vault_path: String,
-        html_path: String,
+        permalink: String,
+        content: String,
     ) -> Result<ImportSummary, String> {
-        let html = std::fs::read_to_string(&html_path).map_err(|error| error.to_string())?;
-        let posts = linkedin::parse_activity_html(&html);
+        let permalink = permalink.trim();
+        let content = content.trim();
+        if !permalink.starts_with("https://www.linkedin.com/") {
+            return Err("LinkedIn permalink must be an https://www.linkedin.com/ URL".into());
+        }
+        if content.is_empty() {
+            return Err("LinkedIn content is required".into());
+        }
         let root = std::path::PathBuf::from(vault_path);
         let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
         let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let mut summary = ImportSummary {
-            created: 0,
-            updated: 0,
-            unchanged: 0,
-            failed: 0,
+        let id = format!("{:x}", Sha256::digest(permalink.as_bytes()));
+        let document = storage::SourceDocument {
+            id: format!("linkedin:{id}"),
+            relative_path: format!("sources/linkedin/{id}.md"),
+            title: "LinkedIn manual import".into(),
+            source_kind: "linkedin".into(),
+            source_uri: Some(permalink.to_string()),
+            content: format!("---\ntype: LinkedIn Post\nid: linkedin:{id}\ntitle: LinkedIn manual import\ndescription: User-supplied LinkedIn permalink and content\nresource: {permalink}\ntags: [linkedin, manual]\ntimestamp: {}\nsource_kind: linkedin\nsource_uri: {permalink}\n---\n\n{content}\n\n# Citations\n\n[1] [LinkedIn post]({permalink})\n", chrono::Utc::now().to_rfc3339()),
+            captured_at: chrono::Utc::now().to_rfc3339(),
         };
-        for post in posts {
-            let id = post.url.rsplit(':').next().unwrap_or(&post.url).to_string();
-            let content = format!("---\ntype: LinkedIn Post\nid: linkedin:{id}\ntitle: LinkedIn post {id}\ndescription: Captured LinkedIn post\nresource: {}\ntags: [linkedin, captured]\ntimestamp: {}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n\n# Citations\n\n[1] [LinkedIn post]({})\n", post.url, chrono::Utc::now().to_rfc3339(), post.url, post.text, post.url);
-            let document = storage::SourceDocument {
-                id: format!("linkedin:{id}"),
-                relative_path: format!("sources/linkedin/{id}.md"),
-                title: format!("LinkedIn post {id}"),
-                source_kind: "linkedin".into(),
-                source_uri: Some(post.url),
-                content,
-                captured_at: chrono::Utc::now().to_rfc3339(),
-            };
-            match storage::upsert_document(&mut connection, &root, &document)
-                .map_err(|error| error.to_string())?
-            {
-                storage::UpsertResult::Created => summary.created += 1,
-                storage::UpsertResult::Updated => summary.updated += 1,
-                storage::UpsertResult::Unchanged => summary.unchanged += 1,
-            }
-        }
-        Ok(summary)
-    }
-
-    #[tauri::command]
-    pub fn import_linkedin_capture(
-        vault_path: String,
-        capture_path: String,
-    ) -> Result<ImportSummary, String> {
-        let json = std::fs::read_to_string(&capture_path).map_err(|error| error.to_string())?;
-        let posts = linkedin::parse_capture_json(&json).map_err(|error| error.to_string())?;
-        let root = std::path::PathBuf::from(vault_path);
-        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
-        let mut connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let mut summary = ImportSummary {
-            created: 0,
-            updated: 0,
-            unchanged: 0,
-            failed: 0,
-        };
-        for post in posts {
-            let id = post.url.rsplit(':').next().unwrap_or(&post.url).to_string();
-            let document = storage::SourceDocument {
-                id: format!("linkedin:{id}"),
-                relative_path: format!("sources/linkedin/{id}.md"),
-                title: format!("LinkedIn post {id}"),
-                source_kind: "linkedin".into(),
-                source_uri: Some(post.url.clone()),
-                content: format!("---\ntype: LinkedIn Post\nid: linkedin:{id}\ntitle: LinkedIn post {id}\ndescription: Captured LinkedIn post\nresource: {}\ntags: [linkedin, captured]\ntimestamp: {}\nsource_kind: linkedin\nsource_uri: {}\n---\n\n{}\n\n# Citations\n\n[1] [LinkedIn post]({})\n", post.url, chrono::Utc::now().to_rfc3339(), post.url, post.text, post.url),
-                captured_at: chrono::Utc::now().to_rfc3339(),
-            };
-            match storage::upsert_document(&mut connection, &root, &document)
-                .map_err(|error| error.to_string())?
-            {
-                storage::UpsertResult::Created => summary.created += 1,
-                storage::UpsertResult::Updated => summary.updated += 1,
-                storage::UpsertResult::Unchanged => summary.unchanged += 1,
-            }
-        }
-        Ok(summary)
-    }
-
-    #[tauri::command]
-    pub async fn capture_linkedin_browser(
-        app: tauri::AppHandle,
-        vault_path: String,
-        activity_url: Option<String>,
-        profile_path: Option<String>,
-    ) -> Result<ImportSummary, String> {
-        let output = std::path::PathBuf::from(&vault_path)
-            .join(".researchledger")
-            .join("linkedin-capture.json");
-        let resource_script = app
-            .path()
-            .resource_dir()
+        match storage::upsert_document(&mut connection, &root, &document)
             .map_err(|error| error.to_string())?
-            .join("scripts/linkedin_capture.mjs");
-        let script = if resource_script.exists() {
-            resource_script
-        } else {
-            std::env::current_dir()
-                .map_err(|error| error.to_string())?
-                .join("scripts/linkedin_capture.mjs")
-        };
-        let mut command = tokio::process::Command::new("node");
-        command.arg(script).arg("--output").arg(&output);
-        if let Ok(resource_dir) = app.path().resource_dir() {
-            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
-            if packaged_module.exists() {
-                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
-            }
+        {
+            storage::UpsertResult::Created => Ok(ImportSummary {
+                created: 1,
+                updated: 0,
+                unchanged: 0,
+                failed: 0,
+            }),
+            storage::UpsertResult::Updated => Ok(ImportSummary {
+                created: 0,
+                updated: 1,
+                unchanged: 0,
+                failed: 0,
+            }),
+            storage::UpsertResult::Unchanged => Ok(ImportSummary {
+                created: 0,
+                updated: 0,
+                unchanged: 1,
+                failed: 0,
+            }),
         }
-        if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
-            command.arg("--profile").arg(profile);
-        }
-        if let Some(url) = activity_url {
-            command.arg("--url").arg(url);
-        }
-        let result = command.output().await.map_err(|error| error.to_string())?;
-        if !result.status.success() {
-            return Err(String::from_utf8_lossy(&result.stderr).trim().to_string());
-        }
-        import_linkedin_capture(vault_path, output.to_string_lossy().into_owned())
     }
 
     #[tauri::command]
@@ -359,9 +584,14 @@ mod commands {
         activity_url: Option<String>,
         profile_path: Option<String>,
     ) -> Result<ImportSummary, String> {
-        let output = std::path::PathBuf::from(&vault_path)
-            .join(".researchledger")
-            .join("hackernews-capture.json");
+        if let Some(url) = activity_url
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
+            safe_paths::ensure_safe_provider_url(url, &["news.ycombinator.com"])
+                .map_err(|error| error.to_string())?;
+        }
+        let output = external_capture_path("hackernews")?;
         let resource_script = app
             .path()
             .resource_dir()
@@ -374,16 +604,13 @@ mod commands {
                 .map_err(|error| error.to_string())?
                 .join("scripts/hackernews_capture.mjs")
         };
-        let mut command = tokio::process::Command::new("node");
+        let mut command = bun_command();
         command.arg(script).arg("--output").arg(&output);
-        if let Ok(resource_dir) = app.path().resource_dir() {
-            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
-            if packaged_module.exists() {
-                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
-            }
-        }
+        configure_playwright_command(&app, &mut command);
         if let Some(profile) = profile_path.filter(|value| !value.trim().is_empty()) {
-            command.arg("--profile").arg(profile);
+            let safe_profile = safe_paths::ensure_safe_command_arg(&profile, "profile")
+                .map_err(|error| error.to_string())?;
+            command.arg("--profile").arg(safe_profile);
         }
         if let Some(url) = activity_url.filter(|value| !value.trim().is_empty()) {
             command.arg("--url").arg(url);
@@ -529,13 +756,17 @@ mod commands {
         // Validate the URL is on the Reddit allow-list before shelling out so a
         // crafted activity_url can't redirect the user's authenticated profile
         // to a different host.
-        if let Some(url) = activity_url.as_deref().filter(|value| !value.trim().is_empty()) {
-            safe_paths::ensure_safe_provider_url(url, &["reddit.com", "www.reddit.com", "old.reddit.com"])
-                .map_err(|error| error.to_string())?;
+        if let Some(url) = activity_url
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
+            safe_paths::ensure_safe_provider_url(
+                url,
+                &["reddit.com", "www.reddit.com", "old.reddit.com"],
+            )
+            .map_err(|error| error.to_string())?;
         }
-        let output = std::path::PathBuf::from(&vault_path)
-            .join(".researchledger")
-            .join("reddit-capture.json");
+        let output = external_capture_path("reddit")?;
         let resource_script = app
             .path()
             .resource_dir()
@@ -548,14 +779,9 @@ mod commands {
                 .map_err(|error| error.to_string())?
                 .join("scripts/reddit_capture.mjs")
         };
-        let mut command = tokio::process::Command::new("node");
+        let mut command = bun_command();
         command.arg(script).arg("--output").arg(&output);
-        if let Ok(resource_dir) = app.path().resource_dir() {
-            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
-            if packaged_module.exists() {
-                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
-            }
-        }
+        configure_playwright_command(&app, &mut command);
         if let Some(profile) = profile_path
             .as_deref()
             .filter(|value| !value.trim().is_empty())
@@ -575,10 +801,7 @@ mod commands {
     }
 
     #[tauri::command]
-    pub fn import_x_html(
-        vault_path: String,
-        html_path: String,
-    ) -> Result<ImportSummary, String> {
+    pub fn import_x_html(vault_path: String, html_path: String) -> Result<ImportSummary, String> {
         let html = std::fs::read_to_string(&html_path).map_err(|error| error.to_string())?;
         let posts = x::parse_bookmarks_html(&html);
         let root = std::path::PathBuf::from(vault_path);
@@ -659,13 +882,14 @@ mod commands {
         activity_url: Option<String>,
         profile_path: Option<String>,
     ) -> Result<ImportSummary, String> {
-        if let Some(url) = activity_url.as_deref().filter(|value| !value.trim().is_empty()) {
+        if let Some(url) = activity_url
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
             safe_paths::ensure_safe_provider_url(url, &["x.com", "twitter.com"])
                 .map_err(|error| error.to_string())?;
         }
-        let output = std::path::PathBuf::from(&vault_path)
-            .join(".researchledger")
-            .join("x-capture.json");
+        let output = external_capture_path("x")?;
         let resource_script = app
             .path()
             .resource_dir()
@@ -678,14 +902,9 @@ mod commands {
                 .map_err(|error| error.to_string())?
                 .join("scripts/x_capture.mjs")
         };
-        let mut command = tokio::process::Command::new("node");
+        let mut command = bun_command();
         command.arg(script).arg("--output").arg(&output);
-        if let Ok(resource_dir) = app.path().resource_dir() {
-            let packaged_module = resource_dir.join("node_modules/playwright/index.mjs");
-            if packaged_module.exists() {
-                command.env("RESEARCHLEDGER_PLAYWRIGHT_MODULE", packaged_module);
-            }
-        }
+        configure_playwright_command(&app, &mut command);
         if let Some(profile) = profile_path
             .as_deref()
             .filter(|value| !value.trim().is_empty())
@@ -760,7 +979,21 @@ mod commands {
             })
             .collect();
         let fused = rag::fuse_ranked(lexical, vector_hits, limit as usize);
-        Ok(rag::build_context(&query, rag::rerank(&query, fused)))
+        let reranked = match LocalCrossEncoder::from_environment() {
+            Ok(Some(reranker)) => {
+                let documents = fused
+                    .iter()
+                    .map(|result| format!("{}\n{}", result.title, result.snippet))
+                    .collect::<Vec<_>>();
+                reranker
+                    .rerank(&query, &documents)
+                    .await
+                    .map(|scores| rag::rerank_with_cross_encoder(fused.clone(), scores))
+                    .unwrap_or_else(|_| rag::rerank(&query, fused))
+            }
+            Ok(None) | Err(_) => rag::rerank(&query, fused),
+        };
+        Ok(rag::build_context(&query, reranked))
     }
 
     #[tauri::command]
@@ -831,6 +1064,164 @@ mod commands {
     }
 
     #[tauri::command]
+    pub async fn fetch_pending_references(
+        vault_path: String,
+        limit: Option<u32>,
+    ) -> Result<ImportSummary, String> {
+        let root = std::path::PathBuf::from(&vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let jobs = storage::pending_reference_jobs(&connection, limit.unwrap_or(10).min(25))
+            .map_err(|error| error.to_string())?;
+        drop(connection);
+        let mut domain_budget = reference_fetch::DomainConcurrency::new(2);
+        let mut summary = ImportSummary {
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+        };
+        for job in jobs {
+            if !domain_budget.try_acquire(&job.target_url) {
+                continue;
+            }
+            let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+            let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+            let claimed = storage::claim_reference_fetch_if_consented(
+                &connection,
+                &job,
+                &chrono::Utc::now().to_rfc3339(),
+            )
+            .map_err(|error| error.to_string())?;
+            drop(connection);
+            if !claimed {
+                domain_budget.release(&job.target_url);
+                continue;
+            }
+
+            let fetched_result = reference_fetch::fetch_with_retry(&job.target_url).await;
+            domain_budget.release(&job.target_url);
+            match fetched_result {
+                Ok(fetched) => {
+                    let result = reference_fetch::write_artifact(&root, &fetched);
+                    match result {
+                        Ok(_) => {
+                            let reference_document = storage::SourceDocument {
+                                id: format!("reference:{}", fetched.content_hash),
+                                relative_path: format!(
+                                    "sources/references/{}.md",
+                                    fetched.content_hash
+                                ),
+                                title: format!("Fetched reference: {}", job.target_url),
+                                source_kind: "reference".into(),
+                                source_uri: Some(job.target_url.clone()),
+                                content: reference_fetch::render_markdown(
+                                    &job.target_url,
+                                    &fetched,
+                                ),
+                                captured_at: chrono::Utc::now().to_rfc3339(),
+                            };
+                            let paths =
+                                storage::initialize(&root).map_err(|error| error.to_string())?;
+                            let mut connection =
+                                storage::open(&paths).map_err(|error| error.to_string())?;
+                            let upsert_result = match storage::upsert_document(
+                                &mut connection,
+                                &root,
+                                &reference_document,
+                            ) {
+                                Ok(result) => result,
+                                Err(error) => {
+                                    storage::record_reference_fetch(
+                                        &connection,
+                                        &job,
+                                        &storage::ReferenceFetchUpdate {
+                                            status: "failed",
+                                            artifact_path: None,
+                                            content_type: None,
+                                            http_status: None,
+                                            byte_count: None,
+                                            content_hash: None,
+                                            fetched_at: Some(&chrono::Utc::now().to_rfc3339()),
+                                            error: Some(&error.to_string()),
+                                        },
+                                    )
+                                    .map_err(|error| error.to_string())?;
+                                    summary.failed += 1;
+                                    continue;
+                                }
+                            };
+                            match upsert_result {
+                                storage::UpsertResult::Created => summary.created += 1,
+                                storage::UpsertResult::Updated => summary.updated += 1,
+                                storage::UpsertResult::Unchanged => summary.unchanged += 1,
+                            }
+                            storage::record_reference_fetch(
+                                &connection,
+                                &job,
+                                &storage::ReferenceFetchUpdate {
+                                    status: "done",
+                                    artifact_path: Some(&fetched.artifact_path),
+                                    content_type: Some(&fetched.content_type),
+                                    http_status: Some(fetched.http_status),
+                                    byte_count: Some(fetched.byte_count),
+                                    content_hash: Some(&fetched.content_hash),
+                                    fetched_at: Some(&chrono::Utc::now().to_rfc3339()),
+                                    error: None,
+                                },
+                            )
+                            .map_err(|error| error.to_string())?;
+                        }
+                        Err(error) => {
+                            let paths =
+                                storage::initialize(&root).map_err(|error| error.to_string())?;
+                            let connection =
+                                storage::open(&paths).map_err(|error| error.to_string())?;
+                            storage::record_reference_fetch(
+                                &connection,
+                                &job,
+                                &storage::ReferenceFetchUpdate {
+                                    status: "failed",
+                                    artifact_path: None,
+                                    content_type: None,
+                                    http_status: None,
+                                    byte_count: None,
+                                    content_hash: None,
+                                    fetched_at: Some(&chrono::Utc::now().to_rfc3339()),
+                                    error: Some(&error.to_string()),
+                                },
+                            )
+                            .map_err(|error| error.to_string())?;
+                            summary.failed += 1;
+                        }
+                    }
+                }
+                Err(error) => {
+                    let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+                    let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+                    storage::record_reference_fetch(
+                        &connection,
+                        &job,
+                        &storage::ReferenceFetchUpdate {
+                            status: "failed",
+                            artifact_path: None,
+                            content_type: None,
+                            http_status: None,
+                            byte_count: None,
+                            content_hash: None,
+                            fetched_at: Some(&chrono::Utc::now().to_rfc3339()),
+                            error: Some(&error.to_string()),
+                        },
+                    )
+                    .map_err(|error| error.to_string())?;
+                    summary.failed += 1;
+                }
+            }
+        }
+        Ok(summary)
+    }
+
+    #[tauri::command]
     pub async fn embed_document(
         vault_path: String,
         document_id: String,
@@ -871,13 +1262,16 @@ mod commands {
         let transaction = connection
             .transaction()
             .map_err(|error| error.to_string())?;
-        for ((chunk_id, _), vector) in chunks.iter().zip(vectors.iter()) {
+        for ((chunk_id, text), vector) in chunks.iter().zip(vectors.iter()) {
+            let input_hash = format!("{:x}", Sha256::digest(text.as_bytes()));
             transaction
                 .execute(
-                    "INSERT INTO chunk_embeddings (chunk_id, model, dimensions, vector_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT(chunk_id) DO UPDATE SET model=excluded.model, dimensions=excluded.dimensions, vector_json=excluded.vector_json, created_at=excluded.created_at",
+                    "INSERT INTO chunk_embeddings (chunk_id, model, embedding_version, input_hash, dimensions, vector_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) ON CONFLICT(chunk_id) DO UPDATE SET model=excluded.model, embedding_version=excluded.embedding_version, input_hash=excluded.input_hash, dimensions=excluded.dimensions, vector_json=excluded.vector_json, created_at=excluded.created_at",
                     rusqlite::params![
                         chunk_id,
                         model,
+                        "v1",
+                        input_hash,
                         vector.len(),
                         serde_json::to_string(vector).map_err(|error| error.to_string())?,
                         chrono::Utc::now().to_rfc3339()
@@ -902,13 +1296,14 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
+            commands::load_local_preferences,
+            commands::save_local_preferences,
             commands::get_vault_status,
-            commands::import_github,
-            commands::github_device_start,
-            commands::github_device_poll,
-            commands::import_linkedin_html,
-            commands::import_linkedin_capture,
-            commands::capture_linkedin_browser,
+            commands::grant_consent,
+            commands::revoke_consent,
+            commands::queue_reference_fetch,
+            commands::import_github_from_gh,
+            commands::import_linkedin_manual,
             commands::import_hackernews_html,
             commands::import_hackernews_capture,
             commands::capture_hackernews_browser,
@@ -922,10 +1317,12 @@ pub fn run() {
             commands::list_document_summaries,
             commands::list_collections,
             commands::list_document_links,
+            commands::list_document_claims,
             commands::export_obsidian,
             commands::retrieve_context,
             commands::distill_document,
             commands::process_pending_enrichment,
+            commands::fetch_pending_references,
             commands::embed_document
         ])
         .run(tauri::generate_context!())
@@ -934,6 +1331,9 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
+    use super::commands;
+    use super::consent::{ConsentGrant, ConsentRegistry};
+    use super::native_preferences::{self, LocalPreferences};
     use super::storage::*;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -958,13 +1358,21 @@ mod tests {
             title: "hello".into(),
             source_kind: "github".into(),
             source_uri: Some("https://github.com/octo/hello".into()),
-            content: "# hello\n".into(),
+            content: "---\ntype: GitHub Repository\n---\n\n# hello\n".into(),
             captured_at: "2026-07-20T00:00:00Z".into(),
         };
         assert_eq!(
             upsert_document(&mut db, &root, &document).unwrap(),
             UpsertResult::Created
         );
+        let created_quote: String = db
+            .query_row(
+                "SELECT quote FROM provenance WHERE document_id = ?1",
+                [&document.id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(created_quote, "hello");
         assert_eq!(
             upsert_document(&mut db, &root, &document).unwrap(),
             UpsertResult::Unchanged
@@ -1002,7 +1410,10 @@ mod tests {
             title: "Chunked article".into(),
             source_kind: "article".into(),
             source_uri: Some("https://example.com/chunked".into()),
-            content: format!("# Intro\n{}\n\n# Next\nsecond", "a".repeat(1_300)),
+            content: format!(
+                "---\ntype: Test Document\n---\n\n# Intro\n{}\n\n# Next\nsecond",
+                "a".repeat(1_300)
+            ),
             captured_at: "2026-07-20T00:00:00Z".into(),
         };
         upsert_document(&mut db, &root, &document).unwrap();
@@ -1016,7 +1427,9 @@ mod tests {
             .collect::<Result<_, _>>()
             .unwrap();
         assert!(chunks.len() >= 2);
-        assert_eq!(chunks[0].2.as_deref(), Some("Intro"));
+        assert!(chunks
+            .iter()
+            .any(|(_, _, heading, _)| heading.as_deref() == Some("Intro")));
         assert!(chunks.iter().all(|(_, _, _, text)| text.len() <= 1_200));
         let first_chunk_id = chunks[0].0;
         db.execute(
@@ -1025,7 +1438,7 @@ mod tests {
         )
         .unwrap();
         let updated = SourceDocument {
-            content: "# Replacement\nshort".into(),
+            content: "---\ntype: Test Document\n---\n\nshort".into(),
             ..document.clone()
         };
         upsert_document(&mut db, &root, &updated).unwrap();
@@ -1068,6 +1481,390 @@ mod tests {
             std::io::ErrorKind::PermissionDenied
         );
         assert!(!outside.exists());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn load_document_rejects_database_path_traversal() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let db = open(&paths).unwrap();
+        db.execute(
+            "INSERT INTO documents(id, canonical_path, title, source_kind, content_hash, captured_at, updated_at) VALUES('unsafe', '../outside.md', 'Unsafe', 'test', 'hash', 'now', 'now')",
+            [],
+        )
+        .unwrap();
+        assert!(load_document(&db, &root, "unsafe").is_err());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn documents_do_not_create_implicit_reference_jobs() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        for (id, kind, path) in [
+            ("source", "article", "sources/article.md"),
+            ("fetched", "reference", "sources/references/fetched.md"),
+            ("note", "distillation", "knowledge/note.md"),
+        ] {
+            upsert_document(
+                &mut db,
+                &root,
+                &SourceDocument {
+                    id: id.into(),
+                    relative_path: path.into(),
+                    title: id.into(),
+                    source_kind: kind.into(),
+                    source_uri: Some(format!("https://example.com/{id}")),
+                    content: format!(
+                        "---\ntype: Test Document\n---\n\nSee https://example.com/{id}-link."
+                    ),
+                    captured_at: "2026-07-20T00:00:00Z".into(),
+                },
+            )
+            .unwrap();
+        }
+
+        let jobs = pending_reference_jobs(&db, 10).unwrap();
+        assert!(jobs.is_empty());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn source_without_active_consent_queues_no_reference_jobs() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "unconsented".into(),
+                relative_path: "sources/unconsented.md".into(),
+                title: "Unconsented source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSee https://example.com/reference."
+                    .into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+
+        assert!(pending_reference_jobs(&db, 10).unwrap().is_empty());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn explicit_exact_consent_queues_reference_job() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "source".into(),
+                relative_path: "sources/source.md".into(),
+                title: "Source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSource".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        let registry = ConsentRegistry::new(&db);
+        registry
+            .grant(ConsentGrant {
+                id: "consent-1".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/reference/".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/reference",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        assert_eq!(pending_reference_jobs(&db, 10).unwrap().len(), 1);
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn pending_reference_jobs_skips_revoked_rows_before_applying_limit() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "source".into(),
+                relative_path: "sources/source.md".into(),
+                title: "Source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSource".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        let registry = ConsentRegistry::new(&db);
+
+        registry
+            .grant(ConsentGrant {
+                id: "revoked-consent".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/revoked".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/revoked",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        assert!(registry
+            .revoke("revoked-consent", "2026-08-10T01:30:00Z")
+            .unwrap());
+
+        registry
+            .grant(ConsentGrant {
+                id: "active-consent".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/allowed".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/allowed",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        registry
+            .grant(ConsentGrant {
+                id: "second-active-consent".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/second-allowed".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/second-allowed",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+
+        assert_eq!(
+            pending_reference_jobs_at(&db, 2, "2026-08-10T02:00:00Z").unwrap(),
+            vec![
+                ReferenceJob {
+                    source_document_id: "source".into(),
+                    target_url: "https://example.com/allowed".into(),
+                },
+                ReferenceJob {
+                    source_document_id: "source".into(),
+                    target_url: "https://example.com/second-allowed".into(),
+                },
+            ]
+        );
+        assert!(pending_reference_jobs_at(&db, 0, "2026-08-10T02:00:00Z")
+            .unwrap()
+            .is_empty());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn revoked_consent_removes_already_queued_reference_from_dequeue() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "source".into(),
+                relative_path: "sources/source.md".into(),
+                title: "Source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSource".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        ConsentRegistry::new(&db)
+            .grant(ConsentGrant {
+                id: "consent-1".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/reference".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/reference",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        assert_eq!(
+            pending_reference_jobs_at(&db, 10, "2026-08-10T01:00:00Z")
+                .unwrap()
+                .len(),
+            1
+        );
+        assert!(ConsentRegistry::new(&db)
+            .revoke("consent-1", "2026-08-10T01:30:00Z")
+            .unwrap());
+        assert!(pending_reference_jobs_at(&db, 10, "2026-08-10T02:00:00Z")
+            .unwrap()
+            .is_empty());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn revoked_consent_blocks_reference_job_before_fetch_claim() {
+        let root = temp_root();
+        let paths = initialize(&root).unwrap();
+        let mut db = open(&paths).unwrap();
+        upsert_document(
+            &mut db,
+            &root,
+            &SourceDocument {
+                id: "source".into(),
+                relative_path: "sources/source.md".into(),
+                title: "Source".into(),
+                source_kind: "article".into(),
+                source_uri: Some("https://example.com/source".into()),
+                content: "---\ntype: Test Document\n---\n\nSource".into(),
+                captured_at: "2026-08-10T00:00:00Z".into(),
+            },
+        )
+        .unwrap();
+        let registry = ConsentRegistry::new(&db);
+        registry
+            .grant(ConsentGrant {
+                id: "consent-1".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/reference".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .unwrap();
+        assert!(queue_reference_fetch(
+            &db,
+            "source",
+            "https://example.com/reference",
+            "2026-08-10T01:00:00Z",
+        )
+        .unwrap());
+        let job = pending_reference_jobs_at(&db, 1, "2026-08-10T01:00:00Z")
+            .unwrap()
+            .pop()
+            .unwrap();
+        assert!(registry
+            .revoke("consent-1", "2026-08-10T01:30:00Z")
+            .unwrap());
+
+        assert!(!claim_reference_fetch_if_consented(&db, &job, "2026-08-10T02:00:00Z",).unwrap());
+        assert_eq!(
+            db.query_row(
+                "SELECT status FROM reference_fetches WHERE source_document_id = ?1 AND target_url = ?2",
+                rusqlite::params![job.source_document_id, job.target_url],
+                |row| row.get::<_, String>(0),
+            )
+            .unwrap(),
+            "blocked"
+        );
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn queue_reference_command_rejects_unknown_source_before_consent_lookup() {
+        let root = temp_root();
+        let result = commands::queue_reference_fetch(commands::QueueReferenceFetchInput {
+            vault_path: root.to_string_lossy().into_owned(),
+            source_document_id: "missing".into(),
+            target_url: "https://example.com/reference".into(),
+            requested_at: "2026-08-10T01:00:00Z".into(),
+        });
+        assert_eq!(result, Err("source document not found".into()));
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn gh_token_output_is_trimmed_without_exposing_failure_output() {
+        assert_eq!(
+            commands::parse_gh_token_output(true, b"  ghp_test-token\n"),
+            Ok("ghp_test-token".into())
+        );
+        assert!(commands::parse_gh_token_output(false, b"secret-token").is_err());
+        assert!(commands::parse_gh_token_output(true, b"\n").is_err());
+    }
+
+    #[test]
+    fn native_preferences_persist_valid_paths_and_reject_unsafe_ones() {
+        let root = temp_root();
+        let preferences = LocalPreferences {
+            vault_path: Some("/tmp/research-vault".into()),
+            hackernews_profile: Some("/tmp/hackernews-profile".into()),
+            reddit_profile: None,
+            x_profile: Some("/tmp/x-profile".into()),
+        };
+
+        native_preferences::save(&root, preferences.clone()).unwrap();
+        assert_eq!(native_preferences::load(&root).unwrap(), preferences);
+        assert!(native_preferences::validate(LocalPreferences {
+            vault_path: Some("../escaped-vault".into()),
+            ..LocalPreferences::default()
+        })
+        .is_err());
+        assert!(native_preferences::validate(LocalPreferences {
+            x_profile: Some("/tmp/profile\nwith-control-character".into()),
+            ..LocalPreferences::default()
+        })
+        .is_err());
         let _ = std::fs::remove_dir_all(root);
     }
 }
