@@ -487,6 +487,7 @@ pub fn claim_reference_fetch_if_consented(
                 "reference fetch lease timestamp overflowed".into(),
             )
         })?;
+    let canonical_target = crate::consent::canonical_scope(&job.target_url);
     let decision = crate::consent::ConsentRegistry::new(connection).decide(&job.target_url, now)?;
     if !decision.allowed {
         record_reference_fetch(
@@ -514,7 +515,7 @@ pub fn claim_reference_fetch_if_consented(
              SELECT 1 FROM consent_grants
               WHERE purpose = 'reference_fetch'
                 AND (',' || data_categories || ',') LIKE '%,public_web,%'
-                AND url_scope = ?2
+                AND url_scope = ?6
                 AND revoked_at IS NULL
                 AND unixepoch(granted_at) <= ?5
                 AND (expires_at IS NULL OR unixepoch(expires_at) > ?5)
@@ -525,6 +526,7 @@ pub fn claim_reference_fetch_if_consented(
             now,
             lease_expires_at,
             now_epoch,
+            canonical_target,
         ],
     )? == 1;
     if claimed {
@@ -546,6 +548,13 @@ pub fn claim_reference_fetch_if_consented(
                 now,
                 current_decision.reason
             ],
+        )?;
+    } else {
+        connection.execute(
+            "UPDATE reference_fetches SET error = 'claim_skipped_active_lease'
+             WHERE source_document_id = ?1 AND target_url = ?2
+               AND status = 'running' AND lease_expires_at > ?3",
+            params![job.source_document_id, job.target_url, now_epoch],
         )?;
     }
     Ok(false)
@@ -993,6 +1002,104 @@ mod tests {
             (status, error.as_deref()),
             ("blocked".into(), Some("revoked"))
         );
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn canonical_scope_claims_legacy_reference_job_with_noncanonical_target_url() {
+        let root = temp_root();
+        let paths = initialize(&root).expect("initialize vault");
+        let mut connection = open(&paths).expect("open vault");
+        let document = document();
+        upsert_document(&mut connection, &root, &document).expect("create document");
+        crate::consent::ConsentRegistry::new(&connection)
+            .grant(crate::consent::ConsentGrant {
+                id: "reference-fetch-consent".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/legacy-reference".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .expect("grant consent");
+        let job = ReferenceJob {
+            source_document_id: document.id,
+            target_url: "https://example.com/legacy-reference/".into(),
+        };
+        connection
+            .execute(
+                "INSERT INTO reference_fetches (source_document_id, target_url, status)
+                 VALUES (?1, ?2, 'pending')",
+                params![job.source_document_id, job.target_url],
+            )
+            .expect("seed legacy noncanonical job");
+
+        assert!(
+            claim_reference_fetch_if_consented(&connection, &job, "2026-08-10T02:00:00Z",)
+                .expect("canonical matching consent claims legacy job")
+        );
+        let status: String = connection
+            .query_row(
+                "SELECT status FROM reference_fetches WHERE source_document_id = ?1 AND target_url = ?2",
+                params![job.source_document_id, job.target_url],
+                |row| row.get(0),
+            )
+            .expect("read claimed job status");
+        assert_eq!(status, "running");
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn active_lease_claim_skip_is_recorded_without_overwriting_running_job() {
+        let root = temp_root();
+        let paths = initialize(&root).expect("initialize vault");
+        let mut connection = open(&paths).expect("open vault");
+        let document = document();
+        upsert_document(&mut connection, &root, &document).expect("create document");
+        crate::consent::ConsentRegistry::new(&connection)
+            .grant(crate::consent::ConsentGrant {
+                id: "reference-fetch-consent".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/already-running".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .expect("grant consent");
+        let job = ReferenceJob {
+            source_document_id: document.id,
+            target_url: "https://example.com/already-running".into(),
+        };
+        connection
+            .execute(
+                "INSERT INTO reference_fetches
+                 (source_document_id, target_url, status, lease_expires_at)
+                 VALUES (?1, ?2, 'running', ?3)",
+                params![job.source_document_id, job.target_url, 1_999_999_999_i64],
+            )
+            .expect("seed job held by another worker");
+
+        assert!(
+            !claim_reference_fetch_if_consented(&connection, &job, "2026-08-10T02:00:00Z",)
+                .expect("active lease cannot be claimed twice")
+        );
+        let (status, error): (String, Option<String>) = connection
+            .query_row(
+                "SELECT status, error FROM reference_fetches WHERE source_document_id = ?1 AND target_url = ?2",
+                params![job.source_document_id, job.target_url],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .expect("read active lease outcome");
+        assert_eq!(status, "running");
+        assert_eq!(error.as_deref(), Some("claim_skipped_active_lease"));
 
         let _ = fs::remove_dir_all(root);
     }
