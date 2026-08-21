@@ -965,7 +965,8 @@ mod commands {
                 .into_iter()
                 .next()
                 .map(|vector| {
-                    storage::search_vectors(&connection, &vector, limit).unwrap_or_default()
+                    storage::search_vectors(&connection, &vector, "embeddinggemma", "v1", limit)
+                        .unwrap_or_default()
                 })
                 .unwrap_or_default(),
             Err(_) => Vec::new(),
