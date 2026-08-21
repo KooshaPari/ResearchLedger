@@ -59,8 +59,10 @@ describe("hosted CI contracts", () => {
     const workflow = await readWorkflow("trunk-check.yml");
 
     expect(workflow).toContain("actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683");
-    expect(workflow).toContain("npm install --global prettier@3.6.2");
-    expect(workflow).toContain("prettier --check");
+    expect(workflow).toContain("bun install --frozen-lockfile --ignore-scripts");
+    expect(workflow).toContain("bun run prettier --version");
+    expect(workflow).toContain("bun run prettier --check");
+    expect(workflow).not.toContain("npm install --global prettier");
     expect(workflow).not.toContain("uses: trunk-io/trunk-action@");
   });
 

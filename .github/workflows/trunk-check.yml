@@ -55,8 +55,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm install --global prettier@3.6.2
-          prettier --version
+          bun install --frozen-lockfile --ignore-scripts
+          bun run prettier --version
 
       - name: prettier check
         shell: bash
@@ -67,9 +67,9 @@ jobs:
             # Full-repo pass on schedule: prefer compiled ignore via .prettierignore
             # over git diff, which has no meaningful base on a scheduled run.
             if [ -f .prettierignore ]; then
-              raw=$(prettier --check 2>&1 || true)
+              raw=$(bun run prettier --check 2>&1 || true)
             else
-              raw=$(prettier --check '**/*.{md,yml,yaml,json,jsonc,mdx}' 2>&1 || true)
+              raw=$(bun run prettier --check '**/*.{md,yml,yaml,json,jsonc,mdx}' 2>&1 || true)
             fi
             if grep -qE "\[warn\]|\[error\]" <<<"$raw"; then
               printf '%s\n' "$raw" | grep -E "\[warn\]|\[error\]" | head -80
@@ -107,7 +107,7 @@ jobs:
             ignore_args+=(--ignore-path .gitignore)
           fi
 
-          if ! prettier --check "${files[@]}" "${ignore_args[@]}"; then
+          if ! bun run prettier --check "${files[@]}" "${ignore_args[@]}"; then
             echo "::error::prettier --check failed on changed files; run prettier --write"
             exit 1
           fi
