@@ -812,25 +812,30 @@ pub fn search(connection: &Connection, query: &str, limit: u32) -> SqlResult<Vec
 pub fn search_vectors(
     connection: &Connection,
     query: &[f32],
+    model: &str,
+    embedding_version: &str,
     limit: u32,
 ) -> SqlResult<Vec<(SearchResult, f32)>> {
     let mut statement = connection.prepare(
-        "SELECT d.id, d.title, d.source_uri, snippet(chunk_fts, 0, '<mark>', '</mark>', '…', 24), e.vector_json FROM chunk_embeddings e JOIN chunks c ON c.id=e.chunk_id JOIN documents d ON d.id=c.document_id JOIN chunk_fts ON chunk_fts.rowid=c.id",
+        "SELECT d.id, d.title, d.source_uri, snippet(chunk_fts, 0, '<mark>', '</mark>', '…', 24), e.vector_json FROM chunk_embeddings e JOIN chunks c ON c.id=e.chunk_id JOIN documents d ON d.id=c.document_id JOIN chunk_fts ON chunk_fts.rowid=c.id WHERE e.model = ?1 AND e.embedding_version = ?2 AND e.dimensions = ?3",
     )?;
     let mut scored = statement
-        .query_map([], |row| {
-            let vector: Vec<f32> =
-                serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default();
-            Ok((
-                SearchResult {
-                    document_id: row.get(0)?,
-                    title: row.get(1)?,
-                    source_uri: row.get(2)?,
-                    snippet: row.get(3)?,
-                },
-                vector,
-            ))
-        })?
+        .query_map(
+            params![model, embedding_version, query.len() as i64],
+            |row| {
+                let vector: Vec<f32> =
+                    serde_json::from_str(&row.get::<_, String>(4)?).unwrap_or_default();
+                Ok((
+                    SearchResult {
+                        document_id: row.get(0)?,
+                        title: row.get(1)?,
+                        source_uri: row.get(2)?,
+                        snippet: row.get(3)?,
+                    },
+                    vector,
+                ))
+            },
+        )?
         .collect::<SqlResult<Vec<_>>>()?
         .into_iter()
         .map(|(result, vector)| (result, cosine_similarity(query, &vector)))
@@ -970,6 +975,52 @@ mod tests {
                 .into(),
             captured_at: "2026-08-15T00:00:00Z".into(),
         }
+    }
+
+    #[test]
+    fn vector_search_excludes_incompatible_model_version_and_dimensions() {
+        let root = temp_root();
+        let paths = initialize(&root).expect("initialize vault");
+        let mut connection = open(&paths).expect("open vault");
+        let vectors = [
+            ("compatible", "embeddinggemma", "v1", 1, "[1.0]"),
+            ("wrong-model", "other-model", "v1", 1, "[1.0]"),
+            ("wrong-version", "embeddinggemma", "v2", 1, "[1.0]"),
+            ("wrong-dimensions", "embeddinggemma", "v1", 2, "[1.0, 0.0]"),
+        ];
+        for (id, model, version, dimensions, vector_json) in vectors {
+            let document = SourceDocument {
+                id: format!("vector:{id}"),
+                relative_path: format!("sources/vector/{id}.md"),
+                title: id.replace('-', " "),
+                source_kind: "article".into(),
+                source_uri: Some(format!("https://example.com/{id}")),
+                content: format!("---\ntype: Test Document\n---\n\nVector {id}"),
+                captured_at: "2026-08-21T00:00:00Z".into(),
+            };
+            upsert_document(&mut connection, &root, &document).expect("create vector document");
+            let chunk_id: i64 = connection
+                .query_row(
+                    "SELECT id FROM chunks WHERE document_id = ?1",
+                    params![document.id],
+                    |row| row.get(0),
+                )
+                .expect("find vector chunk");
+            connection
+                .execute(
+                    "INSERT INTO chunk_embeddings(chunk_id, model, embedding_version, input_hash, dimensions, vector_json, created_at) VALUES(?1, ?2, ?3, '', ?4, ?5, 'now')",
+                    params![chunk_id, model, version, dimensions, vector_json],
+                )
+                .expect("insert vector metadata");
+        }
+
+        let results = search_vectors(&connection, &[1.0], "embeddinggemma", "v1", 10)
+            .expect("search compatible vectors");
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].0.document_id, "vector:compatible");
+        assert_eq!(results[0].1, 1.0);
+
+        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
