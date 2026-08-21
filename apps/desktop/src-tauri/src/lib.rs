@@ -146,6 +146,25 @@ mod commands {
         pub queued: bool,
     }
 
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct StartReferenceCrawlInput {
+        pub vault_path: String,
+        pub source_document_id: String,
+        pub max_depth: u32,
+        pub max_documents: u32,
+        pub requested_at: String,
+    }
+
+    #[derive(Debug, Serialize, PartialEq, Eq)]
+    #[serde(rename_all = "camelCase")]
+    pub struct StartReferenceCrawlResult {
+        pub run_id: String,
+        pub queued: u32,
+        pub max_depth: u32,
+        pub max_documents: u32,
+    }
+
     #[tauri::command]
     pub fn load_local_preferences(
         app: tauri::AppHandle,
@@ -208,6 +227,64 @@ mod commands {
             source_document_id: input.source_document_id,
             target_url,
             queued,
+        })
+    }
+
+    /// Start a user-explicit bounded traversal from one persisted source.
+    /// No links are scheduled unless the matching public-web consent is active.
+    #[tauri::command]
+    pub fn start_reference_crawl(
+        input: StartReferenceCrawlInput,
+    ) -> Result<StartReferenceCrawlResult, String> {
+        let root = std::path::PathBuf::from(&input.vault_path);
+        let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
+        let connection = storage::open(&paths).map_err(|error| error.to_string())?;
+        let run_id = storage::create_reference_crawl_run(
+            &connection,
+            &input.source_document_id,
+            input.max_depth,
+            input.max_documents,
+            &input.requested_at,
+        )
+        .map_err(|error| error.to_string())?;
+        let targets = {
+            let mut statement = connection
+                .prepare(
+                    "SELECT target_url FROM document_links WHERE source_document_id = ?1 ORDER BY target_url",
+                )
+                .map_err(|error| error.to_string())?;
+            let rows = statement
+                .query_map(rusqlite::params![input.source_document_id], |row| {
+                    row.get::<_, String>(0)
+                })
+                .map_err(|error| error.to_string())?;
+            rows.collect::<Result<Vec<_>, _>>()
+                .map_err(|error| error.to_string())?
+        };
+        let mut queued = 0;
+        for target in targets {
+            if queued >= input.max_documents {
+                break;
+            }
+            if storage::queue_reference_fetch_in_run(
+                &connection,
+                &input.source_document_id,
+                &target,
+                &run_id,
+                Some(&input.source_document_id),
+                1,
+                &input.requested_at,
+            )
+            .map_err(|error| error.to_string())?
+            {
+                queued += 1;
+            }
+        }
+        Ok(StartReferenceCrawlResult {
+            run_id,
+            queued,
+            max_depth: input.max_depth,
+            max_documents: input.max_documents,
         })
     }
 
@@ -1071,8 +1148,12 @@ mod commands {
         let root = std::path::PathBuf::from(&vault_path);
         let paths = storage::initialize(&root).map_err(|error| error.to_string())?;
         let connection = storage::open(&paths).map_err(|error| error.to_string())?;
-        let jobs = storage::pending_reference_jobs(&connection, limit.unwrap_or(10).min(25))
-            .map_err(|error| error.to_string())?;
+        let jobs = storage::pending_reference_jobs_with_metadata(
+            &connection,
+            limit.unwrap_or(10).min(25),
+            &chrono::Utc::now().to_rfc3339(),
+        )
+        .map_err(|error| error.to_string())?;
         drop(connection);
         let mut domain_budget = reference_fetch::DomainConcurrency::new(2);
         let mut summary = ImportSummary {
@@ -1081,7 +1162,8 @@ mod commands {
             unchanged: 0,
             failed: 0,
         };
-        for job in jobs {
+        for metadata in jobs {
+            let job = metadata.job.clone();
             if !domain_budget.try_acquire(&job.target_url) {
                 continue;
             }
@@ -1171,6 +1253,16 @@ mod commands {
                                 },
                             )
                             .map_err(|error| error.to_string())?;
+                            if let Some(run_id) = metadata.run_id.as_deref() {
+                                storage::enqueue_reference_children(
+                                    &connection,
+                                    run_id,
+                                    &reference_document.id,
+                                    metadata.depth,
+                                    &chrono::Utc::now().to_rfc3339(),
+                                )
+                                .map_err(|error| error.to_string())?;
+                            }
                         }
                         Err(error) => {
                             let paths =
@@ -1302,6 +1394,7 @@ pub fn run() {
             commands::grant_consent,
             commands::revoke_consent,
             commands::queue_reference_fetch,
+            commands::start_reference_crawl,
             commands::import_github_from_gh,
             commands::import_linkedin_manual,
             commands::import_hackernews_html,

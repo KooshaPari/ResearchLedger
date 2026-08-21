@@ -41,6 +41,16 @@ pub struct ReferenceJob {
     pub target_url: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReferenceJobMetadata {
+    pub job: ReferenceJob,
+    pub run_id: Option<String>,
+    pub parent_document_id: Option<String>,
+    pub depth: u32,
+    pub max_depth: u32,
+    pub max_documents: u32,
+}
+
 pub struct ReferenceFetchUpdate<'a> {
     pub status: &'a str,
     pub artifact_path: Option<&'a str>,
@@ -95,6 +105,9 @@ pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     for (name, definition) in [
         ("started_at", "TEXT"),
         ("lease_expires_at", "INTEGER NOT NULL DEFAULT 0"),
+        ("run_id", "TEXT"),
+        ("parent_document_id", "TEXT"),
+        ("crawl_depth", "INTEGER NOT NULL DEFAULT 0"),
     ] {
         let exists: bool = connection.query_row(
             "SELECT EXISTS(SELECT 1 FROM pragma_table_info('reference_fetches') WHERE name = ?1)",
@@ -111,6 +124,21 @@ pub fn initialize(root: &Path) -> SqlResult<LedgerPaths> {
     connection.execute_batch(
         "CREATE INDEX IF NOT EXISTS idx_reference_fetches_recovery
            ON reference_fetches(status, lease_expires_at, id);",
+    )?;
+    connection.execute_batch(
+        "CREATE TABLE IF NOT EXISTS reference_crawl_runs (
+           id TEXT PRIMARY KEY,
+           root_document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+           max_depth INTEGER NOT NULL,
+           max_documents INTEGER NOT NULL,
+           status TEXT NOT NULL DEFAULT 'running',
+           created_at TEXT NOT NULL,
+           updated_at TEXT NOT NULL
+         );
+         CREATE INDEX IF NOT EXISTS idx_reference_fetches_run
+           ON reference_fetches(run_id, id);
+         CREATE INDEX IF NOT EXISTS idx_reference_links_crawl
+           ON document_links(source_document_id, target_url);",
     )?;
     Ok(LedgerPaths { database })
 }
@@ -403,6 +431,185 @@ pub fn pending_enrichment_ids(connection: &Connection, limit: u32) -> SqlResult<
 /// Return a deterministic, bounded batch of explicitly queued reference jobs.
 pub fn pending_reference_jobs(connection: &Connection, limit: u32) -> SqlResult<Vec<ReferenceJob>> {
     pending_reference_jobs_at(connection, limit, &chrono::Utc::now().to_rfc3339())
+}
+
+/// Start an explicit, bounded traversal. A run is durable so a restart cannot
+/// silently turn a one-hop request into an unbounded crawler.
+pub fn create_reference_crawl_run(
+    connection: &Connection,
+    root_document_id: &str,
+    max_depth: u32,
+    max_documents: u32,
+    now: &str,
+) -> SqlResult<String> {
+    if max_depth > 5 {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "reference crawl depth must be at most 5".into(),
+        ));
+    }
+    if !(1..=100).contains(&max_documents) {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "reference crawl budget must be between 1 and 100 documents".into(),
+        ));
+    }
+    let exists: bool = connection.query_row(
+        "SELECT EXISTS(SELECT 1 FROM documents WHERE id = ?1)",
+        params![root_document_id],
+        |row| row.get(0),
+    )?;
+    if !exists {
+        return Err(rusqlite::Error::QueryReturnedNoRows);
+    }
+    let material = format!("{root_document_id}\n{now}\n{max_depth}\n{max_documents}");
+    let run_id = format!("crawl:{:x}", Sha256::digest(material.as_bytes()));
+    connection.execute(
+        "INSERT OR IGNORE INTO reference_crawl_runs
+          (id, root_document_id, max_depth, max_documents, status, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, 'running', ?5, ?5)",
+        params![run_id, root_document_id, max_depth, max_documents, now],
+    )?;
+    Ok(run_id)
+}
+
+pub fn queue_reference_fetch_in_run(
+    connection: &Connection,
+    source_document_id: &str,
+    target_url: &str,
+    run_id: &str,
+    parent_document_id: Option<&str>,
+    depth: u32,
+    now: &str,
+) -> SqlResult<bool> {
+    let (max_depth, max_documents): (u32, u32) = connection.query_row(
+        "SELECT max_depth, max_documents FROM reference_crawl_runs WHERE id = ?1 AND status = 'running'",
+        params![run_id],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    )?;
+    if depth == 0 || depth > max_depth {
+        return Ok(false);
+    }
+    let count: u32 = connection.query_row(
+        "SELECT COUNT(*) FROM reference_fetches WHERE run_id = ?1",
+        params![run_id],
+        |row| row.get(0),
+    )?;
+    if count >= max_documents {
+        return Ok(false);
+    }
+    let decision = crate::consent::ConsentRegistry::new(connection).decide(target_url, now)?;
+    if !decision.allowed {
+        return Ok(false);
+    }
+    let target_url = crate::consent::canonical_scope(target_url);
+    connection.execute(
+        "INSERT INTO reference_fetches
+          (source_document_id, target_url, status, run_id, parent_document_id, crawl_depth)
+         VALUES (?1, ?2, 'pending', ?3, ?4, ?5)
+         ON CONFLICT(source_document_id, target_url) DO UPDATE SET
+           run_id=COALESCE(reference_fetches.run_id, excluded.run_id),
+           parent_document_id=COALESCE(reference_fetches.parent_document_id, excluded.parent_document_id),
+           crawl_depth=MAX(reference_fetches.crawl_depth, excluded.crawl_depth),
+           status=CASE WHEN reference_fetches.status IN ('failed', 'blocked') THEN 'pending' ELSE reference_fetches.status END,
+           error=NULL",
+        params![source_document_id, target_url, run_id, parent_document_id, depth],
+    )?;
+    Ok(true)
+}
+
+pub fn pending_reference_jobs_with_metadata(
+    connection: &Connection,
+    limit: u32,
+    now: &str,
+) -> SqlResult<Vec<ReferenceJobMetadata>> {
+    if limit == 0 {
+        return Ok(Vec::new());
+    }
+    let now_epoch = reference_fetch_epoch(now)?;
+    let mut statement = connection.prepare(
+        "SELECT f.source_document_id, f.target_url, f.run_id, f.parent_document_id,
+                f.crawl_depth, COALESCE(r.max_depth, 0), COALESCE(r.max_documents, 0)
+         FROM reference_fetches f
+         LEFT JOIN reference_crawl_runs r ON r.id = f.run_id
+         WHERE (f.status = 'pending' OR (f.status = 'running' AND f.lease_expires_at <= ?1))
+         ORDER BY f.id",
+    )?;
+    let rows = statement.query_map(params![now_epoch], |row| {
+        Ok(ReferenceJobMetadata {
+            job: ReferenceJob {
+                source_document_id: row.get(0)?,
+                target_url: row.get(1)?,
+            },
+            run_id: row.get(2)?,
+            parent_document_id: row.get(3)?,
+            depth: u32::try_from(row.get::<_, i64>(4)?).unwrap_or(0),
+            max_depth: u32::try_from(row.get::<_, i64>(5)?).unwrap_or(0),
+            max_documents: u32::try_from(row.get::<_, i64>(6)?).unwrap_or(0),
+        })
+    })?;
+    let mut jobs = Vec::new();
+    for row in rows {
+        let job = row?;
+        if crate::consent::ConsentRegistry::new(connection)
+            .decide(&job.job.target_url, now)?
+            .allowed
+        {
+            jobs.push(job);
+            if jobs.len() == limit as usize {
+                break;
+            }
+        }
+    }
+    Ok(jobs)
+}
+
+/// Queue the next frontier only after its parent document was persisted.
+/// Consent is evaluated per URL, so revoking one scope cannot leak another.
+pub fn enqueue_reference_children(
+    connection: &Connection,
+    run_id: &str,
+    parent_document_id: &str,
+    depth: u32,
+    now: &str,
+) -> SqlResult<u32> {
+    let (max_depth, max_documents): (u32, u32) = connection.query_row(
+        "SELECT max_depth, max_documents FROM reference_crawl_runs WHERE id = ?1 AND status = 'running'",
+        params![run_id],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    )?;
+    if depth >= max_depth {
+        return Ok(0);
+    }
+    let targets = {
+        let mut statement = connection.prepare(
+            "SELECT target_url FROM document_links WHERE source_document_id = ?1 ORDER BY target_url",
+        )?;
+        let rows =
+            statement.query_map(params![parent_document_id], |row| row.get::<_, String>(0))?;
+        rows.collect::<SqlResult<Vec<_>>>()?
+    };
+    let mut queued = 0;
+    for target in targets {
+        let count: u32 = connection.query_row(
+            "SELECT COUNT(*) FROM reference_fetches WHERE run_id = ?1",
+            params![run_id],
+            |row| row.get(0),
+        )?;
+        if count >= max_documents {
+            break;
+        }
+        if queue_reference_fetch_in_run(
+            connection,
+            parent_document_id,
+            &target,
+            run_id,
+            Some(parent_document_id),
+            depth + 1,
+            now,
+        )? {
+            queued += 1;
+        }
+    }
+    Ok(queued)
 }
 
 fn reference_fetch_epoch(now: &str) -> SqlResult<i64> {
@@ -735,6 +942,7 @@ impl<T> OptionalRow<T> for SqlResult<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::consent::{ConsentGrant, ConsentRegistry};
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -1141,6 +1349,126 @@ mod tests {
             .expect("read columns");
         assert!(columns.iter().any(|name| name == "started_at"));
         assert!(columns.iter().any(|name| name == "lease_expires_at"));
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn explicit_crawl_persists_run_depth_parent_and_budget() {
+        let root = temp_root();
+        let paths = initialize(&root).expect("initialize vault");
+        let mut connection = open(&paths).expect("open vault");
+        let source = SourceDocument {
+            id: "crawl-root".into(),
+            relative_path: "sources/crawl-root.md".into(),
+            title: "Crawl root".into(),
+            source_kind: "article".into(),
+            source_uri: Some("https://example.com/root".into()),
+            content: "---\ntype: Test Document\n---\n\nSee https://example.com/one and https://example.com/two".into(),
+            captured_at: "2026-08-10T00:00:00Z".into(),
+        };
+        upsert_document(&mut connection, &root, &source).expect("persist source");
+        ConsentRegistry::new(&connection)
+            .grant(ConsentGrant {
+                id: "crawl-consent-one".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/one".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .expect("grant crawl consent");
+        ConsentRegistry::new(&connection)
+            .grant(ConsentGrant {
+                id: "crawl-consent-two".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/two".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .expect("grant second crawl consent");
+        let run_id =
+            create_reference_crawl_run(&connection, "crawl-root", 2, 1, "2026-08-10T01:00:00Z")
+                .expect("create bounded run");
+        assert!(queue_reference_fetch_in_run(
+            &connection,
+            "crawl-root",
+            "https://example.com/one",
+            &run_id,
+            Some("crawl-root"),
+            1,
+            "2026-08-10T01:00:00Z",
+        )
+        .expect("queue first frontier"));
+        assert!(!queue_reference_fetch_in_run(
+            &connection,
+            "crawl-root",
+            "https://example.com/two",
+            &run_id,
+            Some("crawl-root"),
+            1,
+            "2026-08-10T01:00:00Z",
+        )
+        .expect("budget rejects second frontier"));
+        let jobs = pending_reference_jobs_with_metadata(&connection, 10, "2026-08-10T01:00:00Z")
+            .expect("read crawl jobs");
+        assert_eq!(jobs.len(), 1);
+        assert_eq!(jobs[0].run_id.as_deref(), Some(run_id.as_str()));
+        assert_eq!(jobs[0].parent_document_id.as_deref(), Some("crawl-root"));
+        assert_eq!(jobs[0].depth, 1);
+        assert_eq!(jobs[0].max_depth, 2);
+        assert_eq!(jobs[0].max_documents, 1);
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn child_frontier_stops_at_depth_and_rechecks_consent() {
+        let root = temp_root();
+        let paths = initialize(&root).expect("initialize vault");
+        let mut connection = open(&paths).expect("open vault");
+        let parent = SourceDocument {
+            id: "crawl-parent".into(),
+            relative_path: "sources/crawl-parent.md".into(),
+            title: "Crawl parent".into(),
+            source_kind: "reference".into(),
+            source_uri: Some("https://example.com/parent".into()),
+            content: "---\ntype: Test Document\n---\n\nSee https://example.com/child".into(),
+            captured_at: "2026-08-10T00:00:00Z".into(),
+        };
+        upsert_document(&mut connection, &root, &parent).expect("persist parent");
+        ConsentRegistry::new(&connection)
+            .grant(ConsentGrant {
+                id: "child-consent".into(),
+                local_profile: "default".into(),
+                provider: "manual".into(),
+                purpose: "reference_fetch".into(),
+                data_categories: vec!["public_web".into()],
+                url_scope: "https://example.com/child".into(),
+                expires_at: None,
+                version: 1,
+                granted_at: "2026-08-10T00:00:00Z".into(),
+            })
+            .expect("grant child consent");
+        let run_id =
+            create_reference_crawl_run(&connection, "crawl-parent", 1, 10, "2026-08-10T01:00:00Z")
+                .expect("create run");
+        assert_eq!(
+            enqueue_reference_children(
+                &connection,
+                &run_id,
+                "crawl-parent",
+                1,
+                "2026-08-10T01:00:00Z",
+            )
+            .expect("depth cap"),
+            0
+        );
         let _ = fs::remove_dir_all(root);
     }
 }
