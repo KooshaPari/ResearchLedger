@@ -216,6 +216,41 @@ describe("ResearchLedger shell", () => {
     expect(screen.getByRole("button", { name: "Distill pending notes" })).toBeInTheDocument();
   });
 
+  it("starts a bounded reference crawl with explicit depth and budget", async () => {
+    resetTauriMocks();
+    invokeMock.mockImplementation((command: string) => {
+      if (command === "start_reference_crawl") {
+        return Promise.resolve({ runId: "crawl:test", queued: 2 });
+      }
+      return Promise.resolve({ selected: false, path: null, documentCount: 0 });
+    });
+    await renderApp();
+    fireEvent.change(screen.getByRole("textbox", { name: "Vault path" }), {
+      target: { value: "/tmp/research-vault" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Crawl root document ID" }), {
+      target: { value: "github:octo/repo" },
+    });
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Crawl maximum depth" }), {
+      target: { value: "3" },
+    });
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Crawl document budget" }), {
+      target: { value: "20" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Start bounded crawl" }));
+    await waitFor(() =>
+      expect(invokeMock).toHaveBeenCalledWith(
+        "start_reference_crawl",
+        expect.objectContaining({
+          vaultPath: "/tmp/research-vault",
+          sourceDocumentId: "github:octo/repo",
+          maxDepth: 3,
+          maxDocuments: 20,
+        }),
+      ),
+    );
+  });
+
   it("renders search snippets as readable plain text with mark emphasis", async () => {
     resetTauriMocks();
     invokeMock.mockImplementation((command: string) => {

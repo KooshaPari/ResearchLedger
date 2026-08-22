@@ -338,6 +338,9 @@ function Inbox({
   const [redditPath, setRedditPath] = useState("");
   const [redditUsername, setRedditUsername] = useState("");
   const [xPath, setXPath] = useState("");
+  const [crawlRootId, setCrawlRootId] = useState("");
+  const [crawlDepth, setCrawlDepth] = useState("2");
+  const [crawlBudget, setCrawlBudget] = useState("10");
   const importGithubStars = async () => {
     if (!vaultPath) {
       setMessage("Select a vault before running a source action.");
@@ -498,7 +501,7 @@ function Inbox({
           <Action
             title="References"
             label="Fetch linked sources"
-            state="Up to 10 public pages"
+            state="Run only after an explicit bounded crawl"
             onClick={() =>
               void run(
                 "fetch_pending_references",
@@ -522,6 +525,70 @@ function Inbox({
             }
           />
         </div>
+      </section>
+      <section className="capture-panel" aria-label="Bounded reference crawl">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">REFERENCE TRAVERSAL</p>
+            <h3>Follow links with a visible budget</h3>
+          </div>
+          <span className="state-pill ready">CONSENT CHECKED PER URL</span>
+        </div>
+        <p className="muted">
+          Start a persisted crawl from one indexed document. Depth is capped at
+          5 and the document budget at 100; revoked consent stops pending work.
+        </p>
+        <div className="profile-row">
+          <input
+            aria-label="Crawl root document ID"
+            placeholder="Root document ID (for example github:owner/repo)"
+            value={crawlRootId}
+            onChange={(event) => setCrawlRootId(event.target.value)}
+          />
+          <label>
+            Depth
+            <input
+              aria-label="Crawl maximum depth"
+              type="number"
+              min="1"
+              max="5"
+              value={crawlDepth}
+              onChange={(event) => setCrawlDepth(event.target.value)}
+            />
+          </label>
+          <label>
+            Documents
+            <input
+              aria-label="Crawl document budget"
+              type="number"
+              min="1"
+              max="100"
+              value={crawlBudget}
+              onChange={(event) => setCrawlBudget(event.target.value)}
+            />
+          </label>
+        </div>
+        <button
+          className="button primary"
+          type="button"
+          disabled={!crawlRootId.trim()}
+          onClick={() =>
+            void run(
+              "start_reference_crawl",
+              {
+                vaultPath,
+                sourceDocumentId: crawlRootId.trim(),
+                maxDepth: Number(crawlDepth),
+                maxDocuments: Number(crawlBudget),
+                requestedAt: new Date().toISOString(),
+              },
+              (value: { queued: number; runId: string }) =>
+                `Started crawl ${value.runId}; queued ${value.queued} consented links.`,
+            )
+          }
+        >
+          Start bounded crawl
+        </button>
       </section>
       <section className="capture-panel">
         <div className="panel-heading">

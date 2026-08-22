@@ -124,11 +124,24 @@ CREATE TABLE IF NOT EXISTS reference_fetches (
   content_hash TEXT,
   fetched_at TEXT,
   error TEXT,
+  run_id TEXT,
+  parent_document_id TEXT,
+  crawl_depth INTEGER NOT NULL DEFAULT 0,
   UNIQUE(source_document_id, target_url)
 );
 
 CREATE INDEX IF NOT EXISTS idx_reference_fetches_status
   ON reference_fetches(status, id);
+
+CREATE TABLE IF NOT EXISTS reference_crawl_runs (
+  id TEXT PRIMARY KEY,
+  root_document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  max_depth INTEGER NOT NULL,
+  max_documents INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'running',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS consent_grants (
   id TEXT PRIMARY KEY,
