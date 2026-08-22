@@ -54,14 +54,12 @@ pull_request_rules:
         method: squash
 
   # Add reviewers based on changed paths
-  - name: Request review from team
+  - name: Request review from maintainer
     conditions:
       - -closed
       - -draft
     actions:
       request_reviews:
-        teams:
-          - phenotype/core
         users:
           - KooshaPari
 
