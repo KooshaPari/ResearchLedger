@@ -429,7 +429,11 @@ pub fn pending_enrichment_ids(connection: &Connection, limit: u32) -> SqlResult<
 }
 
 /// Return a deterministic, bounded batch of explicitly queued reference jobs.
-pub fn pending_reference_jobs(connection: &Connection, limit: u32) -> SqlResult<Vec<ReferenceJob>> {
+#[cfg(test)]
+pub(crate) fn pending_reference_jobs(
+    connection: &Connection,
+    limit: u32,
+) -> SqlResult<Vec<ReferenceJob>> {
     pending_reference_jobs_at(connection, limit, &chrono::Utc::now().to_rfc3339())
 }
 
@@ -622,7 +626,8 @@ fn reference_fetch_epoch(now: &str) -> SqlResult<i64> {
         })
 }
 
-pub fn pending_reference_jobs_at(
+#[cfg(test)]
+pub(crate) fn pending_reference_jobs_at(
     connection: &Connection,
     limit: u32,
     now: &str,

@@ -58,7 +58,7 @@ describe("hosted CI contracts", () => {
   test("uses a pinned checkout and deterministic Prettier instead of broken Trunk", async () => {
     const workflow = await readWorkflow("trunk-check.yml");
 
-    expect(workflow).toContain("actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683");
+    expect(workflow).toContain("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1");
     expect(workflow).toContain("npm install --global prettier@3.6.2");
     expect(workflow).toContain("prettier --check");
     expect(workflow).not.toContain("uses: trunk-io/trunk-action@");
