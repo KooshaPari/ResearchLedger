@@ -7,6 +7,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const readWorkflow = (name) => readFile(path.join(root, ".github", "workflows", name), "utf8");
 
 describe("hosted CI contracts", () => {
+  test("declares ESM package semantics for Vite's native config loader", async () => {
+    const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+
+    expect(manifest.type).toBe("module");
+  });
+
   test("uses the Bun lock and discovers the nested Tauri crate", async () => {
     const workflow = await readWorkflow("ci.yml");
 
