@@ -35,9 +35,9 @@ gh api --paginate 'repos/KooshaPari/ResearchLedger/pulls?state=all&per_page=100'
   --jq '.[] | [.number, .state, .merged_at, .head.sha] | @tsv'
 ```
 
-The paginated PR query returned 70 historical records at collection time. PR
-#72 is intentionally excluded from that count because it was created to review
-this reconciliation record after the snapshot.
+The paginated PR query returned 70 historical records at collection time. PR #72
+is intentionally excluded from that count because it was created to review this
+reconciliation record after the snapshot.
 
 ## Ordinary ref disposition
 
