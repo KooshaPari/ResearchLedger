@@ -1447,8 +1447,18 @@ mod tests {
 
     #[test]
     fn temp_roots_are_unique_under_parallel_creation() {
-        let roots = (0..64)
-            .map(|_| std::thread::spawn(temp_root))
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(64));
+        let handles = (0..64)
+            .map(|_| {
+                let barrier = std::sync::Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    temp_root()
+                })
+            })
+            .collect::<Vec<_>>();
+        let roots = handles
+            .into_iter()
             .map(|handle| handle.join().unwrap())
             .collect::<Vec<_>>();
         let unique = roots.iter().collect::<std::collections::BTreeSet<_>>();
