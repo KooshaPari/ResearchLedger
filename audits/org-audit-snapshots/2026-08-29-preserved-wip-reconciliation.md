@@ -16,22 +16,28 @@ proposal; this pass proposes no recovery PR.
 
 ## Evidence collected
 
-| Check                       | Result                                                                                              |
-| --------------------------- | --------------------------------------------------------------------------------------------------- |
-| `main`                      | `04837035ad344bb2abd1ff8de7ed86a884067b90`; clean and aligned with `origin/main` at collection time |
-| Open pull requests          | None                                                                                                |
-| Non-ancestral `origin` refs | 85                                                                                                  |
-| Ordinary/dependency/CI refs | 13; each maps to an already merged or closed PR                                                     |
-| Preserved Airlock WIP refs  | 72 refs, 64 distinct Git trees                                                                      |
-| WIP commit subjects         | 39 explicit snapshot/preserve, 8 governance/docs/dependency, 25 semantic candidates                 |
+| Check                                       | Result                                                                                              |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `main`                                      | `04837035ad344bb2abd1ff8de7ed86a884067b90`; clean and aligned with `origin/main` at collection time |
+| Open pull requests before this audit branch | None                                                                                                |
+| Historical pull request records             | 70, fetched before PR #72 was created                                                               |
+| Non-ancestral `origin` refs                 | 85                                                                                                  |
+| Ordinary/dependency/CI refs                 | 13; each maps to an already merged or closed PR                                                     |
+| Preserved Airlock WIP refs                  | 72 refs, 64 distinct Git trees                                                                      |
+| WIP commit subjects                         | 39 explicit snapshot/preserve, 8 governance/docs/dependency, 25 semantic candidates                 |
 
 The inventory was produced without ref mutation using:
 
 ```zsh
 git for-each-ref refs/remotes/origin --no-merged=origin/main
 git log origin/main --format='%H%x09%s'
-gh pr list --repo KooshaPari/ResearchLedger --state all
+gh api --paginate 'repos/KooshaPari/ResearchLedger/pulls?state=all&per_page=100' \
+  --jq '.[] | [.number, .state, .merged_at, .head.sha] | @tsv'
 ```
+
+The paginated PR query returned 70 historical records at collection time. PR
+#72 is intentionally excluded from that count because it was created to review
+this reconciliation record after the snapshot.
 
 ## Ordinary ref disposition
 
