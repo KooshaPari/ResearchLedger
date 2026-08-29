@@ -13,6 +13,7 @@
 ## Task 1: Prove the current deprecated configuration
 
 **Files:**
+
 - Inspect: `.mergify.yml:17-39`
 
 - [ ] **Step 1: Scan both existing templates**
@@ -38,6 +39,7 @@ Expected: `yaml_ok`.
 ## Task 2: Replace both templates with supported declarative formats
 
 **Files:**
+
 - Modify: `.mergify.yml:17-39`
 
 - [ ] **Step 1: Make the focused configuration change**
@@ -74,6 +76,7 @@ Expected: no whitespace errors and only the two intended merge-rule changes.
 ## Task 3: Validate and publish the protected PR
 
 **Files:**
+
 - Modify: `.mergify.yml:17-39`
 - Test: `.mergify.yml` configuration check on GitHub
 
