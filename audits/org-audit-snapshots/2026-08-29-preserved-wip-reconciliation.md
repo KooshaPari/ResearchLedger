@@ -18,7 +18,7 @@ proposal; this pass proposes no recovery PR.
 
 | Check                                       | Result                                                                                              |
 |---|---|
-| `main` | `04837035ad344bb2abd1ff8de7ed86a884067b90`; clean and aligned with `origin/main` at collection time
+| `main` | `04837035ad344bb2abd1ff8de7ed86a884067b90`; clean and aligned with `origin/main` at collection time |
 | Open pull requests before this audit branch | None                                                                                                |
 | Historical pull request records             | 70, fetched before PR #72 was created                                                               |
 | Non-ancestral `origin` refs                 | 85                                                                                                  |
