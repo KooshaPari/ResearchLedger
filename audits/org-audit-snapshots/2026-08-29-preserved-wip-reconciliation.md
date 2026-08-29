@@ -86,8 +86,9 @@ tokens to the webview or application UI.
 validates the source/link relationship and now benefits from the bounded crawl,
 durable run state, consent recheck, and leased-claim behavior. `9d0179920058`
 is deliberately non-integrable raw conflict evidence. Its resolved sibling,
-`35201796f0ff`, has no missing functional path or registered Tauri command in
-current `main`; its historic helpers were replaced by stronger current
+`35201796f0ff`, has no missing functional path, and all represented Tauri
+commands are registered in current `main`; its historic helpers were replaced
+by stronger current
 implementations.
 
 ## Preservation decision
