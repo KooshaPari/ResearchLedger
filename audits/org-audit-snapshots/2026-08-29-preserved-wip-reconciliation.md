@@ -9,9 +9,10 @@
 This reconciliation reviewed the non-ancestral ResearchLedger refs before
 starting new feature work.  The normal development lines have already passed
 through review and merge.  The remaining `wip/preserve-*` refs are Airlock
-recovery evidence, not an integration queue.  Their identified functional
-surfaces are represented by current `main` code and regression coverage, so
-this pass proposes no recovery PR.
+recovery evidence, not an integration queue.  Most identified functional
+surfaces are represented by current `main` code and regression coverage.  Four
+unique patches require isolated file-level comparison before any recovery
+proposal; this pass proposes no recovery PR.
 
 ## Evidence collected
 
@@ -57,7 +58,10 @@ gh pr list --repo KooshaPari/ResearchLedger --state all
 | Embedding compatibility filtering | PR #48 and `storage::tests::vector_search_excludes_incompatible_model_version_and_dimensions` | Integrated |
 | Bounded consented reference traversal | PR #49 and `storage` traversal/lease tests | Integrated |
 | Mergify modernization | PRs #41, #51, #55, and #68 | Integrated |
-| A+ integration snapshots | Current `consent`, `distill`, `embeddings`, `okf`, `reference_fetch`, and `storage` modules | Preserve as historical aggregate snapshots only |
+| `c019316` embedding and GitHub delta | Current modules exist, but the historical patch is not patch-equivalent | Isolate before recovery decision |
+| `021209e` consented reference-queue delta | Later bounded traversal exists, but the historical patch is not patch-equivalent | Isolate before recovery decision |
+| `9d01799` A+ integration snapshot | Later release-gate integration covers portions, not the complete patch | Preserve; isolate before recovery decision |
+| `3520179` resolved A+ integration snapshot | Later release-gate integration covers portions, not the complete patch | Preserve; isolate before recovery decision |
 
 ## Preservation decision
 
@@ -67,6 +71,7 @@ file-level diff is not proof of a recoverable feature; importing any such
 snapshot wholesale would regress newer merged work and invalidate provenance.
 
 A future recovery proposal must identify one narrow behavioral delta absent
-from `main`, include a focused test, and enter review as a fresh PR.  Until
-then, this record is the reconciliation checkpoint and the preserved refs
-remain untouched.
+from `main`, include a focused test, and enter review as a fresh PR.  The four
+unresolved unique patches above are the only remaining comparison queue; all
+other reviewed semantic lines are integrated or governance-only.  Until that
+comparison completes, the preserved refs remain untouched.
