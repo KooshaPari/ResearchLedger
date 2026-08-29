@@ -1,4 +1,4 @@
-# Preserved WIP Reconciliation
+# Snapshot: Preserved WIP Reconciliation — 2026-08-29
 
 **Date:** 2026-08-29 UTC  
 **Scope:** `KooshaPari/ResearchLedger` local worktrees and `origin` refs  
@@ -81,3 +81,7 @@ from `main`, include a focused test, and enter review as a fresh PR. The four
 unresolved unique patches above are the only remaining comparison queue; all
 other reviewed semantic lines are integrated or governance-only. Until that
 comparison completes, the preserved refs remain untouched.
+
+## Supersedes
+
+None.
