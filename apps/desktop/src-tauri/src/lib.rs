@@ -1429,16 +1429,31 @@ mod tests {
     use super::consent::{ConsentGrant, ConsentRegistry};
     use super::native_preferences::{self, LocalPreferences};
     use super::storage::*;
+    use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{SystemTime, UNIX_EPOCH};
+
+    static TEMP_ROOT_COUNTER: AtomicU64 = AtomicU64::new(0);
 
     fn temp_root() -> std::path::PathBuf {
         std::env::temp_dir().join(format!(
-            "researchledger-{}",
+            "researchledger-{}-{}",
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
-                .as_nanos()
+                .as_nanos(),
+            TEMP_ROOT_COUNTER.fetch_add(1, Ordering::Relaxed),
         ))
+    }
+
+    #[test]
+    fn temp_roots_are_unique_under_parallel_creation() {
+        let roots = (0..64)
+            .map(|_| std::thread::spawn(temp_root))
+            .map(|handle| handle.join().unwrap())
+            .collect::<Vec<_>>();
+        let unique = roots.iter().collect::<std::collections::BTreeSet<_>>();
+
+        assert_eq!(unique.len(), roots.len());
     }
 
     #[test]
