@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Prove the current deprecated configuration
+## Task 1: Prove the current deprecated configuration
 
 **Files:**
 - Inspect: `.mergify.yml:17-39`
@@ -35,7 +35,7 @@ ruby -e 'require "yaml"; YAML.load_file(".mergify.yml"); puts "yaml_ok"'
 
 Expected: `yaml_ok`.
 
-### Task 2: Replace both templates with supported declarative formats
+## Task 2: Replace both templates with supported declarative formats
 
 **Files:**
 - Modify: `.mergify.yml:17-39`
@@ -71,7 +71,7 @@ git diff --check && git diff -- .mergify.yml
 
 Expected: no whitespace errors and only the two intended merge-rule changes.
 
-### Task 3: Validate and publish the protected PR
+## Task 3: Validate and publish the protected PR
 
 **Files:**
 - Modify: `.mergify.yml:17-39`
@@ -83,7 +83,13 @@ Run:
 
 ```bash
 ruby -e 'require "yaml"; YAML.load_file(".mergify.yml"); puts "yaml_ok"'
-! rg -n 'commit_message_template' .mergify.yml
+if rg -n 'commit_message_template' .mergify.yml; then
+  echo 'deprecated key remains' >&2
+  exit 1
+else
+  status=$?
+  test "$status" -eq 1 || exit "$status"
+fi
 ```
 
 Expected: `yaml_ok`, followed by no search output and exit status 0.
