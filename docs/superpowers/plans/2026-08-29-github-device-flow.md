@@ -4,7 +4,7 @@
 
 **Goal:** Let the installed local ResearchLedger app securely connect a personal GitHub App through Device Flow and resumably import starred repositories and README-backed provenance entries.
 
-**Architecture:** Rust owns the public Client ID lookup, device-flow exchange, pending-session state, and macOS Keychain credential. React receives only typed safe states and invokes commands. The importer pages stars one page at a time, persists source metadata before README work, and records an SQLite checkpoint after each item so a cancellation or rate limit never loses corpus progress.
+**Architecture:** Rust owns the public Client ID lookup, device-flow exchange, pending-session state, and macOS Keychain credential. The versioned Keychain record holds access/optional refresh material and expiry timestamps; React receives only typed safe states and invokes commands. The importer pages stars one page at a time, persists source metadata before README work, and records an SQLite checkpoint after each item so a cancellation or rate limit never loses corpus progress. v1 supports macOS only.
 
 **Tech Stack:** Tauri 2, Rust, reqwest, keyring, rusqlite/SQLite, React 19, TypeScript, Vitest, Bun.
 
@@ -71,9 +71,10 @@ httpmock = "0.7"
 
 Define `CredentialStore` with `get`, `set`, and `delete`; implement it with
 `keyring::Entry` using service `com.kooshapari.researchledger.github.v1` and
-the GitHub login as account. Convert all OS errors to fixed user-safe strings.
-Keep `MemoryCredentialStore` behind `#[cfg(test)]`. Add `mod github_credentials;`
-at the top of `lib.rs`.
+the GitHub login as account. Its stored JSON is private `GithubCredential {
+access_token, refresh_token: Option<String>, expires_at, refresh_expires_at }`.
+Convert all OS errors to fixed user-safe strings. Keep `MemoryCredentialStore`
+behind `#[cfg(test)]`. Add `mod github_credentials;` at the top of `lib.rs`.
 
 - [ ] **Step 4: Run the credential tests and formatting.**
 
@@ -133,16 +134,20 @@ Expected: FAIL because `DeviceFlowClient` and `PollResult` are undefined.
 Use `POST /login/device/code` and `POST /login/oauth/access_token`, form bodies,
 and `Accept: application/json`. Define `DeviceStart`, `PollResult`, and private
 token-bearing `TokenExchange`. Map GitHub's `authorization_pending`, `slow_down`,
-`expired_token`, `access_denied`, and unknown errors into typed variants. Enforce
-the server interval and increase it by five seconds after `slow_down`; reject a
-poll after local expiry. Keep the access token in a private return value passed
-directly to the credential adapter, never a serializable command value.
+`expired_token`, `access_denied`, and unknown errors into typed variants. Parse
+optional `refresh_token`, `expires_in`, and `refresh_token_expires_in` only into
+the private token-bearing type. Enforce the server interval and increase it by
+five seconds after `slow_down`; reject a poll after local expiry. Keep the access
+token in a private return value passed directly to the credential adapter, never
+a serializable command value.
 
 - [ ] **Step 4: Add failure cases before moving on.**
 
 Add tests for expiry, cancellation-ready pending state, slow-down interval,
-denial, malformed payload, and a request error whose text contains a fake token.
-Each assertion must prove the error category does not include the fake token.
+denial, malformed payload, a refresh success that replaces the Keychain record,
+a refresh `401` that returns `Reconnect`, and a request error whose text contains
+a fake token. Each assertion must prove the error category does not include the
+fake token.
 
 - [ ] **Step 5: Verify and commit.**
 
@@ -196,7 +201,7 @@ Replace `list_starred() -> Vec<StarredRepository>` with
 `list_starred_page(page: u32) -> Result<StarredPage, GithubError>`. Make
 `StarredPage` carry items and `is_last_page`. Replace `Option<String>` README
 results with `ReadmeResult::{Content(String), Unavailable, RetryAfter(Option<i64>),
-PermissionDenied, InvalidPayload}`. Read `x-ratelimit-remaining` and
+PermissionDenied, Unauthorized, InvalidPayload}`. Read `x-ratelimit-remaining` and
 `x-ratelimit-reset` before categorizing `403`; only zero remaining is a primary
 rate-limit outcome.
 
@@ -204,8 +209,9 @@ rate-limit outcome.
 
 Test a 100-item page followed by an empty page, `404` README becoming
 `Unavailable`, a `403` with remaining `0` becoming `RetryAfter`, a `403` with
-remaining `10` becoming `PermissionDenied`, and malformed base64 becoming
-`InvalidPayload` without embedding the payload in an error.
+remaining `10` becoming `PermissionDenied`, malformed base64 becoming
+`InvalidPayload` without embedding the payload in an error, and an HTTP `401`
+becoming `Unauthorized`, never `RetryAfter`.
 
 - [ ] **Step 6: Verify and commit.**
 
@@ -257,7 +263,10 @@ serializable safe response types: `github_connection_status`, `github_device_sta
 `import_github_starred`. Register all six in `generate_handler!`.
 
 `github_device_poll` obtains a token privately, fetches `/user` to obtain the
-login, writes the token to the credential store, then returns `Connected { login }`.
+login, writes the versioned credential record to the credential store, then
+returns `Connected { login }`. Before import, refresh an expired access token
+once only when the record has valid refresh material; a refresh failure clears
+the credential record and returns `ActionRequired(Reconnect)`.
 `github_disconnect` deletes the credential before returning disconnected. A store
 error returns a fixed category and leaves the connection unchanged.
 
@@ -269,14 +278,19 @@ metadata source document before `read_readme`. A README success updates that sam
 document; `Unavailable` writes `README unavailable.` and increments
 `readme_unavailable`; rate limit checkpoints the current item and returns a
 paused summary; permission/decode failures preserve metadata and increment
-`failed`. Checkpoint only after `upsert_document` succeeds.
+`failed`. Network and 5xx requests retry only at 1, 2, then 4 seconds; after the
+third failure the run checkpoints as paused. A `401` checkpoints the item and
+returns `ActionRequired(Reconnect)`. Checkpoint only after `upsert_document`
+succeeds. Preserve existing `github:<owner>/<repo>` documents from the legacy
+`gh` path until the native write succeeds.
 
 - [ ] **Step 5: Add end-to-end in-process tests.**
 
 Use the fake credential store plus mocked REST server to prove: a cancelled run
 does not create a credential; restart resumes from the checkpoint; a missing
-README creates searchable repository metadata; and a fake token never appears
-in serialized status or error strings.
+README creates searchable repository metadata; a legacy `gh`-imported document
+is unchanged before native success; an HTTP `401` requires reconnection; and a
+fake token never appears in serialized status or error strings.
 
 - [ ] **Step 6: Verify and commit.**
 
@@ -351,7 +365,7 @@ git commit -m "feat(github): add first-run connection UI"
 
 - [ ] **Step 1: Write the user-facing setup document.**
 
-Document: personal GitHub App ownership, Device Flow enablement, least-privilege
+Document: macOS-only v1 support, personal GitHub App ownership, Device Flow enablement, least-privilege
 read-permission verification, where to configure `RESEARCHLEDGER_GITHUB_CLIENT_ID`,
 and the rule that the value is a public Client ID. Include recovery steps for
 expiry, revocation, Keychain denial, rate limit, missing README, and disconnect.
@@ -386,7 +400,7 @@ file contains a real credential.
 git add docs/github-connection.md README.md CHANGELOG.md
 git commit -m "docs(github): explain secure connection setup"
 git push --set-upstream origin feat/github-device-flow
-gh pr create --base main --title "feat(github): add native starred import" --body-file .github/pull_request_template.md
+gh pr create --base main --title "feat(github): add native starred import" --body "## Summary\n- native Device Flow and Keychain credential boundary\n- resumable starred import with provenance\n\n## Validation\n- full Bun and Rust quality gates"
 ```
 
 - [ ] **Step 5: Complete hosted and installed-app gates.**

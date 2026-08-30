@@ -47,6 +47,14 @@ entries or unbounded network work.
   rate-limits, unavailable repositories, and README failures.
 - Contract, unit, component, and installed-app smoke verification.
 
+### Platform boundary
+
+Version one is macOS-only because ResearchLedger's release and Keychain proof
+are macOS artifacts. The credential interface is platform-neutral, but Linux
+or Windows support is not implied by this design: each requires its own secure
+credential-store adapter, packaging test, and release gate before it can be
+claimed as supported.
+
 ### Out of scope
 
 - Sending vault content, credentials, telemetry, embeddings, or search queries
@@ -89,6 +97,17 @@ Disconnect deletes the credential first, then clears the non-secret connection
 metadata. A failed credential-store deletion is an explicit error and leaves
 the UI connected state unchanged.
 
+The credential is a versioned Keychain JSON record containing the access token,
+optional refresh token, and server-provided expiry timestamps. It is never a
+vault file. Before a GitHub API call, Rust refreshes an expired access token only
+when GitHub supplied both a refresh token and refresh expiry; it posts the
+refresh grant directly to GitHub and atomically replaces the Keychain record.
+If the refresh grant is denied, expired, malformed, or returns HTTP `401`, Rust
+deletes no imported knowledge, clears the credential record, and returns
+`ActionRequired(Reconnect)`; the user restarts Device Flow. The UI never learns
+whether an access or refresh token existed. If GitHub did not return refresh
+material, expiry always requires fresh Device Flow.
+
 The implementation must verify the exact least-privilege GitHub App user
 permissions required by the current REST endpoints during implementation. It
 must not substitute a broad personal-access-token scope or expand to GitHub
@@ -107,10 +126,14 @@ Commands are Rust-owned and use typed request/response structs.
 | `github_disconnect` | none | disconnected | Deletes the Keychain credential and local non-secret metadata. |
 | `import_github_starred` | vault path, optional resume policy | progress summary and per-item status counts | Uses only the Rust credential adapter and checkpoints after each durable item. |
 
-The existing `import_github_from_gh` command becomes an advanced, clearly
-labeled compatibility fallback or is removed in the implementation plan after
-checking existing users. It must never be the default button path and must
-never disclose `gh` output to the UI.
+The existing `import_github_from_gh` command remains an explicitly labeled
+Advanced compatibility fallback for the first native-connection release. It
+must never be the default button path and must never disclose `gh` output to
+the UI. Existing `github:<owner>/<repo>` documents need no data migration: the
+native importer uses the same identity and atomically upserts only after a
+successful repository metadata write. It must not modify historic `gh`-imported
+documents until that first successful native write. Removal is considered only
+in a later, separately reviewed release after native connection dogfooding.
 
 ## Connection UX
 
@@ -164,12 +187,17 @@ Result handling is explicit:
 | README not found | Metadata persisted with `README unavailable` provenance | item complete with warning |
 | Repository inaccessible | Existing entry retained; new metadata record carries classified failure | retry only if category is retryable |
 | Rate limited | Current item is not marked complete | run pauses with reset/retry guidance |
-| Network/transient 5xx | Current item remains pending | bounded retry with checkpoint |
+| Network/transient 5xx | Current item remains pending | retry at 1, 2, then 4 seconds; pause after three failures |
 | Bad payload/decode | Metadata retained; payload issue recorded without body | item failure, no blind retry loop |
 
 HTTP `403` must not automatically mean rate limiting. The client categorizes it
 using GitHub rate-limit response information; permission and abuse/secondary
 limit responses get their own user-facing recovery guidance.
+
+HTTP `401` is an authorization failure, never a retry candidate. The importer
+checks whether its stored credential can be refreshed once; if not, it checkpoints
+the item as pending and returns `ActionRequired(Reconnect)` without deleting the
+existing local source documents.
 
 ## Knowledge-pipeline integration
 
@@ -187,9 +215,10 @@ not recursively fetch arbitrary README links.
 
 | Category | User message | Recovery |
 | --- | --- | --- |
-| App misconfigured | `GitHub connection is not configured on this device.` | Ask the app owner to supply a valid public Client ID and enable Device Flow. |
+| App misconfigured | `GitHub connection is not configured on this device.` | Configure a valid public Client ID and enable Device Flow for the personal GitHub App. |
 | Authorization pending | `Finish authorization in GitHub before this code expires.` | Open GitHub or wait; polling honors the server interval. |
 | Denied/expired/revoked | `GitHub authorization needs to be restarted.` | Start a fresh connection. |
+| Unauthorized | `GitHub authorization expired or was revoked.` | Refresh once when available; otherwise reconnect without altering local knowledge. |
 | Credential store | `ResearchLedger could not securely save the GitHub connection.` | Review macOS Keychain access and retry; do not fall back to plaintext. |
 | Permission | `GitHub did not authorize enough read access for this item.` | Re-authorize after the App's least-privilege configuration is corrected. |
 | Rate limit | `GitHub asked ResearchLedger to pause until <time>.` | Resume automatically/with one explicit retry after reset. |
@@ -200,13 +229,15 @@ not recursively fetch arbitrary README links.
 ### Automated tests
 
 - Rust tests with mocked HTTP prove device-code request headers/body, strict
-  poll interval, slow-down, expiry, denial, cancellation, and no token-bearing
-  command response/log field.
+  poll interval, slow-down, expiry, denial, cancellation, refresh replacement,
+  refresh failure, and no token-bearing command response/log field.
 - Credential-adapter tests use a fake store; CI never accesses the real
   Keychain or a live GitHub account.
 - Import tests cover multi-page stars, empty pages, duplicate/resume behavior,
-  missing README, private/inaccessible repositories, API/secondary rate limits,
-  malformed base64, network retry bounds, and checkpoint crash recovery.
+  unchanged historic `gh` imports before a successful native write, missing
+  README, private/inaccessible repositories, API/secondary rate limits, HTTP
+  `401`, malformed base64, the exact three-attempt 1/2/4-second retry policy,
+  and checkpoint crash recovery.
 - React component tests prove no token input/display, correct status wording,
   code copy/open behavior, progress rendering, and disconnect state.
 - Existing Bun lint/test/build and Rust fmt/clippy/test remain mandatory.
