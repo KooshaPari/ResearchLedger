@@ -109,22 +109,51 @@ whether an access or refresh token existed. If GitHub did not return refresh
 material, expiry always requires fresh Device Flow.
 
 The implementation must verify the exact least-privilege GitHub App user
-permissions required by the current REST endpoints during implementation. It
-must not substitute a broad personal-access-token scope or expand to GitHub
-write permissions.
+permissions required by the current REST endpoints during implementation. The
+personal App requests only `Starring: read` for `GET /user/starred` and
+`Contents: read` for `GET /repos/{owner}/{repo}/readme`. It must not substitute
+a broad personal-access-token scope or expand to GitHub write permissions.
+
+`GithubAppConfig::load(app)` accepts the public Client ID only from a signed
+packaged `github-app.json` resource in an installed app; development and tests
+may supply `RESEARCHLEDGER_GITHUB_CLIENT_ID`. The resource has exactly
+`{"clientId":"...","configurationVersion":"v1"}`. The loader rejects empty,
+control-character, or non-GitHub Client IDs and returns `AppMisconfigured`
+without a network request. The macOS release script generates this public-only
+resource from the release environment, bundles it as a Tauri resource, and
+asserts its presence before signing. It must never accept a client secret or
+token from environment variables, resource files, or the UI.
+
+On successful connection Rust atomically writes a non-secret config-directory
+record containing login, authorized time, access-token expiry, configuration
+version, and `connected` state. On launch it reads this record and checks the
+credential store: a valid pair returns `Connected`; a missing/expired credential
+returns `ActionRequired(Reconnect)`. Disconnect uses a recovery state to handle
+the two stores safely: it records `disconnecting`, deletes the Keychain item,
+then deletes the metadata. A partial failure returns `ActionRequired(Cleanup)`;
+it never falsely reports a still-connected account and never writes a token to
+the metadata record.
 
 ## Tauri contract
 
 Commands are Rust-owned and use typed request/response structs.
 
-| Command | Input | Safe response | Behavior |
-| --- | --- | --- | --- |
-| `github_connection_status` | none | `Disconnected`, `Pending`, `Connected`, or `ActionRequired` plus non-secret identity | Reads local metadata and validates no token value is exposed. |
-| `github_device_start` | none | verification URL, user code, expiry timestamp, poll interval | Requests a device code using the configured public Client ID. It does not start duplicate concurrent sessions. |
-| `github_device_poll` | opaque session id | pending, slow-down, connected identity, denied, expired, or failed category | Polls no faster than GitHub's returned interval, applies slow-down, and expires locally. |
-| `github_device_cancel` | opaque session id | cancelled | Deletes in-memory pending state; no credential has been stored before success. |
-| `github_disconnect` | none | disconnected | Deletes the Keychain credential and local non-secret metadata. |
-| `import_github_starred` | vault path, optional resume policy | progress summary and per-item status counts | Uses only the Rust credential adapter and checkpoints after each durable item. |
+| Command                    | Input                              | Safe response                                                                        | Behavior                                                                                                       |
+| -------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `github_connection_status` | none                               | `Disconnected`, `Pending`, `Connected`, or `ActionRequired` plus non-secret identity | Reads local metadata and validates no token value is exposed.                                                  |
+| `github_device_start`      | none                               | `sessionId`, verification URL, user code, expiry timestamp, and poll interval        | Requests a device code using the configured public Client ID. It does not start duplicate concurrent sessions. |
+| `github_device_poll`       | opaque session id                  | pending, slow-down, connected identity, denied, expired, or failed category          | Polls no faster than GitHub's returned interval, applies slow-down, and expires locally.                       |
+| `github_device_cancel`     | opaque session id                  | cancelled                                                                            | Deletes in-memory pending state; no credential has been stored before success.                                 |
+| `github_disconnect`        | none                               | disconnected                                                                         | Deletes the Keychain credential and local non-secret metadata.                                                 |
+| `import_github_starred`    | vault path, optional resume policy | `runId`, aggregate summary, and current item outcome                                 | Uses only the Rust credential adapter and checkpoints after each durable item.                                 |
+| `github_import_status`     | vault path, run id                 | aggregate summary plus persisted item outcomes                                       | Lets the UI show repository-specific warning, pause, and retry state without a token.                          |
+| `github_import_cancel`     | vault path, run id                 | cancelled run state                                                                  | Sets a cancellation flag checked between repository units; the current durable checkpoint is retained.         |
+
+The start response is a `#[serde(rename_all = "camelCase")] DeviceStartView`
+with exactly `session_id`, `verification_uri`, `user_code`, `expires_at`, and
+`poll_interval_seconds`. A checked-in JSON fixture verifies its Tauri response
+shape. These fields are explicitly safe; access tokens, refresh tokens, client
+secrets, device codes, and raw responses remain private Rust values.
 
 The existing `import_github_from_gh` command remains an explicitly labeled
 Advanced compatibility fallback for the first native-connection release. It
@@ -148,8 +177,8 @@ The GitHub source card has these mutually exclusive states:
    and `Import starred repositories` / `Disconnect` actions.
 4. **Importing** - reports pages scanned, metadata saved, README unavailable,
    retryable failures, and the next retry time when rate-limited. It supports
-   cancellation only between repository units, preserving the durable
-   checkpoint.
+   cancellation only between repository units through `github_import_cancel`,
+   preserving the durable checkpoint.
 5. **Action required** - distinguishes revoked/expired authorization,
    missing App configuration, rate limiting, inaccessible repositories, and
    local credential-store failure. Each state has one recovery action.
@@ -172,27 +201,46 @@ includes the canonical repository URL, full name, description, language/topics
 when available, default branch, import run id, and capture timestamp. README
 provenance records the GitHub endpoint and result class, never a credential.
 
-An import-run table stores: run id, identity, started/updated time, requested
-vault, last completed page, last completed repository identity, immutable
-configuration version, state, and categorized failures. It stores no access
-token, authorization code, or README body. The importer commits a checkpoint
-only after the document and SQLite index update have both succeeded. Resuming a
-run repeats at most the current repository and relies on idempotent upsert.
+An import-run table lives in the selected vault's `.researchledger.db`; separate
+vault roots never share checkpoints. It stores run id, identity, started/updated
+time, last completed page, last completed repository identity, pending repository
+identity, pending phase (`metadata` or `readme`), immutable configuration version,
+state, and categorized run failure. A second `github_import_items` table stores
+run id, repository identity, outcome, reason category, retry count, retry-after,
+and updated time. Neither table stores an access token, authorization code, or
+README body. The importer commits a checkpoint only after the document and SQLite
+index update have both succeeded. A pause or cancel keeps the pending repository
+and phase; resume completes that phase before advancing.
+
+The stars endpoint uses page pagination, so a changed star can shift page
+boundaries during a run or a resume. The importer requests `sort=created` and
+`direction=desc`, replays one completed page before the saved page, and idempotently
+upserts repository identities already observed in the run. It continues until the
+GitHub `Link` header has no next page, not merely until an expected count is met.
+The test fixture inserts and removes a star between page responses and proves that
+the overlap run contains every original and newly discovered identity at least
+once, with duplicate source entries prevented by the stable document id.
 
 Result handling is explicit:
 
-| Result | Document outcome | Run outcome |
-| --- | --- | --- |
-| README returned | Metadata and README persisted | item complete |
-| README not found | Metadata persisted with `README unavailable` provenance | item complete with warning |
-| Repository inaccessible | Existing entry retained; new metadata record carries classified failure | retry only if category is retryable |
-| Rate limited | Current item is not marked complete | run pauses with reset/retry guidance |
-| Network/transient 5xx | Current item remains pending | retry at 1, 2, then 4 seconds; pause after three failures |
-| Bad payload/decode | Metadata retained; payload issue recorded without body | item failure, no blind retry loop |
+| Result                            | Document outcome                                                                                     | Run outcome                                                                    |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| README returned                   | Metadata and README persisted                                                                        | item complete                                                                  |
+| Public repository README 404      | Metadata persisted with `README unavailable` provenance                                              | item complete with warning                                                     |
+| Private repository README 404     | Metadata persisted; result is `not readable or unavailable` rather than a false missing-README claim | item warning with a targeted retry after permission change                     |
+| Repository inaccessible           | Existing entry retained; new metadata record carries classified failure                              | retry only if category is retryable                                            |
+| Primary or secondary rate limited | Current item is not marked complete                                                                  | run pauses with `Retry-After`, reset header, or documented rate-limit guidance |
+| Network/transient 5xx             | Current item remains pending                                                                         | retry at 1, 2, then 4 seconds; pause after three failures                      |
+| Bad payload/decode                | Metadata retained; payload issue recorded without body                                               | item failure, no blind retry loop                                              |
 
-HTTP `403` must not automatically mean rate limiting. The client categorizes it
-using GitHub rate-limit response information; permission and abuse/secondary
-limit responses get their own user-facing recovery guidance.
+HTTP `403` and `429` must not automatically mean permission failure. The client
+first classifies `Retry-After`, primary remaining/reset headers, and GitHub's
+documented rate-limit response category; any of those produces a paused,
+retryable item outcome even if remaining is nonzero. A 403 without those signals
+is `PermissionDenied`. A README 404 is `Unavailable` only for a repository that
+the stars response identifies as public; private repository 404s are
+`NotReadableOrUnavailable` to avoid claiming the App could prove its README is
+absent.
 
 HTTP `401` is an authorization failure, never a retry candidate. The importer
 checks whether its stored credential can be refreshed once; if not, it checkpoints
@@ -213,16 +261,16 @@ not recursively fetch arbitrary README links.
 
 ## Error taxonomy
 
-| Category | User message | Recovery |
-| --- | --- | --- |
-| App misconfigured | `GitHub connection is not configured on this device.` | Configure a valid public Client ID and enable Device Flow for the personal GitHub App. |
-| Authorization pending | `Finish authorization in GitHub before this code expires.` | Open GitHub or wait; polling honors the server interval. |
-| Denied/expired/revoked | `GitHub authorization needs to be restarted.` | Start a fresh connection. |
-| Unauthorized | `GitHub authorization expired or was revoked.` | Refresh once when available; otherwise reconnect without altering local knowledge. |
-| Credential store | `ResearchLedger could not securely save the GitHub connection.` | Review macOS Keychain access and retry; do not fall back to plaintext. |
-| Permission | `GitHub did not authorize enough read access for this item.` | Re-authorize after the App's least-privilege configuration is corrected. |
-| Rate limit | `GitHub asked ResearchLedger to pause until <time>.` | Resume automatically/with one explicit retry after reset. |
-| README unavailable | `Repository imported; its README was unavailable.` | Keep metadata and allow a targeted retry. |
+| Category               | User message                                                    | Recovery                                                                               |
+| ---------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| App misconfigured      | `GitHub connection is not configured on this device.`           | Configure a valid public Client ID and enable Device Flow for the personal GitHub App. |
+| Authorization pending  | `Finish authorization in GitHub before this code expires.`      | Open GitHub or wait; polling honors the server interval.                               |
+| Denied/expired/revoked | `GitHub authorization needs to be restarted.`                   | Start a fresh connection.                                                              |
+| Unauthorized           | `GitHub authorization expired or was revoked.`                  | Refresh once when available; otherwise reconnect without altering local knowledge.     |
+| Credential store       | `ResearchLedger could not securely save the GitHub connection.` | Review macOS Keychain access and retry; do not fall back to plaintext.                 |
+| Permission             | `GitHub did not authorize enough read access for this item.`    | Re-authorize after the App's least-privilege configuration is corrected.               |
+| Rate limit             | `GitHub asked ResearchLedger to pause until <time>.`            | Resume automatically/with one explicit retry after reset.                              |
+| README unavailable     | `Repository imported; its README was unavailable.`              | Keep metadata and allow a targeted retry.                                              |
 
 ## Verification and release evidence
 
