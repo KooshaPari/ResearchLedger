@@ -2,6 +2,8 @@
 
 Local-first research ledger and LLM knowledge base.
 
+[![AI slop inside](https://sladge.net/badge.svg)](https://sladge.net) [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/KooshaPari/ResearchLedger/total)](https://github.com/KooshaPari/ResearchLedger/releases)
+
 The desktop app keeps Markdown and SQLite data local, preserves source provenance, and
 exposes import/search/RAG/export adapters through a Tauri command boundary.
 
