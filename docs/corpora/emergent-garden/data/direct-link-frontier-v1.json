@@ -1,0 +1,1078 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "eg-nested-corpus-2026-09",
+  "generated_at": "2026-09-04T23:21:39Z",
+  "input": {
+    "path": "docs/corpora/emergent-garden/data/youtube-description-edges-v1.json",
+    "sha256": "284497d4d3f265244784db0e830e0536bf605517c453a58cdb7a526386fd15b6",
+    "generated_at": "2026-09-04T23:21:23Z",
+    "provider": "youtube_atom_channel_feed",
+    "inventory_complete": false
+  },
+  "summary": {
+    "input_edges": 186,
+    "input_unique_targets": 116,
+    "high_value_unique_targets": 23,
+    "implementation_targets": 11,
+    "paper_targets": 3,
+    "author_direct_targets": 9,
+    "expanded": 23,
+    "failed": 0,
+    "state_counts": {
+      "EXPANDED": 23
+    }
+  },
+  "expansions": {
+    "implementation_candidates": [
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/AgentsOfEmpires",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "ZBdAe3ZwKds",
+            "title": "AI plays Age of Empires II",
+            "published_at": "2026-08-15T12:00:32+00:00"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/AgentsOfEmpires",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/AgentsOfEmpires",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/AgentsOfEmpires",
+          "description": "Let AI Agents auto-run AI script matches in Age of Empires 2 DE.",
+          "fork": true,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "b21286bd39a76ff2b981e836a3e5e54d69233710",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/AgentsOfEmpires/commit/b21286bd39a76ff2b981e836a3e5e54d69233710",
+          "created_at": "2026-08-17T01:21:19Z",
+          "updated_at": "2026-08-25T06:16:21Z",
+          "pushed_at": "2026-08-17T01:24:13Z",
+          "size_kib": 99275,
+          "primary_language": "Genero per",
+          "topics": [],
+          "license_spdx": null,
+          "open_issues_count": 0,
+          "parent_full_name": "mboop127/AutoDE",
+          "source_full_name": "mboop127/AutoDE",
+          "repository_response_sha256": "c382385bc24f7b17b6095f8d4eb072b58c3147718eab71d3f311fc723a508e40",
+          "branch_response_sha256": "85f63e49186f0d1107c793a3f10bf0492d0f32055d85f3c3844e33f08097cdcb",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "a6b80f4d3b9115d3a33b06a871775b0004d385c6",
+            "size": 3833,
+            "response_sha256": "c7a0af8898d16cd8b60c0f966077cfaab39caf6bcfcdac98306ab1bba75b7188",
+            "content_sha256": "6020eb6fa21366b9b608c591abd4d4c4e194f6054308e74690c19437a56c73e8",
+            "excerpt": "This is a automatic game runner for Age of Empires 2: DE. **This runs via screen capture, it cannot run in the background.** > [!WARNING] > This repo is a mess, scrapped together to collect footage for a youtube video. I uploaded it more or less as is. You'll have to hand this off to an agent to get it running for your purposes, they'll figure it out. Before running: - backup your AI folder - (this **will** overwrite all .ai files in your ai directory. .per files will be untouched. A backup of a",
+            "headings": ["## Headless / agent tools", "## Strategies"]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/agent_prompts",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "2YYjPs8t8MI",
+            "title": "The Chaos of AI Agents",
+            "published_at": "2025-07-26T12:00:04+00:00"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/agent_prompts",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/agent_prompts",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/agent_prompts",
+          "description": "just some prompts for cli agents",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "f4896e0d5ead49caac54d7fcd8e02175e7cf10a3",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/agent_prompts/commit/f4896e0d5ead49caac54d7fcd8e02175e7cf10a3",
+          "created_at": "2025-07-25T15:59:51Z",
+          "updated_at": "2026-05-18T00:07:20Z",
+          "pushed_at": "2025-07-25T16:00:19Z",
+          "size_kib": 4,
+          "primary_language": null,
+          "topics": [],
+          "license_spdx": "MIT",
+          "open_issues_count": 0,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "99b0453b21ecc08ff9d9fbb36997a1409dedf1e082eca67210463ef7ce3fd227",
+          "branch_response_sha256": "47eab66abb29d2d328b3d697d0eca1927b040c2d686b098e9687011ed067d836",
+          "readme": null,
+          "readme_error": "HTTPError: HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/fractalsearch",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "t7_ZXgfJVG8",
+            "title": "Recursive Self-Improvement",
+            "published_at": "2026-06-13T12:00:38+00:00"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/fractalsearch",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/fractalsearch",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/fractalsearch",
+          "description": "Autonomous AI research: an LLM agent searches for the best algorithm to fit the Mandelbrot set.",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "68bf34365aabfa682b05ca0524a5e11aafefb9cf",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/fractalsearch/commit/68bf34365aabfa682b05ca0524a5e11aafefb9cf",
+          "created_at": "2026-06-19T15:43:11Z",
+          "updated_at": "2026-08-28T09:09:15Z",
+          "pushed_at": "2026-06-19T15:54:32Z",
+          "size_kib": 4519,
+          "primary_language": "Python",
+          "topics": [],
+          "license_spdx": null,
+          "open_issues_count": 0,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "d0ebe22da7f750bb34489705441dabc35483db9d9ff7bf70227d23b922311dca",
+          "branch_response_sha256": "629b74ae07c10a1e212bda0f991206a8b6f6f8341085eb36dc4285663f87272d",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "8087a145288c459cb8f259c52bfed7dc74b8438c",
+            "size": 971,
+            "response_sha256": "fe98886a8556ac706e25e0276711a96e036a1bc958498a56e90d142d6cfea4f1",
+            "content_sha256": "7e7a0dca401eb4b98b677cfa0387cd2d7835a8db0cb6460db56928b67f120aa7",
+            "excerpt": "# 🌀 fractalsearch 🌀 Can AI Agents do AI research? This project attempts to facilitate this strange loop on a toy ML problem: How well can a function approximator fit the mandelbrot set? It is a low-dimensional curve-fitting problem, like fitting an image, but this image has infinite detail and complexity at every scale. This has been a [pet project of mine](https://github.com/MaxRobinsonTheGreat/mandelbrotnn) for a long time. As the human overseer, you can edit the prompt file AGENT.MD to guide ",
+            "headings": ["# 🌀 fractalsearch 🌀"]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/hyperdimensions",
+        "domain": "github.com",
+        "occurrence_count": 2,
+        "source_videos": [
+          {
+            "video_id": "DB-TD3s3MZ0",
+            "title": "Evolution in Higher Dimensions",
+            "published_at": "2026-02-28T13:00:23+00:00"
+          },
+          {
+            "video_id": "349r0xJFGNw",
+            "title": "Creatures in Higher Dimensions",
+            "published_at": "2025-12-20T13:00:04+00:00"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/hyperdimensions",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/hyperdimensions",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/hyperdimensions",
+          "description": "webtoy to visualize high-dimensional functions",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "f65a12c5d023e6d24c7fa337f736f0d5c1c9f181",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/hyperdimensions/commit/f65a12c5d023e6d24c7fa337f736f0d5c1c9f181",
+          "created_at": "2025-12-09T23:16:11Z",
+          "updated_at": "2026-09-04T05:26:59Z",
+          "pushed_at": "2026-02-26T22:27:02Z",
+          "size_kib": 212,
+          "primary_language": "HTML",
+          "topics": [],
+          "license_spdx": "MIT",
+          "open_issues_count": 0,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "6302b0c7e21b4f60cb944d4b55963972648aaf73dfe4ee27cdbe11a689106d6a",
+          "branch_response_sha256": "62b7c1c041c62afac1a4bbe8cdbef903feda2119edc1946edd27c4b2c3a4589c",
+          "readme": null,
+          "readme_error": "HTTPError: HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/mandelbrotnn",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "t7_ZXgfJVG8",
+            "title": "Recursive Self-Improvement",
+            "published_at": "2026-06-13T12:00:38+00:00"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/mandelbrotnn",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/mandelbrotnn",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/mandelbrotnn",
+          "description": "Torturing neural networks by forcing them to learn the Mandelbrot set.",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "b03a9fc50d272d79ab0cf761af2d2ca5b53fb99a",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/mandelbrotnn/commit/b03a9fc50d272d79ab0cf761af2d2ca5b53fb99a",
+          "created_at": "2021-02-24T19:15:54Z",
+          "updated_at": "2026-08-27T02:00:22Z",
+          "pushed_at": "2026-06-19T15:14:26Z",
+          "size_kib": 11067,
+          "primary_language": "Python",
+          "topics": [],
+          "license_spdx": null,
+          "open_issues_count": 2,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "621cecbf5362ad2ad2c2c3f4d6ef1bee78254eb4fca4e1a71fb9cc57845684bf",
+          "branch_response_sha256": "858db6995957924479e2371cc5564a84210ba92b2e9c5a8c8968c2f3c43e175b",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "b460964d2b153fe30df4f4ff3a5d9983ef83b8ee",
+            "size": 495,
+            "response_sha256": "6c7dd39aa226f9f487467af3f37c96d4899116ec1cab3588e89f0d8093830a87",
+            "content_sha256": "15203163a3dca30f2f86ead16e5aec42a526910bc00a2e72f9baaecee545488e",
+            "excerpt": "# Mandelbrot Neural Network This is a very simple project that allows you to train neural networks on the mandelbrot set, generate images from the trained network at high resolution, and save videos of neural networks learning the set as they train. # Requirements - python3 - pip3 # Setup Install dependencies with: `pip install -r requirements.txt` Then run `python main.py` for some example uses. Take a look at the `main.py` file for some example functions on how to use the modules.",
+            "headings": [
+              "# Mandelbrot Neural Network",
+              "# Requirements",
+              "# Setup"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/slopcity",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "--CteUWzErk",
+            "title": "Unleashing AI Slop Swarms",
+            "published_at": "2025-10-04T12:00:00+00:00"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/slopcity",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/slopcity",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/slopcity",
+          "description": "Experimental playground for AI Agents",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "965c8a42956cf2a4fc7c4241f87aabe15222d37f",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/slopcity/commit/965c8a42956cf2a4fc7c4241f87aabe15222d37f",
+          "created_at": "2025-10-01T16:49:31Z",
+          "updated_at": "2026-08-19T21:35:32Z",
+          "pushed_at": "2025-10-01T21:13:14Z",
+          "size_kib": 139,
+          "primary_language": "HTML",
+          "topics": [],
+          "license_spdx": null,
+          "open_issues_count": 0,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "e9fc9afc9a959b31e5a8beda89fab9c9dde8352fdc77fd85a1e2dd33644d42d9",
+          "branch_response_sha256": "c23cb237b1bc8b824a4f99839bced14ad51ebb2377e8f0e1dcf49ef7c492912b",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "15e235460d377ba0f3ee20a684c504261e16cbfd",
+            "size": 2448,
+            "response_sha256": "7bcdacdfb029659ced6ddd88817eb80fcde6774a10974e9dea27fec96b81b17f",
+            "content_sha256": "d0f74c4d293fc121a453d28609590db4ea65be970d4ccb4fa1ee12a85c123263",
+            "excerpt": "# slopcity > ⚠️ **WARNING:** All content in this project is AI generated. ## About Slopcity is an experimental project exploring **AI Agent Swarms** - multiple autonomous AI agents working collaboratively to create interactive web experiences. This project demonstrates how independent AI agents can: - Create unique interactive HTML pages - Render and validate their own work - Integrate their creations into a central hub - Work autonomously without human intervention between steps ## Structure - ",
+            "headings": [
+              "# slopcity",
+              "## About",
+              "## Structure",
+              "## Getting Started",
+              "## Original Prompt (human written)"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/cabaletta/baritone",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "Wh4abvcUj8Q",
+            "title": "Can AI (actually) beat Minecraft?",
+            "published_at": "2025-09-21T12:01:03+00:00"
+          }
+        ],
+        "repository_full_name": "cabaletta/baritone",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "cabaletta/baritone",
+          "html_url": "https://github.com/cabaletta/baritone",
+          "description": "google maps for block game",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "1.21.4",
+          "head_sha": "64333af99a072caa3f4d6f17e4b223a5ae7da3f4",
+          "head_commit_url": "https://github.com/cabaletta/baritone/commit/64333af99a072caa3f4d6f17e4b223a5ae7da3f4",
+          "created_at": "2018-08-01T15:34:21Z",
+          "updated_at": "2026-09-04T23:07:59Z",
+          "pushed_at": "2026-09-01T22:45:33Z",
+          "size_kib": 17139,
+          "primary_language": "Java",
+          "topics": [
+            "astar",
+            "astar-algorithm",
+            "astar-pathfinding",
+            "forgegradle",
+            "gradle",
+            "impact",
+            "java",
+            "minecraft",
+            "pathfinding"
+          ],
+          "license_spdx": "LGPL-3.0",
+          "open_issues_count": 928,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "d4c70a5cb32ea1bfc232f70fbdcfc30f27ccfa0f5232a538efe2c6ce38aa284b",
+          "branch_response_sha256": "af205da3773f9d89aa4a78031f2b8a6e6f2545e4937932c9609be10515cd20a8",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "e756b5805e0f36a9a8e62d3a5b67bc4d115dfeb9",
+            "size": 18488,
+            "response_sha256": "6225c90b6f123e7157f1a7aa595b4e46fc58da65fd15ba60aa170058f7060bbc",
+            "content_sha256": "dd44d26257187588c5dcb2ea00dc1cb13b035f978514f66f4be245d1c4d9aedc",
+            "excerpt": "# Baritone A Minecraft pathfinder bot. Baritone is the pathfinding system used in [Impact](https://impactclient.net/) since 4.4. [Here's](https://www.youtube.com/watch?v=StquF69-_wI) a (very old!) video I made showing off what it can do. [**Baritone Discord Server**](http://discord.gg/s6fRBAUpmr) **Quick download links:** | Forge | Fabric | NeoForge | |---------------------------------------------------------------------------------------------------------------|---------------------------------",
+            "headings": [
+              "# Baritone",
+              "# Getting Started",
+              "## Stars over time",
+              "# API",
+              "# FAQ",
+              "## Can I use Baritone as a library in my custom utility client?",
+              "## How is it so fast?",
+              "### Additional Special Thanks To:",
+              "## Why is it called Baritone?"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/karpathy/autoresearch",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "t7_ZXgfJVG8",
+            "title": "Recursive Self-Improvement",
+            "published_at": "2026-06-13T12:00:38+00:00"
+          }
+        ],
+        "repository_full_name": "karpathy/autoresearch",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "karpathy/autoresearch",
+          "html_url": "https://github.com/karpathy/autoresearch",
+          "description": "AI agents running research on single-GPU nanochat training automatically",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "master",
+          "head_sha": "228791fb499afffb54b46200aca536f79142f117",
+          "head_commit_url": "https://github.com/karpathy/autoresearch/commit/228791fb499afffb54b46200aca536f79142f117",
+          "created_at": "2026-03-06T22:00:43Z",
+          "updated_at": "2026-09-04T23:20:47Z",
+          "pushed_at": "2026-03-26T00:07:37Z",
+          "size_kib": 530,
+          "primary_language": "Python",
+          "topics": [],
+          "license_spdx": null,
+          "open_issues_count": 194,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "de69772e3b1b8b17d1ac4702edb42b9019d4d6f2fd1b32d3c0884417703becfc",
+          "branch_response_sha256": "dd081587bbe05161a3875113a7c6b486dfcb72c43d4d8302ab68fc6f00956d1a",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "953ea55d5599c45c1be7dad93ec03e47dfa7df9d",
+            "size": 8039,
+            "response_sha256": "ac76f962f5ee29d3755bdca694890dfd28e0c34d7f9b346753270a3f241996f1",
+            "content_sha256": "3958fd4195ac2f98ed35c4eaa4f3028a335165ee24945e96426c408d25793a41",
+            "excerpt": "# autoresearch ![teaser](progress.png) *One day, frontier AI research used to be done by meat computers in between eating, sleeping, having other fun, and synchronizing once in a while using sound wave interconnect in the ritual of \"group meeting\". That era is long gone. Research is now entirely the domain of autonomous swarms of AI agents running across compute cluster megastructures in the skies. The agents claim that we are now in the 10,205th generation of the code base, in any case no one c",
+            "headings": [
+              "# autoresearch",
+              "## How it works",
+              "## Quick start",
+              "# 1. Install uv project manager (if you don't already have it)",
+              "# 2. Install dependencies",
+              "# 3. Download data and train tokenizer (one-time, ~2 min)",
+              "# 4. Manually run a single training experiment (~5 min)",
+              "## Running the agent",
+              "## Project structure",
+              "## Design choices",
+              "## Platform support",
+              "## Notable forks",
+              "## License"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/mboop127/AutoDE",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "ZBdAe3ZwKds",
+            "title": "AI plays Age of Empires II",
+            "published_at": "2026-08-15T12:00:32+00:00"
+          }
+        ],
+        "repository_full_name": "mboop127/AutoDE",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "mboop127/AutoDE",
+          "html_url": "https://github.com/mboop127/AutoDE",
+          "description": "Automatic game runner for AOE2 DE AI - only games",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "10a7d75b2aba17fc9208faa58772b6fd1bf187d8",
+          "head_commit_url": "https://github.com/mboop127/AutoDE/commit/10a7d75b2aba17fc9208faa58772b6fd1bf187d8",
+          "created_at": "2024-03-10T20:15:55Z",
+          "updated_at": "2026-08-22T10:03:49Z",
+          "pushed_at": "2024-03-17T12:18:48Z",
+          "size_kib": 95463,
+          "primary_language": "Tcl",
+          "topics": [],
+          "license_spdx": null,
+          "open_issues_count": 0,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "f2089b890dde09adb6cd0cd23bdc377b34c323e6f6561c9567edd4d6503334ae",
+          "branch_response_sha256": "e1f021468e21243e78fd5edf3c706ddbb6f071ffc52704c3a6996d5d315934c7",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "a3f5fe5aa1e32498d692c3907f1afde3d95ed2c0",
+            "size": 2070,
+            "response_sha256": "c4647ff16598d811cb4f06bd2248f6f2173ba4803661a764c10ffd32956f32b5",
+            "content_sha256": "f31f0604c8e249f2d5c25596eb56322fb034e1e8a20fafa41461c4099e8d38c6",
+            "excerpt": "This is a automatic game runner for Age of Empires 2: DE. **This runs via screen capture, it cannot run in the background.** Before running: - backup your AI folder - (this **will** overwrite all .ai files in your ai directory. .per files will be untouched. A backup of all .ai files will be saved to /ai_backup, but to be safe I suggest you backup your ai folder before running) - confirm your monitor and game are both at 1080x1920p. No other resolutions are supported. - confirm your graphical set",
+            "headings": []
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/mindcraft-bots/mindcraft",
+        "domain": "github.com",
+        "occurrence_count": 2,
+        "source_videos": [
+          {
+            "video_id": "Ipcr5heLOJ8",
+            "title": "AI for War (in minecraft)",
+            "published_at": "2026-03-21T12:00:35+00:00"
+          },
+          {
+            "video_id": "Wh4abvcUj8Q",
+            "title": "Can AI (actually) beat Minecraft?",
+            "published_at": "2025-09-21T12:01:03+00:00"
+          }
+        ],
+        "repository_full_name": "mindcraft-bots/mindcraft",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "mindcraft-bots/mindcraft",
+          "html_url": "https://github.com/mindcraft-bots/mindcraft",
+          "description": "Minecraft AI with LLMs+Mineflayer",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "develop",
+          "head_sha": "5f3acc87b479864124173de444f31fa5538f94a6",
+          "head_commit_url": "https://github.com/mindcraft-bots/mindcraft/commit/5f3acc87b479864124173de444f31fa5538f94a6",
+          "created_at": "2023-08-16T06:39:59Z",
+          "updated_at": "2026-09-04T23:00:57Z",
+          "pushed_at": "2026-06-10T14:58:17Z",
+          "size_kib": 50982,
+          "primary_language": "JavaScript",
+          "topics": [],
+          "license_spdx": "MIT",
+          "open_issues_count": 54,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "4b65481347faed726233b8854b9dcd9dbcd86516c3a663cc8741b3243d999212",
+          "branch_response_sha256": "c94d80cf829f6e96b0a80889dc508d33333d95e0387b3e97fe9be5ca21b7eaf6",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "fbc6339f467963b9bd959153c4a9d7557cef4de0",
+            "size": 13264,
+            "response_sha256": "961dd48333fbf7032f56e20f2ab72d30299e265f6f080df5d527b3ad4d5599c5",
+            "content_sha256": "cc58f52ba9c1ffa0a20c7b6264ceb2c82d37188006c54974589a8f58e355cc41",
+            "excerpt": "🧠mindcraft⛏️ Crafting minds for Minecraft with LLMs and Mineflayer! FAQ | Discord Support | Video Tutorial | Blog Post | Paper Website | MineCollab > [!Caution] Do not connect this bot to public servers with coding enabled. This project allows an LLM to write/execute code on your computer. The code is sandboxed, but still vulnerable to injection attacks. Code writing is disabled by default, you can enable it by setting `allow_insecure_coding` to `true` in `settings.js`. Ye be warned. # Getting S",
+            "headings": [
+              "# Getting Started",
+              "## Requirements",
+              "## Install and Run",
+              "# Configuration",
+              "## Model Customization",
+              "## Online Servers",
+              "## Tasks",
+              "## Docker Container",
+              "# Bot Profiles",
+              "## Model Specifications",
+              "## Embedding Models",
+              "## Voice Synthesis Models",
+              "## Specifying Profiles via Command Line",
+              "# Contributing",
+              "## Patches",
+              "## Development Team",
+              "## Citation:",
+              "## Contributors"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/mindcraft-ce/mindcraft-ce",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "Wh4abvcUj8Q",
+            "title": "Can AI (actually) beat Minecraft?",
+            "published_at": "2025-09-21T12:01:03+00:00"
+          }
+        ],
+        "repository_full_name": "mindcraft-ce/mindcraft-ce",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "mindcraft-ce/mindcraft-ce",
+          "html_url": "https://github.com/mindcraft-ce/mindcraft-ce",
+          "description": "The open-source platform for crafting intelligent, collaborative agents in Minecraft using Large Language Models.",
+          "fork": true,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "develop",
+          "head_sha": "cc9b6a3bc149359d8cabf104e377acf58a7c6a03",
+          "head_commit_url": "https://github.com/mindcraft-ce/mindcraft-ce/commit/cc9b6a3bc149359d8cabf104e377acf58a7c6a03",
+          "created_at": "2025-06-08T06:28:52Z",
+          "updated_at": "2026-09-03T11:17:35Z",
+          "pushed_at": "2026-08-18T00:20:23Z",
+          "size_kib": 54027,
+          "primary_language": "JavaScript",
+          "topics": [],
+          "license_spdx": "MIT",
+          "open_issues_count": 33,
+          "parent_full_name": "mindcraft-bots/mindcraft",
+          "source_full_name": "mindcraft-bots/mindcraft",
+          "repository_response_sha256": "c344bef5793451453b3bb6aeb6872289b9e8dad41378229a023cb03fa3ea63f5",
+          "branch_response_sha256": "5cbc2317889c879efe41118758ee3cd37fbe4d458d50abdbcd5af9a613b8568c",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "f229bccaf7997477bdf99dcca9400efb0a7f060a",
+            "size": 18511,
+            "response_sha256": "5c066822e2f6bb259df9f96786f78841b8af0e03c974a4e8ec6220c1e94c6b13",
+            "content_sha256": "41c60975583b8ce2f1cc0fc5386397b57d4e27e753668ebe0300fc3b492f7ed3",
+            "excerpt": "🧠Mindcraft CE⛏️ Crafting minds for Minecraft with LLMs and Mineflayer! The experimental version of Mindcraft! FAQ | Discord Support | Website | Andy API Video Tutorial | Blog Post | Paper Website | MineCollab > [!Caution] Do not connect this bot to public servers with coding enabled. This project allows an LLM to write/execute code on your computer. The code is sandboxed, but still vulnerable to injection attacks. Code writing is disabled by default, you can enable it by setting `allow_insecure_",
+            "headings": [
+              "# New Experimental Features",
+              "## Develop",
+              "### 🦙 Andy API",
+              "## Agent System",
+              "### 🔧 Function Calling",
+              "### 🧠 RAG System (Retrieval-Augmented Generation)",
+              "### 🛠️ Tool-Based Prompting",
+              "### 👁️ Enhanced Vision & Models",
+              "### 🎯 Other Improvements",
+              "### 🚧 Coming Soon",
+              "# Getting Started",
+              "## Requirements",
+              "## Install and Run",
+              "# Configuration",
+              "## Model Customization",
+              "## Online Servers",
+              "## Tasks",
+              "## Docker Container",
+              "# Bot Profiles",
+              "## Model Specifications"
+            ]
+          },
+          "readme_error": null
+        }
+      }
+    ],
+    "primary_sources": [
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2201.05989",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "t7_ZXgfJVG8",
+            "title": "Recursive Self-Improvement",
+            "published_at": "2026-06-13T12:00:38+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2201.05989",
+          "versioned_id": "2201.05989v2",
+          "title": "Instant Neural Graphics Primitives with a Multiresolution Hash Encoding",
+          "abstract_sha256": "b9c344697885ff66ed04257ad9841f3599ee7e89d5addfa6acabbfd9a9a55324",
+          "abstract_excerpt": "Neural graphics primitives, parameterized by fully connected neural networks, can be costly to train and evaluate. We reduce this cost with a versatile new input encoding that permits the use of a smaller network without sacrificing quality, thus significantly reducing the number of floating point and memory access operations: a small neural network is augmented by a multiresolution hash table of trainable feature vectors whose values are optimized through stochastic gradient descent. The multiresolution structure allows the network to disambiguate hash collisions, making for a simple architecture that is trivial to parallelize on modern GPUs. We leverage this parallelism by implementing the",
+          "authors": [
+            "Thomas Müller",
+            "Alex Evans",
+            "Christoph Schied",
+            "Alexander Keller"
+          ],
+          "published_at": "2022-01-16T07:22:47Z",
+          "updated_at": "2022-05-04T07:35:57Z",
+          "categories": ["cs.CV", "cs.GR", "cs.LG"],
+          "primary_category": "cs.CV",
+          "comment": "To appear in ACM Transactions on Graphics (SIGGRAPH 2022). 15 pages, 13 figures, 3 tables",
+          "journal_reference": "ACM Trans. Graph. 41, 4, Article 102 (July 2022), 15 pages",
+          "doi": "10.1145/3528223.3530127",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2201.05989v2",
+            "pdf": "https://arxiv.org/pdf/2201.05989v2",
+            "doi": "https://doi.org/10.1145/3528223.3530127"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
+          "final_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "8477",
+          "captured_byte_count": 8477,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "2a2dd969c6f0061bf465a20b27c40722249058902116d09d8343f9c65b7d66cd"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2412.17799",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "2g-CrQfYNtE",
+            "title": "Artificial Life",
+            "published_at": "2026-07-18T12:00:13+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2412.17799",
+          "versioned_id": "2412.17799v2",
+          "title": "Automating the Search for Artificial Life with Foundation Models",
+          "abstract_sha256": "3f236a167c3a883ce7c68210cc7b667d9a4ca018e0ef509accb3541891b7ff09",
+          "abstract_excerpt": "With the recent Nobel Prize awarded for radical advances in protein discovery, foundation models (FMs) for exploring large combinatorial spaces promise to revolutionize many scientific fields. Artificial Life (ALife) has not yet integrated FMs, thus presenting a major opportunity for the field to alleviate the historical burden of relying chiefly on manual design and trial-and-error to discover the configurations of lifelike simulations. This paper presents, for the first time, a successful realization of this opportunity using vision-language FMs. The proposed approach, called Automated Search for Artificial Life (ASAL), (1) finds simulations that produce target phenomena, (2) discovers sim",
+          "authors": [
+            "Akarsh Kumar",
+            "Chris Lu",
+            "Louis Kirsch",
+            "Yujin Tang",
+            "Kenneth O. Stanley",
+            "Phillip Isola",
+            "David Ha"
+          ],
+          "published_at": "2024-12-23T18:57:00Z",
+          "updated_at": "2025-05-16T21:19:02Z",
+          "categories": ["cs.AI", "cs.NE"],
+          "primary_category": "cs.AI",
+          "comment": "30 pages, 19 figures",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2412.17799v2",
+            "pdf": "https://arxiv.org/pdf/2412.17799v2"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
+          "final_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "8477",
+          "captured_byte_count": 8477,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "2a2dd969c6f0061bf465a20b27c40722249058902116d09d8343f9c65b7d66cd"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2505.22954",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "t7_ZXgfJVG8",
+            "title": "Recursive Self-Improvement",
+            "published_at": "2026-06-13T12:00:38+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2505.22954",
+          "versioned_id": "2505.22954v3",
+          "title": "Darwin Godel Machine: Open-Ended Evolution of Self-Improving Agents",
+          "abstract_sha256": "8f6dd1fa963b7a56e48f004281276be5cca2a6bad93a5581d6e4ac7e48f84cc8",
+          "abstract_excerpt": "Today's AI systems have human-designed, fixed architectures and cannot autonomously and continuously improve themselves. The advance of AI could itself be automated. If done safely, that would accelerate AI development and allow us to reap its benefits much sooner. Meta-learning can automate the discovery of novel algorithms, but is limited by first-order improvements and the human design of a suitable search space. The Gödel machine proposed a theoretical alternative: a self-improving AI that repeatedly modifies itself in a provably beneficial manner. Unfortunately, proving that most changes are net beneficial is impossible in practice. We introduce the Darwin Gödel Machine (DGM), a self-im",
+          "authors": [
+            "Jenny Zhang",
+            "Shengran Hu",
+            "Cong Lu",
+            "Robert Lange",
+            "Jeff Clune"
+          ],
+          "published_at": "2025-05-29T00:26:15Z",
+          "updated_at": "2026-03-12T23:47:40Z",
+          "categories": ["cs.AI"],
+          "primary_category": "cs.AI",
+          "comment": "Code at https://github.com/jennyzzt/dgm",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2505.22954v3",
+            "pdf": "https://arxiv.org/pdf/2505.22954v3"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
+          "final_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "8477",
+          "captured_byte_count": 8477,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "2a2dd969c6f0061bf465a20b27c40722249058902116d09d8343f9c65b7d66cd"
+        }
+      }
+    ],
+    "author_direct": [
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://evolvecode.io/alife/aquarium.html",
+        "domain": "evolvecode.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "2g-CrQfYNtE",
+            "title": "Artificial Life",
+            "published_at": "2026-07-18T12:00:13+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://evolvecode.io/alife/aquarium.html",
+          "final_url": "https://evolvecode.io/alife/aquarium.html",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "26582",
+          "captured_byte_count": 26582,
+          "capture_truncated": false,
+          "etag": "\"2768793a9dd97a85d97fae4d7626749e\"",
+          "last_modified": "Mon, 06 Jul 2026 15:23:10 GMT",
+          "response_sha256": "f805934e686c8fb88bdf34c764b06098047b2bbe9f2b28b865c0ace9ea7cc755",
+          "page_title": "Aquarium GA",
+          "headings": [],
+          "text_excerpt": "Aquarium GA html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: #04121f; font-family: -apple-system, system-ui, sans-serif; } #view { display: block; width: 100vw; height: 100vh; } #panel { position: fixed; top: 12px; right: 12px; width: 220px; background: rgba(6, 30, 48, 0.82); border: 1px solid rgba(120, 200, 255, 0.25); border-radius: 10px; color: #cfeeff; backdrop-filter: blur(6px); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4); user-select: none; font-size: 13px; } #"
+        }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://evolvecode.io/alife/evoloop.html",
+        "domain": "evolvecode.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "2g-CrQfYNtE",
+            "title": "Artificial Life",
+            "published_at": "2026-07-18T12:00:13+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://evolvecode.io/alife/evoloop.html",
+          "final_url": "https://evolvecode.io/alife/evoloop.html",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "53795",
+          "captured_byte_count": 53795,
+          "capture_truncated": false,
+          "etag": "\"9643d924cf815e075d41c99b32208b12\"",
+          "last_modified": "Mon, 06 Jul 2026 15:23:09 GMT",
+          "response_sha256": "2cbcabf4667ae16b3f36b0e58069813c8c73eb37faa88e670b538415ebd3b495",
+          "page_title": "Strange Loops",
+          "headings": [],
+          "text_excerpt": "Strange Loops html, body { margin: 0; padding: 0; height: 100%; background: #060608; overflow: hidden; font-family: ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif; } canvas { display: block; width: 100vw; height: 100vh; cursor: default; touch-action: none; } canvas.panning { cursor: grabbing; } #ui { position: fixed; top: 16px; right: 16px; z-index: 10; width: 380px; background: #14151a; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 12px; color: #d7dae3; font-size:"
+        }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://evolvecode.io/alife/gol.html",
+        "domain": "evolvecode.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "2g-CrQfYNtE",
+            "title": "Artificial Life",
+            "published_at": "2026-07-18T12:00:13+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://evolvecode.io/alife/gol.html",
+          "final_url": "https://evolvecode.io/alife/gol.html",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "33520",
+          "captured_byte_count": 33520,
+          "capture_truncated": false,
+          "etag": "\"af12f79dfa9eac50976ead3bcf8dade0\"",
+          "last_modified": "Mon, 06 Jul 2026 15:23:09 GMT",
+          "response_sha256": "bb19b16195f729b7132c0f7b546e9d4886bf8029104e490a6e3ed265e732159b",
+          "page_title": "Game of Life",
+          "headings": [],
+          "text_excerpt": "Game of Life html, body { margin: 0; padding: 0; height: 100%; background: #060608; overflow: hidden; font-family: ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif; } canvas { display: block; width: 100vw; height: 100vh; cursor: default; touch-action: none; } canvas.panning { cursor: grabbing; } #ui { position: fixed; top: 16px; right: 16px; z-index: 10; width: 380px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; background: #14151a; border: 1px solid rgba"
+        }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://evolvecode.io/alife/lenia.html",
+        "domain": "evolvecode.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "2g-CrQfYNtE",
+            "title": "Artificial Life",
+            "published_at": "2026-07-18T12:00:13+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://evolvecode.io/alife/lenia.html",
+          "final_url": "https://evolvecode.io/alife/lenia.html",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "60447",
+          "captured_byte_count": 60447,
+          "capture_truncated": false,
+          "etag": "\"1ca2c0480a7773d52eb5bced9c8c3aea\"",
+          "last_modified": "Mon, 06 Jul 2026 15:23:09 GMT",
+          "response_sha256": "e7c6a16c7d31561fa655729306294bec30e465b63905308dda1f5886598cc1d3",
+          "page_title": "Lenia",
+          "headings": [],
+          "text_excerpt": "Lenia html, body { margin: 0; padding: 0; height: 100%; background: #060608; overflow: hidden; font-family: ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif; } #c { display: block; width: 100vw; height: 100vh; touch-action: none; } #c.dragging { cursor: grabbing; } #ui { position: fixed; top: 16px; right: 16px; z-index: 10; width: 380px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; background: #14151a; border: 1px solid rgba(255, 255, 255, 0.09); border-r"
+        }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://evolvecode.io/hyperspace/biomorphs.html",
+        "domain": "evolvecode.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "DB-TD3s3MZ0",
+            "title": "Evolution in Higher Dimensions",
+            "published_at": "2026-02-28T13:00:23+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://evolvecode.io/hyperspace/biomorphs.html",
+          "final_url": "https://evolvecode.io/hyperspace/biomorphs.html",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "49398",
+          "captured_byte_count": 49398,
+          "capture_truncated": false,
+          "etag": "\"ca1bc9a1e1a39afe75c9b03cc4744717\"",
+          "last_modified": "Thu, 26 Feb 2026 22:20:39 GMT",
+          "response_sha256": "0a269f101e3d032f4f1772e09807e76b53e4469fb1ed850293b47d67ee70868d",
+          "page_title": "Biomorphs",
+          "headings": ["Biomorphs"],
+          "text_excerpt": "Biomorphs * { margin: 0; padding: 0; box-sizing: border-box; } html, body { width: 100%; height: 100%; background: #111; overflow: hidden; display: flex; } #sidebar-wrapper { display: flex; height: 100%; flex-shrink: 0; } #sidebar { width: 260px; height: 100%; background: #1a1a1a; border-right: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; color: #ccc; font-family: sans-serif; font-size: 14px; } #sidebar-resizer { width: 5px; height: 100%; background: #333; cursor: col"
+        }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://evolvecode.io/hyperspace/index.html",
+        "domain": "evolvecode.io",
+        "occurrence_count": 2,
+        "source_videos": [
+          {
+            "video_id": "DB-TD3s3MZ0",
+            "title": "Evolution in Higher Dimensions",
+            "published_at": "2026-02-28T13:00:23+00:00"
+          },
+          {
+            "video_id": "349r0xJFGNw",
+            "title": "Creatures in Higher Dimensions",
+            "published_at": "2025-12-20T13:00:04+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://evolvecode.io/hyperspace/index.html",
+          "final_url": "https://evolvecode.io/hyperspace/index.html",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "99446",
+          "captured_byte_count": 99446,
+          "capture_truncated": false,
+          "etag": "\"edbfd0ee2c7d7bdf382a25f8a963bd7c\"",
+          "last_modified": "Thu, 26 Feb 2026 22:20:38 GMT",
+          "response_sha256": "4a92e34ee47ac414abf13b2ad483faa6544aac529fe1e0efce7f86c111dbb26d",
+          "page_title": "Hyperdimensional Functions",
+          "headings": ["Functions"],
+          "text_excerpt": "Hyperdimensional Functions { \"imports\": { \"three\": \"https://unpkg.com/three@0.160.0/build/three.module.js\", \"three/addons/\": \"https://unpkg.com/three@0.160.0/examples/jsm/\" } } Functions « Biomorphs Picbreeder ▶ Learn More This is a webtoy that allows you to create and visualize high-dimensional functions, or functions with lots of inputs and outputs. They are colored parametric surfaces that change over time. They take in u,v coordinates and output x,y,z coordinates and r,g,b,a color/transparen"
+        }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://evolvecode.io/hyperspace/picbreeder.html",
+        "domain": "evolvecode.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "DB-TD3s3MZ0",
+            "title": "Evolution in Higher Dimensions",
+            "published_at": "2026-02-28T13:00:23+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://evolvecode.io/hyperspace/picbreeder.html",
+          "final_url": "https://evolvecode.io/hyperspace/picbreeder.html",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "53239",
+          "captured_byte_count": 53239,
+          "capture_truncated": false,
+          "etag": "\"ffc0af8e74e2e03d42f8ac574531fc74\"",
+          "last_modified": "Thu, 26 Feb 2026 22:20:38 GMT",
+          "response_sha256": "703a75bea0d634af9dce9e3de17e6e60b603b9dac4d7ee52548cbd5f5170dc4a",
+          "page_title": "Picbreeder",
+          "headings": ["Picbreeder"],
+          "text_excerpt": "Picbreeder * { margin: 0; padding: 0; box-sizing: border-box; } html, body { width: 100%; height: 100%; background: #111; overflow: hidden; display: flex; } /* Layout: Sidebar Wrapper */ #sidebar-wrapper { display: flex; height: 100%; flex-shrink: 0; position: relative; } #sidebar { width: 280px; height: 100%; background: #1a1a1a; border-right: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; color: #ccc; font-family: sans-serif; font-size: 14px; } #sidebar.collapsed { wi"
+        }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://evolvecode.io/turmites/index.html",
+        "domain": "evolvecode.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "0HqUYpGQIfs",
+            "title": "Emergent Complexity",
+            "published_at": "2025-11-22T13:00:04+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://evolvecode.io/turmites/index.html",
+          "final_url": "https://evolvecode.io/turmites/index.html",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "7500",
+          "captured_byte_count": 7500,
+          "capture_truncated": false,
+          "etag": "\"feb124242f1cb40fa138a69534f8417e\"",
+          "last_modified": "Thu, 18 Dec 2025 16:37:42 GMT",
+          "response_sha256": "a638c470465a663f1041fd3c68a89e4341ef9324dc1210900975bcdd14a8f2d5",
+          "page_title": "Langton's Ant",
+          "headings": ["Langton's Ant Colony"],
+          "text_excerpt": "Langton's Ant − ⚙ Langton's Ant Colony Ants: Individual Rules Rule: ✎ ⭳ ⭱ Presets: Start Position: Center Random Grid Row Start Direction: Up Right Down Left Random Randomize Options ✎ Max States: Max Colors: Possible Movements: Relative , v, Absolute Random Randomize Apply Discard Steps/Sec: 50 exponential)\"> 60 ❚❚ ↺ ⛶"
+        }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://neuralpatterns.io/",
+        "domain": "neuralpatterns.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "2g-CrQfYNtE",
+            "title": "Artificial Life",
+            "published_at": "2026-07-18T12:00:13+00:00"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://neuralpatterns.io/",
+          "final_url": "https://neuralpatterns.io/",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "897",
+          "captured_byte_count": 897,
+          "capture_truncated": false,
+          "etag": "\"134682bbf651654e8920cace48c43452\"",
+          "last_modified": "Sun, 12 Dec 2021 02:43:28 GMT",
+          "response_sha256": "1e0c6d176de94929bdfa06555a48ffa11416fc2f7e072d59cd3f12e3853d23ee",
+          "page_title": "neuralpatterns",
+          "headings": [],
+          "text_excerpt": "neuralpatterns We're sorry but neuralpatterns doesn't work properly without JavaScript enabled. Please enable it to continue."
+        }
+      }
+    ]
+  },
+  "limits": [
+    "Input descriptions cover only the official Atom recent window because G1 is blocked.",
+    "Repository and web metadata are point-in-time captures, not reproduction results.",
+    "README excerpts and abstracts are publication-safe summaries, not full mirrored documents.",
+    "Creator-controlled page reachability does not prove source-repository lineage.",
+    "Only high-value direct edges are expanded; broader context and social links remain unexpanded."
+  ]
+}
