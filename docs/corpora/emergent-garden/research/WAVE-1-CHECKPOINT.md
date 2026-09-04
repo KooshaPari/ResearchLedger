@@ -29,3 +29,7 @@
 ## Current rule
 
 No product-code change or project-specific PR may be inferred from thematic similarity. A downstream repository needs direct mechanism fit, current repository evidence, a falsifiable experiment or documentation change, and stable links to the canonical ResearchLedger claim set.
+
+## Validation trigger
+
+This checkpoint was re-saved after the full corpus-format pass so ordinary repository CI evaluates the formatted campaign head.
