@@ -35,8 +35,7 @@ jobs:
             docs/corpora/emergent-garden/research/CLAIM-LEDGER-WAVE-1.md \
             docs/corpora/emergent-garden/research/CONCEPT-ONTOLOGY-WAVE-1.md \
             docs/corpora/emergent-garden/research/NESTED-SOURCE-GRAPH-WAVE-1.md \
-            docs/corpora/emergent-garden/research/PORTFOLIO-APPLICABILITY-WAVE-1.md \
-            docs/corpora/emergent-garden/research/WAVE-1-INVENTORY.json
+            docs/corpora/emergent-garden/research/PORTFOLIO-APPLICABILITY-WAVE-1.md
           git rm .github/workflows/format-emergent-garden-once.yml
 
       - name: Commit formatted files and remove this workflow
