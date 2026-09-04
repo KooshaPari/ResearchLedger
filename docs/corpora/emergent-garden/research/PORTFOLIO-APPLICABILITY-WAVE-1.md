@@ -8,18 +8,18 @@ This document maps Wave 1 findings against repositories as they currently descri
 
 ## 1. Classification vocabulary
 
-| Class | Meaning |
-|---|---|
-| `DIRECTLY_ADOPT` | The repository already owns a concern needed to operationalize the finding |
-| `ARCHITECTURAL_ANALOGUE` | The finding clarifies an existing role or boundary but does not mandate implementation |
-| `EXPERIMENT` | A controlled test is warranted before architecture or product change |
-| `RESEARCH_LEAD` | Worth preserving centrally; project fanout is premature |
-| `PHILOSOPHICAL_CONVERGENCE` | Shared design worldview with no immediate product action |
-| `CONTRADICTION` | The corpus exposes a current claim, architecture, or process tension |
-| `NOT_APPLICABLE` | No material project relationship established |
-| `ALREADY_IMPLEMENTED` | The relevant mechanism is already materially present |
-| `SUPERSEDED_BY_PORTFOLIO` | Portfolio practice is already more rigorous or specific |
-| `INSUFFICIENT_EVIDENCE` | Similarity exists, but source or repository evidence is too weak |
+| Class                       | Meaning                                                                                |
+| --------------------------- | -------------------------------------------------------------------------------------- |
+| `DIRECTLY_ADOPT`            | The repository already owns a concern needed to operationalize the finding             |
+| `ARCHITECTURAL_ANALOGUE`    | The finding clarifies an existing role or boundary but does not mandate implementation |
+| `EXPERIMENT`                | A controlled test is warranted before architecture or product change                   |
+| `RESEARCH_LEAD`             | Worth preserving centrally; project fanout is premature                                |
+| `PHILOSOPHICAL_CONVERGENCE` | Shared design worldview with no immediate product action                               |
+| `CONTRADICTION`             | The corpus exposes a current claim, architecture, or process tension                   |
+| `NOT_APPLICABLE`            | No material project relationship established                                           |
+| `ALREADY_IMPLEMENTED`       | The relevant mechanism is already materially present                                   |
+| `SUPERSEDED_BY_PORTFOLIO`   | Portfolio practice is already more rigorous or specific                                |
+| `INSUFFICIENT_EVIDENCE`     | Similarity exists, but source or repository evidence is too weak                       |
 
 ## 2. Portfolio-wide decisions
 
@@ -47,27 +47,27 @@ This document maps Wave 1 findings against repositories as they currently descri
 
 ## 3. Repository relevance matrix
 
-| Repository | Current observed role | Classification | Confidence | Wave 1 action |
-|---|---|---|---:|---|
-| `ResearchLedger` | Local-first source, provenance, claim, retrieval, and evidence store | `DIRECTLY_ADOPT` + `ALREADY_IMPLEMENTED` | high | Extend current source/version/link/crawl substrate for typed nested corpora; preserve full raw corpus locally and Git-safe projections separately |
-| `RepoLedger` | Fleet repository/authority/projection ledger | `DIRECTLY_ADOPT` | high | Register campaign snapshot and every downstream projection; do not duplicate source text |
-| `Benchora` | Benchmarking, baselines, regressions, mutation coverage | `DIRECTLY_ADOPT` | high | Own coordination curves, evaluator robustness, held-out tests, and cost/performance comparisons |
-| `phenotype-journeys` | User/agent journey recording, hard assertions, visual evidence | `DIRECTLY_ADOPT` | high | Own challenge-world and GUI/CLI trajectory manifests with hard oracles |
-| `SessionLedger` | Lossless agent-session capture/archive/replay | `DIRECTLY_ADOPT` | high | Preserve session/action/config timelines for irreducible and long-running experiments |
-| `Tracera` | Trace, observability, audit, and evidence links | `DIRECTLY_ADOPT` | high | Model claim → config → action → state → evaluator → promotion/rollback links |
-| `AgilePlus` | Specification, work-package, and governance workflow | `DIRECTLY_ADOPT` | high | Represent experiments and evidence gates as bounded work packages; no prose completion percentages |
-| `PhenoObservability` | Instrumentation libraries | `ARCHITECTURAL_ANALOGUE` | medium-high | Define instrumentation profile for agent/environment/evaluator boundaries after owner audit |
-| `Agentora` | Rust agent framework with tools, skills, memory, and lifecycle events | `EXPERIMENT` + `CONTRADICTION` | high | Add benchmark contracts for budgets, replay, action authorization, state freshness, and multi-agent coordination before claiming framework advantage |
-| `thegent` | Broad orchestration/bootstrap/governance/runtime umbrella | `EXPERIMENT` + `CONTRADICTION` | high | Measure WIP/coordination and decompose generic authority; avoid one-agent-per-repo fanout |
-| `helios-cli` | Codex fork plus queue/rollback/scaling/verification harnesses | `EXPERIMENT` + `ALREADY_IMPLEMENTED` | high | Test deterministic primitive reliability, state freshness, rollback, and agent-count scaling using existing harness crates |
-| `forgecode` | Tailcall forgecode fork, session/search/compression additions, disputed `helioslite` identity | `CONTRADICTION` | high | Do not fan out corpus conclusions until canonical identity and nonexistent/uncertain successor claims are resolved |
-| `HeliosLab` | Current README says config/flags/secrets/version workspace; accepted intent is desktop coding workbench | `CONTRADICTION` | high | Identity forensics first; no emergence-driven feature work until product role is repaired |
-| `Civis` | Deterministic emergent-civilization simulation and godgame | `EXPERIMENT` + `PHILOSOPHICAL_CONVERGENCE` | high | Use corpus to sharpen emergence evidence, intervention design, replay, and anti-handwaving tests; verify current feature claims independently |
-| `hwLedger` | Hardware/system evidence ledger and physical-compute planning | `RESEARCH_LEAD` | medium | Apply observer/actuator/state-freshness and closed-loop evidence contracts to physical-engineering work |
-| `Eidolon` / `PlayCua` | Device/sandbox/automation surfaces | `EXPERIMENT` | medium | Build actuator-reliability and privileged-state-vs-human-interface benchmark classes |
-| `PhenoSpecs` | Cross-repo spec/ADR spine, but current instructions restrict new content | `CONTRADICTION` | high | Resolve authority conflict before publishing corpus-derived cross-repo contracts here |
-| `PhenoHandbook` | Patterns/anti-patterns reference | `RESEARCH_LEAD` | medium | Publish only patterns that survive experiments and accepted ADRs; no first-wave philosophy dump |
-| `phenodocs` / profile / landing | Generated narrative/catalog surfaces | `NOT_APPLICABLE` as authority | high | Generate projections only after canonical evidence and repo decisions exist |
+| Repository                      | Current observed role                                                                                   | Classification                             |  Confidence | Wave 1 action                                                                                                                                        |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ResearchLedger`                | Local-first source, provenance, claim, retrieval, and evidence store                                    | `DIRECTLY_ADOPT` + `ALREADY_IMPLEMENTED`   |        high | Extend current source/version/link/crawl substrate for typed nested corpora; preserve full raw corpus locally and Git-safe projections separately    |
+| `RepoLedger`                    | Fleet repository/authority/projection ledger                                                            | `DIRECTLY_ADOPT`                           |        high | Register campaign snapshot and every downstream projection; do not duplicate source text                                                             |
+| `Benchora`                      | Benchmarking, baselines, regressions, mutation coverage                                                 | `DIRECTLY_ADOPT`                           |        high | Own coordination curves, evaluator robustness, held-out tests, and cost/performance comparisons                                                      |
+| `phenotype-journeys`            | User/agent journey recording, hard assertions, visual evidence                                          | `DIRECTLY_ADOPT`                           |        high | Own challenge-world and GUI/CLI trajectory manifests with hard oracles                                                                               |
+| `SessionLedger`                 | Lossless agent-session capture/archive/replay                                                           | `DIRECTLY_ADOPT`                           |        high | Preserve session/action/config timelines for irreducible and long-running experiments                                                                |
+| `Tracera`                       | Trace, observability, audit, and evidence links                                                         | `DIRECTLY_ADOPT`                           |        high | Model claim → config → action → state → evaluator → promotion/rollback links                                                                         |
+| `AgilePlus`                     | Specification, work-package, and governance workflow                                                    | `DIRECTLY_ADOPT`                           |        high | Represent experiments and evidence gates as bounded work packages; no prose completion percentages                                                   |
+| `PhenoObservability`            | Instrumentation libraries                                                                               | `ARCHITECTURAL_ANALOGUE`                   | medium-high | Define instrumentation profile for agent/environment/evaluator boundaries after owner audit                                                          |
+| `Agentora`                      | Rust agent framework with tools, skills, memory, and lifecycle events                                   | `EXPERIMENT` + `CONTRADICTION`             |        high | Add benchmark contracts for budgets, replay, action authorization, state freshness, and multi-agent coordination before claiming framework advantage |
+| `thegent`                       | Broad orchestration/bootstrap/governance/runtime umbrella                                               | `EXPERIMENT` + `CONTRADICTION`             |        high | Measure WIP/coordination and decompose generic authority; avoid one-agent-per-repo fanout                                                            |
+| `helios-cli`                    | Codex fork plus queue/rollback/scaling/verification harnesses                                           | `EXPERIMENT` + `ALREADY_IMPLEMENTED`       |        high | Test deterministic primitive reliability, state freshness, rollback, and agent-count scaling using existing harness crates                           |
+| `forgecode`                     | Tailcall forgecode fork, session/search/compression additions, disputed `helioslite` identity           | `CONTRADICTION`                            |        high | Do not fan out corpus conclusions until canonical identity and nonexistent/uncertain successor claims are resolved                                   |
+| `HeliosLab`                     | Current README says config/flags/secrets/version workspace; accepted intent is desktop coding workbench | `CONTRADICTION`                            |        high | Identity forensics first; no emergence-driven feature work until product role is repaired                                                            |
+| `Civis`                         | Deterministic emergent-civilization simulation and godgame                                              | `EXPERIMENT` + `PHILOSOPHICAL_CONVERGENCE` |        high | Use corpus to sharpen emergence evidence, intervention design, replay, and anti-handwaving tests; verify current feature claims independently        |
+| `hwLedger`                      | Hardware/system evidence ledger and physical-compute planning                                           | `RESEARCH_LEAD`                            |      medium | Apply observer/actuator/state-freshness and closed-loop evidence contracts to physical-engineering work                                              |
+| `Eidolon` / `PlayCua`           | Device/sandbox/automation surfaces                                                                      | `EXPERIMENT`                               |      medium | Build actuator-reliability and privileged-state-vs-human-interface benchmark classes                                                                 |
+| `PhenoSpecs`                    | Cross-repo spec/ADR spine, but current instructions restrict new content                                | `CONTRADICTION`                            |        high | Resolve authority conflict before publishing corpus-derived cross-repo contracts here                                                                |
+| `PhenoHandbook`                 | Patterns/anti-patterns reference                                                                        | `RESEARCH_LEAD`                            |      medium | Publish only patterns that survive experiments and accepted ADRs; no first-wave philosophy dump                                                      |
+| `phenodocs` / profile / landing | Generated narrative/catalog surfaces                                                                    | `NOT_APPLICABLE` as authority              |        high | Generate projections only after canonical evidence and repo decisions exist                                                                          |
 
 ## 4. Detailed repository decisions
 
@@ -352,14 +352,14 @@ Highest-value transfers:
 
 Proposed Civis evidence matrix:
 
-| Claim | Required evidence |
-|---|---|
-| cultures emerge | independent state variables and trajectories not reducible to a fixed label table |
-| markets emerge | price/allocation behavior under varied shocks and policies, compared with null/random baselines |
-| political structures emerge | rule-invariant diversity across seeds and environments |
-| interventions have systemic consequences | reproducible counterfactual paired runs |
-| history is path-dependent | divergence from controlled perturbations with replayable causal frontier |
-| complexity increases | predeclared metrics plus qualitative artifact review, not one entropy line |
+| Claim                                    | Required evidence                                                                               |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| cultures emerge                          | independent state variables and trajectories not reducible to a fixed label table               |
+| markets emerge                           | price/allocation behavior under varied shocks and policies, compared with null/random baselines |
+| political structures emerge              | rule-invariant diversity across seeds and environments                                          |
+| interventions have systemic consequences | reproducible counterfactual paired runs                                                         |
+| history is path-dependent                | divergence from controlled perturbations with replayable causal frontier                        |
+| complexity increases                     | predeclared metrics plus qualitative artifact review, not one entropy line                      |
 
 **Counterfactual:** Civis may be a richly parameterized scripted strategy simulation rather than an emergent civilization substrate. The experiment must be capable of concluding that.
 

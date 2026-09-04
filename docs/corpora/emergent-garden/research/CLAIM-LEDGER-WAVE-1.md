@@ -9,25 +9,25 @@ This ledger separates direct creator statements, implemented mechanisms, control
 
 ## Status vocabulary
 
-| Status | Meaning |
-|---|---|
-| `SUPPORTED` | Direct or primary evidence supports the bounded wording below |
-| `SUPPORTED_WITH_LIMITS` | Supported, but scope/generalization limits are material |
-| `PROVISIONAL` | Evidence is indirect, incomplete, or transcript-derived and needs promotion |
-| `ANALYST_INFERENCE` | Our synthesis across sources; not something the creator explicitly asserted |
-| `CONTESTED` | Material evidence supports more than one live interpretation |
-| `GAP` | Required evidence has not yet been acquired |
+| Status                  | Meaning                                                                     |
+| ----------------------- | --------------------------------------------------------------------------- |
+| `SUPPORTED`             | Direct or primary evidence supports the bounded wording below               |
+| `SUPPORTED_WITH_LIMITS` | Supported, but scope/generalization limits are material                     |
+| `PROVISIONAL`           | Evidence is indirect, incomplete, or transcript-derived and needs promotion |
+| `ANALYST_INFERENCE`     | Our synthesis across sources; not something the creator explicitly asserted |
+| `CONTESTED`             | Material evidence supports more than one live interpretation                |
+| `GAP`                   | Required evidence has not yet been acquired                                 |
 
 ## Evidence vocabulary
 
-| Evidence type | Meaning |
-|---|---|
-| `CREATOR_DIRECT` | Creator-controlled site, repository, prompt, or description |
-| `PRIMARY_TECHNICAL` | Paper, benchmark, code, fixtures, or direct implementation artifact |
+| Evidence type        | Meaning                                                                         |
+| -------------------- | ------------------------------------------------------------------------------- |
+| `CREATOR_DIRECT`     | Creator-controlled site, repository, prompt, or description                     |
+| `PRIMARY_TECHNICAL`  | Paper, benchmark, code, fixtures, or direct implementation artifact             |
 | `TRANSCRIPT_DERIVED` | Timestamped transcript/summary mirror; useful but below creator-controlled text |
-| `SECONDARY_INDEX` | Search/index record used for inventory or discovery only |
-| `PORTFOLIO_OBSERVED` | Current KooshaPari repository documentation/code at a pinned revision |
-| `ANALYST_SYNTHESIS` | Inference across several sources |
+| `SECONDARY_INDEX`    | Search/index record used for inventory or discovery only                        |
+| `PORTFOLIO_OBSERVED` | Current KooshaPari repository documentation/code at a pinned revision           |
+| `ANALYST_SYNTHESIS`  | Inference across several sources                                                |
 
 ---
 
@@ -424,15 +424,15 @@ EG-CLM-026 iterative rule-space design
 
 Claims requiring the next evidence wave before being used in project ADRs:
 
-| Claim | Missing evidence |
-|---|---|
-| `EG-CLM-003` | Creator-controlled transcript or script for layered emergence wording |
-| `EG-CLM-008` | Source/commit or creator-controlled script for state-machine decision |
+| Claim        | Missing evidence                                                            |
+| ------------ | --------------------------------------------------------------------------- |
+| `EG-CLM-003` | Creator-controlled transcript or script for layered emergence wording       |
+| `EG-CLM-008` | Source/commit or creator-controlled script for state-machine decision       |
 | `EG-CLM-012` | Original run artifacts or creator-controlled transcript with exact examples |
-| `EG-CLM-016` | Current controlled multimodal ablation at a pinned revision |
-| `EG-CLM-017` | Original challenge-world artifacts and direct transcript |
-| `EG-CLM-020` | Candidate/run-level evidence of evaluator exploitation in these projects |
-| `EG-CLM-027` | Creator-controlled `Artificial Life` text and primary references |
-| `EG-CLM-028` | Official API uploads-playlist census |
+| `EG-CLM-016` | Current controlled multimodal ablation at a pinned revision                 |
+| `EG-CLM-017` | Original challenge-world artifacts and direct transcript                    |
+| `EG-CLM-020` | Candidate/run-level evidence of evaluator exploitation in these projects    |
+| `EG-CLM-027` | Creator-controlled `Artificial Life` text and primary references            |
+| `EG-CLM-028` | Official API uploads-playlist census                                        |
 
 No `PROVISIONAL` claim may independently justify a product-code change.

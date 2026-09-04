@@ -50,17 +50,17 @@ The unit of work is not a video summary. It is a typed source-and-claim graph th
 
 ## 4. Authority and projection model
 
-| Concern | Authority |
-|---|---|
-| Canonical research assets, provenance, source versions, claims, ontology, synthesis | `KooshaPari/ResearchLedger` |
-| Fleet projection inventory and downstream PR state | `KooshaPari/RepoLedger` |
-| Tested machine-local acquisition wrappers | `KooshaPari/local-ops` |
-| Reusable agent roles, routing, and dispatch contracts | `KooshaPari/thegent` |
-| Replayable run/session capture | `KooshaPari/SessionLedger` |
-| Trace and evidence-link observability | `KooshaPari/Tracera` |
-| Feature/work-package/gate state | `KooshaPari/AgilePlus` |
-| Portfolio shelf/index | `KooshaPari/pheno` |
-| Project-specific interpretation | Relevant individual repository |
+| Concern                                                                             | Authority                      |
+| ----------------------------------------------------------------------------------- | ------------------------------ |
+| Canonical research assets, provenance, source versions, claims, ontology, synthesis | `KooshaPari/ResearchLedger`    |
+| Fleet projection inventory and downstream PR state                                  | `KooshaPari/RepoLedger`        |
+| Tested machine-local acquisition wrappers                                           | `KooshaPari/local-ops`         |
+| Reusable agent roles, routing, and dispatch contracts                               | `KooshaPari/thegent`           |
+| Replayable run/session capture                                                      | `KooshaPari/SessionLedger`     |
+| Trace and evidence-link observability                                               | `KooshaPari/Tracera`           |
+| Feature/work-package/gate state                                                     | `KooshaPari/AgilePlus`         |
+| Portfolio shelf/index                                                               | `KooshaPari/pheno`             |
+| Project-specific interpretation                                                     | Relevant individual repository |
 
 ResearchLedger is the only canonical corpus authority. Other repositories receive references, run records, projection state, generalized tooling, or project-specific derived dossiers. They do not receive duplicate raw corpora.
 

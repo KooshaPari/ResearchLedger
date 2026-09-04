@@ -412,26 +412,26 @@ INTERVENTION
 
 ## 3. Anti-conflation matrix
 
-| Often collapsed terms | Required distinction |
-|---|---|
-| emergence / intelligence | Complex global behavior need not reason, plan, or pursue goals |
-| emergence / goodness | Emergent behavior may be useful, neutral, chaotic, or destructive |
-| autonomy / progress | Independent action can repeat or regress without cumulative evaluation |
-| activity / work | Actions count output volume; work requires movement against an accepted objective |
-| search / learning | Search explores candidates; learning persistently changes a policy/model from evidence |
-| adaptation / generalization | Better fit to one pressure can reduce performance elsewhere |
-| evolution / iteration | Evolution requires variation, differential selection, and persistence/heritability |
-| natural selection / objective-free | Environment rules create implicit selection pressures |
-| self-improvement / model self-modification | External code optimization is weaker than changing the optimizer itself |
-| multi-agent / parallel | Multiple agents may interact and contend; parallel isolated jobs may not |
-| communication / coordination | More messages can reduce performance or amplify stale plans |
-| observability / evidence | Logs exist; evidence must resolve a claim under a pinned run/configuration |
-| replay / recording | A recording is viewable; replay should reconstruct state/action semantics |
-| rich modality / information | Images can contain more data but less usable task state |
-| universal computation / efficient computation | Expressive possibility says nothing about practical runtime or search cost |
-| interpretable / correct | Readable state does not prove causal validity or task success |
-| deterministic / predictable | Deterministic transitions can still be computationally difficult to forecast |
-| open-ended / infinite loop | Open-endedness requires continuing novelty, not endless repetition |
+| Often collapsed terms                         | Required distinction                                                                   |
+| --------------------------------------------- | -------------------------------------------------------------------------------------- |
+| emergence / intelligence                      | Complex global behavior need not reason, plan, or pursue goals                         |
+| emergence / goodness                          | Emergent behavior may be useful, neutral, chaotic, or destructive                      |
+| autonomy / progress                           | Independent action can repeat or regress without cumulative evaluation                 |
+| activity / work                               | Actions count output volume; work requires movement against an accepted objective      |
+| search / learning                             | Search explores candidates; learning persistently changes a policy/model from evidence |
+| adaptation / generalization                   | Better fit to one pressure can reduce performance elsewhere                            |
+| evolution / iteration                         | Evolution requires variation, differential selection, and persistence/heritability     |
+| natural selection / objective-free            | Environment rules create implicit selection pressures                                  |
+| self-improvement / model self-modification    | External code optimization is weaker than changing the optimizer itself                |
+| multi-agent / parallel                        | Multiple agents may interact and contend; parallel isolated jobs may not               |
+| communication / coordination                  | More messages can reduce performance or amplify stale plans                            |
+| observability / evidence                      | Logs exist; evidence must resolve a claim under a pinned run/configuration             |
+| replay / recording                            | A recording is viewable; replay should reconstruct state/action semantics              |
+| rich modality / information                   | Images can contain more data but less usable task state                                |
+| universal computation / efficient computation | Expressive possibility says nothing about practical runtime or search cost             |
+| interpretable / correct                       | Readable state does not prove causal validity or task success                          |
+| deterministic / predictable                   | Deterministic transitions can still be computationally difficult to forecast           |
+| open-ended / infinite loop                    | Open-endedness requires continuing novelty, not endless repetition                     |
 
 ## 4. Mechanism families
 
@@ -505,37 +505,37 @@ Representative sources: fractalsearch, AgentsOfEmpires, potential portfolio codi
 
 ## 5. Recurrence matrix
 
-| Concept | CA / Turmites | LifeEngine | NeuralPatterns | Gradient / evolution | Chaos agents | Mindcraft | fractalsearch | AgentsOfEmpires | Higher dimensions |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| substrate | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| local rule | ✓ | ✓ | ✓ | — | — | — | — | — | function grammar |
-| recurrence | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | parameter/time loops |
-| environment | grid | ecology | image grid | objective surface | filesystem | Minecraft | code+harness | AoE II | renderer/search space |
-| variation | rule/state choice | mutation | weight/rule choice | optimizer update | agent edits | policy/action | code edit | strategy edit | function mutation |
-| evaluation | behavior class | survival/reproduction | visual/target behavior | loss | weak/implicit | task completion | approximation score | match outcome | human/target similarity |
-| multi-actor interaction | multiple ants | populations | optional | population methods | central | central | usually one optimizer | competitors | optional populations |
-| observability | visual trace | visual/state | visual | loss curves | image + files | logs/world state | score/history | heartbeat/recording | interactive visualization |
-| rollback/incumbent | manual presets | lineage | presets | checkpoint | weak | episode reset | central | strategy archive | saves |
-| interpretability | rule table | anatomy/state | limited | mixed | low global coherence | action traces | code diff | scripts/events | function tree |
+| Concept                 |   CA / Turmites   |      LifeEngine       |     NeuralPatterns     | Gradient / evolution |     Chaos agents     |    Mindcraft     |     fractalsearch     |   AgentsOfEmpires   |     Higher dimensions     |
+| ----------------------- | :---------------: | :-------------------: | :--------------------: | :------------------: | :------------------: | :--------------: | :-------------------: | :-----------------: | :-----------------------: |
+| substrate               |         ✓         |           ✓           |           ✓            |          ✓           |          ✓           |        ✓         |           ✓           |          ✓          |             ✓             |
+| local rule              |         ✓         |           ✓           |           ✓            |          —           |          —           |        —         |           —           |          —          |     function grammar      |
+| recurrence              |         ✓         |           ✓           |           ✓            |          ✓           |          ✓           |        ✓         |           ✓           |          ✓          |   parameter/time loops    |
+| environment             |       grid        |        ecology        |       image grid       |  objective surface   |      filesystem      |    Minecraft     |     code+harness      |       AoE II        |   renderer/search space   |
+| variation               | rule/state choice |       mutation        |   weight/rule choice   |   optimizer update   |     agent edits      |  policy/action   |       code edit       |    strategy edit    |     function mutation     |
+| evaluation              |  behavior class   | survival/reproduction | visual/target behavior |         loss         |    weak/implicit     | task completion  |  approximation score  |    match outcome    |  human/target similarity  |
+| multi-actor interaction |   multiple ants   |      populations      |        optional        |  population methods  |       central        |     central      | usually one optimizer |     competitors     |   optional populations    |
+| observability           |   visual trace    |     visual/state      |         visual         |     loss curves      |    image + files     | logs/world state |     score/history     | heartbeat/recording | interactive visualization |
+| rollback/incumbent      |  manual presets   |        lineage        |        presets         |      checkpoint      |         weak         |  episode reset   |        central        |  strategy archive   |           saves           |
+| interpretability        |    rule table     |     anatomy/state     |        limited         |        mixed         | low global coherence |  action traces   |       code diff       |   scripts/events    |       function tree       |
 
 ## 6. Portfolio translation table
 
-| Corpus concept | Portfolio-level contract candidate |
-|---|---|
-| substrate | Versioned environment/tool/action schema for every agent evaluation |
-| interaction topology | Explicit ownership, shared-state, lock, and communication model |
-| coordination cost | Success-versus-agent-count curve with total resource and conflict metrics |
-| state freshness | Observation timestamp/version and stale-read rejection semantics |
-| action abstraction | Declared primitive/high-level action layer and capability validity limits |
-| evaluator | Pinned code/config/data plus negative controls and held-out cases |
-| selection pressure | Requirement-to-test-to-runtime outcome traceability |
-| incumbent/checkpoint | Reversible candidate promotion and retained prior evidence |
-| replay | SessionLedger/Tracera run bundle resolving actions, state, and artifacts |
-| open-endedness | Bounded novelty loop with WIP, budget, stop, and human-intervention levers |
-| interpretability | Inspectable policy/controller state where cost-effective |
-| representation | Explicit mutation/edit unit and expected locality |
-| robustness | Seed/environment/version distributions, not single-run success |
-| metric gaming | Multiobjective and adversarial evaluator validation |
+| Corpus concept       | Portfolio-level contract candidate                                         |
+| -------------------- | -------------------------------------------------------------------------- |
+| substrate            | Versioned environment/tool/action schema for every agent evaluation        |
+| interaction topology | Explicit ownership, shared-state, lock, and communication model            |
+| coordination cost    | Success-versus-agent-count curve with total resource and conflict metrics  |
+| state freshness      | Observation timestamp/version and stale-read rejection semantics           |
+| action abstraction   | Declared primitive/high-level action layer and capability validity limits  |
+| evaluator            | Pinned code/config/data plus negative controls and held-out cases          |
+| selection pressure   | Requirement-to-test-to-runtime outcome traceability                        |
+| incumbent/checkpoint | Reversible candidate promotion and retained prior evidence                 |
+| replay               | SessionLedger/Tracera run bundle resolving actions, state, and artifacts   |
+| open-endedness       | Bounded novelty loop with WIP, budget, stop, and human-intervention levers |
+| interpretability     | Inspectable policy/controller state where cost-effective                   |
+| representation       | Explicit mutation/edit unit and expected locality                          |
+| robustness           | Seed/environment/version distributions, not single-run success             |
+| metric gaming        | Multiobjective and adversarial evaluator validation                        |
 
 ## 7. Open ontology questions
 
