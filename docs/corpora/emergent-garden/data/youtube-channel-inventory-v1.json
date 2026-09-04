@@ -1,0 +1,1658 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "eg-nested-corpus-2026-09",
+  "generated_at": "2026-09-04T23:10:11Z",
+  "requested_handle": "@EmergentGarden",
+  "channel_url": "https://www.youtube.com/@EmergentGarden/videos",
+  "expected_channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+  "expected_uploads_playlist_id": "UUwBhBDsqiQflTMLy2epbQVw",
+  "acquisition_mode": "youtube_atom_channel_feed",
+  "api_key_present": false,
+  "acquisition_error": null,
+  "provider": "youtube_atom_channel_feed",
+  "inventory_complete": false,
+  "gate_state": "BLOCKED",
+  "limit_reason": "YOUTUBE_API_KEY was unavailable; the official Atom channel feed exposes only a recent window and cannot establish the complete uploads census.",
+  "channel": {
+    "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+    "handle": "@EmergentGarden",
+    "title": "Emergent Garden",
+    "description_sha256": null,
+    "uploads_playlist_id": "UUwBhBDsqiQflTMLy2epbQVw",
+    "reported_public_video_count": null,
+    "hidden_subscriber_count": null,
+    "country": null,
+    "custom_url": null
+  },
+  "playlist_item_count": 15,
+  "video_detail_count": 15,
+  "missing_video_details": [],
+  "videos": [
+    {
+      "playlist_position": 0,
+      "video_id": "ZBdAe3ZwKds",
+      "canonical_url": "https://www.youtube.com/watch?v=ZBdAe3ZwKds",
+      "title": "AI plays Age of Empires II",
+      "published_at": "2026-08-15T12:00:32+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "3a108bb18da9eb6d11be1f593e4ded038e78aaf16dadd8fbff09429cefb5c2b6",
+        "character_count": 1268,
+        "line_count": 28,
+        "excerpt": "Wololo! Yes I am the kind of person who grew up smashing AI armies into each other in age of empires 2. Here I go deeper into my childhood obsession by letting modern AI agents, powered by LLMs like claude and gpt, build custom AI scripts that play the game. I make them fight, an",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "canonical_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "domain": "bsky.app",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://github.com/MaxRobinsonTheGreat/AgentsOfEmpires",
+            "canonical_url": "https://github.com/MaxRobinsonTheGreat/AgentsOfEmpires",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://github.com/mboop127/AutoDE",
+            "canonical_url": "https://github.com/mboop127/AutoDE",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=fF55fOpBdLE",
+            "canonical_url": "https://youtube.com/watch?v=fF55fOpBdLE",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=zN8ICz53-pE",
+            "canonical_url": "https://youtube.com/watch?v=zN8ICz53-pE",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 1,
+      "video_id": "2g-CrQfYNtE",
+      "canonical_url": "https://www.youtube.com/watch?v=2g-CrQfYNtE",
+      "title": "Artificial Life",
+      "published_at": "2026-07-18T12:00:13+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "b17db27ad0297a1472f096003148ce59123e5e8d779d3f7da982e46499520052",
+        "character_count": 3773,
+        "line_count": 74,
+        "excerpt": "Can you simulate life? Sure. ~ In this video I talk about the field of artificial life while exploring a variety of programs that simulate evolution and life-like behaviors. We take a tour from genetic algorithms to evolution simulations to emergent alife. I try to bring some use",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "canonical_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "domain": "bsky.app",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://evolvecode.io/alife/lenia.html",
+            "canonical_url": "https://evolvecode.io/alife/lenia.html",
+            "domain": "evolvecode.io",
+            "edge_class": "AUTHOR_DIRECT"
+          },
+          {
+            "original_url": "https://evolvecode.io/alife/evoloop.html",
+            "canonical_url": "https://evolvecode.io/alife/evoloop.html",
+            "domain": "evolvecode.io",
+            "edge_class": "AUTHOR_DIRECT"
+          },
+          {
+            "original_url": "https://sandbox-science.com/particle-life",
+            "canonical_url": "https://sandbox-science.com/particle-life",
+            "domain": "sandbox-science.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://store.steampowered.com/app/2736860/The_Bibites_Digital_Life/",
+            "canonical_url": "https://store.steampowered.com/app/2736860/The_Bibites_Digital_Life/",
+            "domain": "store.steampowered.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://thelifeengine.net/",
+            "canonical_url": "https://thelifeengine.net/",
+            "domain": "thelifeengine.net",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://neuralpatterns.io/",
+            "canonical_url": "https://neuralpatterns.io/",
+            "domain": "neuralpatterns.io",
+            "edge_class": "AUTHOR_DIRECT"
+          },
+          {
+            "original_url": "https://evolvecode.io/alife/gol.html",
+            "canonical_url": "https://evolvecode.io/alife/gol.html",
+            "domain": "evolvecode.io",
+            "edge_class": "AUTHOR_DIRECT"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=CYa-o-_eE0Y",
+            "canonical_url": "https://youtube.com/watch?v=CYa-o-_eE0Y",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.alien-project.org/index.html",
+            "canonical_url": "https://alien-project.org/index.html",
+            "domain": "alien-project.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://evolvecode.io/alife/aquarium.html",
+            "canonical_url": "https://evolvecode.io/alife/aquarium.html",
+            "domain": "evolvecode.io",
+            "edge_class": "AUTHOR_DIRECT"
+          },
+          {
+            "original_url": "https://store.steampowered.com/app/264710/Subnautica/",
+            "canonical_url": "https://store.steampowered.com/app/264710/Subnautica/",
+            "domain": "store.steampowered.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=iNXzOuc9UWo",
+            "canonical_url": "https://youtube.com/watch?v=iNXzOuc9UWo",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://distill.pub/2020/growing-ca/",
+            "canonical_url": "https://distill.pub/2020/growing-ca/",
+            "domain": "distill.pub",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://znah.net/lenia/",
+            "canonical_url": "https://znah.net/lenia/",
+            "domain": "znah.net",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=NMV4yRFlXSQ",
+            "canonical_url": "https://youtube.com/watch?v=NMV4yRFlXSQ",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=PBXO_6Jn1fs",
+            "canonical_url": "https://youtube.com/watch?v=PBXO_6Jn1fs",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://youtu.be/IvJrDsRuWxQ",
+            "canonical_url": "https://youtu.be/IvJrDsRuWxQ",
+            "domain": "youtu.be",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://youtu.be/7Hk9jct2ozY",
+            "canonical_url": "https://youtu.be/7Hk9jct2ozY",
+            "domain": "youtu.be",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://youtu.be/bAJIETmC-6o",
+            "canonical_url": "https://youtu.be/bAJIETmC-6o",
+            "domain": "youtu.be",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://youtu.be/z4SiKBfFRbE",
+            "canonical_url": "https://youtu.be/z4SiKBfFRbE",
+            "domain": "youtu.be",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/@Paleozoo",
+            "canonical_url": "https://youtube.com/@Paleozoo",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/@journeytomicro",
+            "canonical_url": "https://youtube.com/@journeytomicro",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=gZpsVSVRsZk",
+            "canonical_url": "https://youtube.com/watch?v=gZpsVSVRsZk",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=kiDjCSwhcLY",
+            "canonical_url": "https://youtube.com/watch?v=kiDjCSwhcLY",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=dyVz6h2wrEA",
+            "canonical_url": "https://youtube.com/watch?v=dyVz6h2wrEA",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "http://www.probehead.com/log/texts/Langton_al.pdf",
+            "canonical_url": "http://probehead.com/log/texts/Langton_al.pdf",
+            "domain": "probehead.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://chakazul.github.io/Lenia/JavaScript/Lenia.html",
+            "canonical_url": "https://chakazul.github.io/Lenia/JavaScript/Lenia.html",
+            "domain": "chakazul.github.io",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://arxiv.org/abs/2412.17799",
+            "canonical_url": "https://arxiv.org/abs/2412.17799",
+            "domain": "arxiv.org",
+            "edge_class": "PRIMARY_SOURCE_CANDIDATE"
+          },
+          {
+            "original_url": "https://cba.mit.edu/events/03.11.ASE/docs/VonNeumann.pdf",
+            "canonical_url": "https://cba.mit.edu/events/03.11.ASE/docs/VonNeumann.pdf",
+            "domain": "cba.mit.edu",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12489504/",
+            "canonical_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12489504/",
+            "domain": "pmc.ncbi.nlm.nih.gov",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=o_ZuWbX-CyE",
+            "canonical_url": "https://youtube.com/watch?v=o_ZuWbX-CyE",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.stephenwolfram.com/media/study-complexity/",
+            "canonical_url": "https://stephenwolfram.com/media/study-complexity/",
+            "domain": "stephenwolfram.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/@acolyte-compositions",
+            "canonical_url": "https://youtube.com/@acolyte-compositions",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 2,
+      "video_id": "t7_ZXgfJVG8",
+      "canonical_url": "https://www.youtube.com/watch?v=t7_ZXgfJVG8",
+      "title": "Recursive Self-Improvement",
+      "published_at": "2026-06-13T12:00:38+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "bdeb70082a54962d5116ebd9efbd4f65e2d4bc544cf2b4ec1fb3bc9d1866ae7b",
+        "character_count": 2049,
+        "line_count": 40,
+        "excerpt": "Computer, load up celery man. Can AI build AI? Yes, and it already is. Sort of. I showcase the ability of AI agents like claude code to perform AI research, to build and optimize machine learning algorithms. I put various state-of-the-art LLMs like claude Mythos/Fable into an end",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://github.com/MaxRobinsonTheGreat/fractalsearch",
+            "canonical_url": "https://github.com/MaxRobinsonTheGreat/fractalsearch",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://github.com/MaxRobinsonTheGreat/mandelbrotnn",
+            "canonical_url": "https://github.com/MaxRobinsonTheGreat/mandelbrotnn",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "canonical_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "domain": "bsky.app",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://github.com/karpathy/autoresearch",
+            "canonical_url": "https://github.com/karpathy/autoresearch",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://youtu.be/CfqHAOOM8Tw?si=_OOD2cQ7S7KNzQb7",
+            "canonical_url": "https://youtu.be/CfqHAOOM8Tw?si=_OOD2cQ7S7KNzQb7",
+            "domain": "youtu.be",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=maAFcEU6atk",
+            "canonical_url": "https://youtube.com/watch?v=maAFcEU6atk",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/@AndrejKarpathy",
+            "canonical_url": "https://youtube.com/@AndrejKarpathy",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://youtu.be/oSyC8pxJdeQ?si=lRW7d5VT_kvtQ1eG",
+            "canonical_url": "https://youtu.be/oSyC8pxJdeQ?si=lRW7d5VT_kvtQ1eG",
+            "domain": "youtu.be",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://arxiv.org/abs/2505.22954",
+            "canonical_url": "https://arxiv.org/abs/2505.22954",
+            "domain": "arxiv.org",
+            "edge_class": "PRIMARY_SOURCE_CANDIDATE"
+          },
+          {
+            "original_url": "https://arxiv.org/abs/2201.05989",
+            "canonical_url": "https://arxiv.org/abs/2201.05989",
+            "domain": "arxiv.org",
+            "edge_class": "PRIMARY_SOURCE_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.anthropic.com/institute/recursive-self-improvement",
+            "canonical_url": "https://anthropic.com/institute/recursive-self-improvement",
+            "domain": "anthropic.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www-cdn.anthropic.com/d00db56fa754a1b115b6dd7cb2e3c342ee809620.pdf",
+            "canonical_url": "https://www-cdn.anthropic.com/d00db56fa754a1b115b6dd7cb2e3c342ee809620.pdf",
+            "domain": "www-cdn.anthropic.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://youtube.com/@acolyte-compositions?si=2P97LlROhNgQYOa-",
+            "canonical_url": "https://youtube.com/@acolyte-compositions?si=2P97LlROhNgQYOa-",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "http://creativecommons.org/licenses/by/3.0/",
+            "canonical_url": "http://creativecommons.org/licenses/by/3.0/",
+            "domain": "creativecommons.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 3,
+      "video_id": "kVjhV-In25c",
+      "canonical_url": "https://www.youtube.com/watch?v=kVjhV-In25c",
+      "title": "The Brain Eating Machines",
+      "published_at": "2026-05-23T12:00:37+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "100615d57f377ec82ca845011686e89e1898e7ce21bdfa148ce60ea032d837af",
+        "character_count": 2178,
+        "line_count": 33,
+        "excerpt": "AI is causing a lot of problems. It has invaded our phones, lives, and brains. In many ways it resembles a digital parasite, a deceptive brain-eating machine. In this video I critique the current direction of AI development by pointing out the obvious problems, and I do my best t",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "canonical_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "domain": "bsky.app",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=crwbno_SSIo",
+            "canonical_url": "https://youtube.com/watch?v=crwbno_SSIo",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=3HQ-HrwIgOc",
+            "canonical_url": "https://youtube.com/watch?v=3HQ-HrwIgOc",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://edm.com/industry/suno-ai-music-tracks-surpass-spotify-entire-catalog-every-two-weeks/",
+            "canonical_url": "https://edm.com/industry/suno-ai-music-tracks-surpass-spotify-entire-catalog-every-two-weeks/",
+            "domain": "edm.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://blog.samaltman.com/sora-2",
+            "canonical_url": "https://blog.samaltman.com/sora-2",
+            "domain": "blog.samaltman.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=eYeNKdJhk98",
+            "canonical_url": "https://youtube.com/watch?v=eYeNKdJhk98",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/shorts/IvGedA3iLKA",
+            "canonical_url": "https://youtube.com/shorts/IvGedA3iLKA",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Borges-The-Library-of-Babel.pdf",
+            "canonical_url": "https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Borges-The-Library-of-Babel.pdf",
+            "domain": "sites.evergreen.edu",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://en.wikipedia.org/wiki/Deaths_linked_to_chatbots",
+            "canonical_url": "https://en.wikipedia.org/wiki/Deaths_linked_to_chatbots",
+            "domain": "en.wikipedia.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www-cdn.anthropic.com/6d8a8055020700718b0c49369f60816ba2a7c285.pdf",
+            "canonical_url": "https://www-cdn.anthropic.com/6d8a8055020700718b0c49369f60816ba2a7c285.pdf",
+            "domain": "www-cdn.anthropic.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://x.com/WillManidis/status/1996336502713037274",
+            "canonical_url": "https://x.com/WillManidis/status/1996336502713037274",
+            "domain": "x.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=-opBifFfsMY",
+            "canonical_url": "https://youtube.com/watch?v=-opBifFfsMY",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/@acolyte-compositions",
+            "canonical_url": "https://youtube.com/@acolyte-compositions",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 4,
+      "video_id": "Ipcr5heLOJ8",
+      "canonical_url": "https://www.youtube.com/watch?v=Ipcr5heLOJ8",
+      "title": "AI for War (in minecraft)",
+      "published_at": "2026-03-21T12:00:35+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "ca0db8d58364db242fc3db109f040f7e14ba6527cf720196b3729921405a8b47",
+        "character_count": 1134,
+        "line_count": 28,
+        "excerpt": "Can you use AI for war in minecraft? Yes, as it turns out. And you can use it for real-world war too! Fun. Also, I give an update on the project. Tldr: I'm feeling burned out on mindcraft. Progress has stalled, and I feel conflicted about its future. I'm not abandoning it, but it",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://discord.gg/mp73p35dzC",
+            "canonical_url": "https://discord.gg/mp73p35dzC",
+            "domain": "discord.gg",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://github.com/mindcraft-bots/mindcraft",
+            "canonical_url": "https://github.com/mindcraft-bots/mindcraft",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.mindcraft-ce.com/",
+            "canonical_url": "https://mindcraft-ce.com/",
+            "domain": "mindcraft-ce.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://ko-fi.com/emergentgarden",
+            "canonical_url": "https://ko-fi.com/emergentgarden",
+            "domain": "ko-fi.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://discord.gg/tnjmrmprQs",
+            "canonical_url": "https://discord.gg/tnjmrmprQs",
+            "domain": "discord.gg",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://www.anthropic.com/news/statement-department-of-war",
+            "canonical_url": "https://anthropic.com/news/statement-department-of-war",
+            "domain": "anthropic.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.politico.com/news/2026/03/05/pentagon-tells-anthropic-it-has-designated-the-company-a-supply-chain-risk-00814758",
+            "canonical_url": "https://politico.com/news/2026/03/05/pentagon-tells-anthropic-it-has-designated-the-company-a-supply-chain-risk-00814758",
+            "domain": "politico.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 5,
+      "video_id": "DB-TD3s3MZ0",
+      "canonical_url": "https://www.youtube.com/watch?v=DB-TD3s3MZ0",
+      "title": "Evolution in Higher Dimensions",
+      "published_at": "2026-02-28T13:00:23+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "dacbf5a7531507132a98a04ebae75721bf0f7227e5685d246da459de6bd2f674",
+        "character_count": 1181,
+        "line_count": 28,
+        "excerpt": "MORE FUNCTIONS! Hello again, this video is a follow up to my video on functions in higher dimensions, and this time I use an algorithm known as symbolic regression to automatically generate, mutate, and evolve the functions to create some trippy patterns. Learn to code with Scrim",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://evolvecode.io/hyperspace/index.html",
+            "canonical_url": "https://evolvecode.io/hyperspace/index.html",
+            "domain": "evolvecode.io",
+            "edge_class": "AUTHOR_DIRECT"
+          },
+          {
+            "original_url": "https://evolvecode.io/hyperspace/picbreeder.html",
+            "canonical_url": "https://evolvecode.io/hyperspace/picbreeder.html",
+            "domain": "evolvecode.io",
+            "edge_class": "AUTHOR_DIRECT"
+          },
+          {
+            "original_url": "https://evolvecode.io/hyperspace/biomorphs.html",
+            "canonical_url": "https://evolvecode.io/hyperspace/biomorphs.html",
+            "domain": "evolvecode.io",
+            "edge_class": "AUTHOR_DIRECT"
+          },
+          {
+            "original_url": "https://github.com/MaxRobinsonTheGreat/hyperdimensions",
+            "canonical_url": "https://github.com/MaxRobinsonTheGreat/hyperdimensions",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://ko-fi.com/emergentgarden",
+            "canonical_url": "https://ko-fi.com/emergentgarden",
+            "domain": "ko-fi.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://discord.gg/tnjmrmprQs",
+            "canonical_url": "https://discord.gg/tnjmrmprQs",
+            "domain": "discord.gg",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "canonical_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "domain": "bsky.app",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://www.youtube.com/@acolyte-compositions",
+            "canonical_url": "https://youtube.com/@acolyte-compositions",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 6,
+      "video_id": "LxVQra1Z_jA",
+      "canonical_url": "https://www.youtube.com/watch?v=LxVQra1Z_jA",
+      "title": "Nature Sanctuary in stardew valley",
+      "published_at": "2026-01-24T13:00:39+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "80cc77ccc04f8697a31d9b86bbe14c1e9b617c1ca8e09a69b1ef544095a57a86",
+        "character_count": 520,
+        "line_count": 5,
+        "excerpt": "happy 2026! this random video about stardew valley shows a forest growing naturally over 2 years, without any player input. i thought it would be fun to start off the new year with this, hopefully it doesnt tank my algorithm. ive been thinking of making a separate channel for gam",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 7,
+      "video_id": "349r0xJFGNw",
+      "canonical_url": "https://www.youtube.com/watch?v=349r0xJFGNw",
+      "title": "Creatures in Higher Dimensions",
+      "published_at": "2025-12-20T13:00:04+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "bfd516abb3990df2db9317d2d2bc874d1786b8c360068924cf4f25460bf5776d",
+        "character_count": 1787,
+        "line_count": 33,
+        "excerpt": "Functions describe the world. Join me on a tour of hyperspace, and see the many strange creatures that live there. They are just functions with lots of inputs and outputs. They are parametric surfaces that take inputs u and v, and output spatial x,y,z coordinates, and r,g,b,a col",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://evolvecode.io/hyperspace/index.html",
+            "canonical_url": "https://evolvecode.io/hyperspace/index.html",
+            "domain": "evolvecode.io",
+            "edge_class": "AUTHOR_DIRECT"
+          },
+          {
+            "original_url": "https://github.com/MaxRobinsonTheGreat/hyperdimensions",
+            "canonical_url": "https://github.com/MaxRobinsonTheGreat/hyperdimensions",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://discord.gg/tnjmrmprQs",
+            "canonical_url": "https://discord.gg/tnjmrmprQs",
+            "domain": "discord.gg",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://ko-fi.com/emergentgarden",
+            "canonical_url": "https://ko-fi.com/emergentgarden",
+            "domain": "ko-fi.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "canonical_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "domain": "bsky.app",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://youtu.be/zHU1xH6Ogs4?t=61",
+            "canonical_url": "https://youtu.be/zHU1xH6Ogs4?t=61",
+            "domain": "youtu.be",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=6ga4IICXyCE",
+            "canonical_url": "https://youtube.com/watch?v=6ga4IICXyCE",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.geogebra.org/m/twfwsxb9",
+            "canonical_url": "https://geogebra.org/m/twfwsxb9",
+            "domain": "geogebra.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/@acolyte-compositions",
+            "canonical_url": "https://youtube.com/@acolyte-compositions",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=kx5DtYiJ2DI",
+            "canonical_url": "https://youtube.com/watch?v=kx5DtYiJ2DI",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 8,
+      "video_id": "0HqUYpGQIfs",
+      "canonical_url": "https://www.youtube.com/watch?v=0HqUYpGQIfs",
+      "title": "Emergent Complexity",
+      "published_at": "2025-11-22T13:00:04+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "792febbff7a9d4072652ae1a116960fb7ef8c01eb80d10d4051d2d424e61c25d",
+        "character_count": 2973,
+        "line_count": 53,
+        "excerpt": "\"milliards\" means \"billions\" btw. Here is Emergent Garden's thoughts on emergent complexity. I go through a tour of simple systems that produce unexpected complexity, and try to break down emergence into more general and useful ideas. We talk about snowflakes and ant colonies, ce",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://ko-fi.com/emergentgarden",
+            "canonical_url": "https://ko-fi.com/emergentgarden",
+            "domain": "ko-fi.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "canonical_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "domain": "bsky.app",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://sandbox-science.com/particle-life",
+            "canonical_url": "https://sandbox-science.com/particle-life",
+            "domain": "sandbox-science.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://universesandbox.com/",
+            "canonical_url": "https://universesandbox.com/",
+            "domain": "universesandbox.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=djLyoDmSPF0",
+            "canonical_url": "https://youtube.com/watch?v=djLyoDmSPF0",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://svs.gsfc.nasa.gov/12656/",
+            "canonical_url": "https://svs.gsfc.nasa.gov/12656/",
+            "domain": "svs.gsfc.nasa.gov",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.pexels.com/video/an-artist-s-illustration-of-artificial-intelligence-ai-this-video-explores-how-ai-can-be-used-advance-biology-and-protein-folding-it-was-created-by-twistedpoly-as-part-of-the-visualisi-25744130/",
+            "canonical_url": "https://pexels.com/video/an-artist-s-illustration-of-artificial-intelligence-ai-this-video-explores-how-ai-can-be-used-advance-biology-and-protein-folding-it-was-created-by-twistedpoly-as-part-of-the-visualisi-25744130/",
+            "domain": "pexels.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.reddit.com/r/Damnthatsinteresting/comments/1hlyvmw/ants_making_a_smart_maneuver/",
+            "canonical_url": "https://reddit.com/r/Damnthatsinteresting/comments/1hlyvmw/ants_making_a_smart_maneuver/",
+            "domain": "reddit.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=2TIK9oXc5Wo",
+            "canonical_url": "https://youtube.com/watch?v=2TIK9oXc5Wo",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=q-PQk2-Po-g",
+            "canonical_url": "https://youtube.com/watch?v=q-PQk2-Po-g",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://thelifeengine.net",
+            "canonical_url": "https://thelifeengine.net/",
+            "domain": "thelifeengine.net",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://x.com/EdgarGonzalezGT/status/1877078173910753452",
+            "canonical_url": "https://x.com/EdgarGonzalezGT/status/1877078173910753452",
+            "domain": "x.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://evolvecode.io/turmites/index.html",
+            "canonical_url": "https://evolvecode.io/turmites/index.html",
+            "domain": "evolvecode.io",
+            "edge_class": "AUTHOR_DIRECT"
+          },
+          {
+            "original_url": "https://playgameoflife.com/",
+            "canonical_url": "https://playgameoflife.com/",
+            "domain": "playgameoflife.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://oimo.io/works/life/",
+            "canonical_url": "https://oimo.io/works/life/",
+            "domain": "oimo.io",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.wolframscience.com/nks/",
+            "canonical_url": "https://wolframscience.com/nks/",
+            "domain": "wolframscience.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=PdE-waSx-d8&list=PLdwvZsAHiSKvHTqcoqGp-mv9ChTYxtZsD",
+            "canonical_url": "https://youtube.com/watch?list=PLdwvZsAHiSKvHTqcoqGp-mv9ChTYxtZsD&v=PdE-waSx-d8",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.amazon.com/Complexity-Guided-Tour-Melanie-Mitchell/dp/0199798109",
+            "canonical_url": "https://amazon.com/Complexity-Guided-Tour-Melanie-Mitchell/dp/0199798109",
+            "domain": "amazon.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://met4citizen.github.io/Hypergraph/",
+            "canonical_url": "https://met4citizen.github.io/Hypergraph/",
+            "domain": "met4citizen.github.io",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.falstad.com/qmatom/",
+            "canonical_url": "https://falstad.com/qmatom/",
+            "domain": "falstad.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=YnuCOrCJojw",
+            "canonical_url": "https://youtube.com/watch?v=YnuCOrCJojw",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=0cesMmupaPc",
+            "canonical_url": "https://youtube.com/watch?v=0cesMmupaPc",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=LGcGFU_Hi9U",
+            "canonical_url": "https://youtube.com/watch?v=LGcGFU_Hi9U",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://archive.org/details/cosmos_1980/COSMOS_01.mp4",
+            "canonical_url": "https://archive.org/details/cosmos_1980/COSMOS_01.mp4",
+            "domain": "archive.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=k0qmkQGqpM8",
+            "canonical_url": "https://youtube.com/watch?v=k0qmkQGqpM8",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.youtube.com/@acolyte-compositions",
+            "canonical_url": "https://youtube.com/@acolyte-compositions",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "http://creativecommons.org/licenses/by/3.0/",
+            "canonical_url": "http://creativecommons.org/licenses/by/3.0/",
+            "domain": "creativecommons.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 9,
+      "video_id": "--CteUWzErk",
+      "canonical_url": "https://www.youtube.com/watch?v=--CteUWzErk",
+      "title": "Unleashing AI Slop Swarms",
+      "published_at": "2025-10-04T12:00:00+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "c39c538852feebca91ae508521d3170cd21c87a9e96471e4272f69b35f1dfac9",
+        "character_count": 1220,
+        "line_count": 30,
+        "excerpt": "I do not have divine intellect. Watch as a swarm of AI agents attempt to build a city and a website. They do a pretty good job, but are quite sloppy. This is using anthropics new Claude Code update, which includes the new model claude 4.5 sonnet and the ability to spin up sub-age",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://main.d1sr54os1yasco.amplifyapp.com/index.html",
+            "canonical_url": "https://main.d1sr54os1yasco.amplifyapp.com/index.html",
+            "domain": "main.d1sr54os1yasco.amplifyapp.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://github.com/MaxRobinsonTheGreat/slopcity",
+            "canonical_url": "https://github.com/MaxRobinsonTheGreat/slopcity",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://ko-fi.com/emergentgarden",
+            "canonical_url": "https://ko-fi.com/emergentgarden",
+            "domain": "ko-fi.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "canonical_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "domain": "bsky.app",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=K5O3UgLG2Jw",
+            "canonical_url": "https://youtube.com/watch?v=K5O3UgLG2Jw",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+            "canonical_url": "https://anthropic.com/engineering/multi-agent-research-system",
+            "domain": "anthropic.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=CYQEfLaR4Pg",
+            "canonical_url": "https://youtube.com/watch?v=CYQEfLaR4Pg",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://youtube.com/@acolyte-compositions?si=2P97LlROhNgQYOa-",
+            "canonical_url": "https://youtube.com/@acolyte-compositions?si=2P97LlROhNgQYOa-",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "http://creativecommons.org/licenses/by/3.0/",
+            "canonical_url": "http://creativecommons.org/licenses/by/3.0/",
+            "domain": "creativecommons.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 10,
+      "video_id": "Wh4abvcUj8Q",
+      "canonical_url": "https://www.youtube.com/watch?v=Wh4abvcUj8Q",
+      "title": "Can AI (actually) beat Minecraft?",
+      "published_at": "2025-09-21T12:01:03+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "24caa078dddd1e8c987c0c398b2d764962ab042610edb84763d6e4f069136697",
+        "character_count": 898,
+        "line_count": 29,
+        "excerpt": "LETS BEAT THE GAME Learn to code with scrimba! https://scrimba.com/?via=EmergentGarden JOIN ME Mindcraft Discord: https://discord.gg/mp73p35dzC Mindcraft Github: https://github.com/mindcraft-bots/mindcraft Community Edition (CE) CE Discord: https://discord.gg/XT6ZapM4rm CE Github",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://discord.gg/mp73p35dzC",
+            "canonical_url": "https://discord.gg/mp73p35dzC",
+            "domain": "discord.gg",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://github.com/mindcraft-bots/mindcraft",
+            "canonical_url": "https://github.com/mindcraft-bots/mindcraft",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://discord.gg/XT6ZapM4rm",
+            "canonical_url": "https://discord.gg/XT6ZapM4rm",
+            "domain": "discord.gg",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://github.com/mindcraft-ce/mindcraft-ce",
+            "canonical_url": "https://github.com/mindcraft-ce/mindcraft-ce",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/watch?v=baAa6s8tahA",
+            "canonical_url": "https://youtube.com/watch?v=baAa6s8tahA",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://github.com/cabaletta/baritone",
+            "canonical_url": "https://github.com/cabaletta/baritone",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://openai.com/index/vpt/",
+            "canonical_url": "https://openai.com/index/vpt/",
+            "domain": "openai.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://proceedings.mlr.press/v176/kanervisto22a/kanervisto22a.pdf",
+            "canonical_url": "https://proceedings.mlr.press/v176/kanervisto22a/kanervisto22a.pdf",
+            "domain": "proceedings.mlr.press",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://youtu.be/YpKej05RgsY?t=3286",
+            "canonical_url": "https://youtu.be/YpKej05RgsY?t=3286",
+            "domain": "youtu.be",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://ko-fi.com/emergentgarden",
+            "canonical_url": "https://ko-fi.com/emergentgarden",
+            "domain": "ko-fi.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 11,
+      "video_id": "DksO3mqh0kg",
+      "canonical_url": "https://www.youtube.com/watch?v=DksO3mqh0kg",
+      "title": "Evolving Brains in the Life Engine (5 Year Anniversary!)",
+      "published_at": "2025-08-09T12:00:33+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "dd294293ee079cf7b300544d2ba09955032c11d66f5d0df0743ec9c79ebcca7b",
+        "character_count": 1036,
+        "line_count": 24,
+        "excerpt": "Learn to code with scrimba! https://scrimba.com/?via=EmergentGarden 5 years folks, its been 5 years since covid. Its also been 541 million years since the cambrian, can you believe it? Time sure does fly. It feels like just yesterday it was only 540.99999 million years ago. watch",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://scrimba.com/?via=EmergentGarden",
+            "canonical_url": "https://scrimba.com/?via=EmergentGarden",
+            "domain": "scrimba.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://thelifeengine.net/",
+            "canonical_url": "https://thelifeengine.net/",
+            "domain": "thelifeengine.net",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.youtube.com/@TheBibitesDigitalLife",
+            "canonical_url": "https://youtube.com/@TheBibitesDigitalLife",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "https://discord.com/invite/GZWd2qySce",
+            "canonical_url": "https://discord.com/invite/GZWd2qySce",
+            "domain": "discord.com",
+            "edge_class": "CONTEXT_CANDIDATE"
+          },
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://ko-fi.com/emergentgarden",
+            "canonical_url": "https://ko-fi.com/emergentgarden",
+            "domain": "ko-fi.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "canonical_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "domain": "bsky.app",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://youtube.com/@acolyte-compositions?si=2P97LlROhNgQYOa-",
+            "canonical_url": "https://youtube.com/@acolyte-compositions?si=2P97LlROhNgQYOa-",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "http://creativecommons.org/licenses/by/3.0/",
+            "canonical_url": "http://creativecommons.org/licenses/by/3.0/",
+            "domain": "creativecommons.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 12,
+      "video_id": "p-sQ-asWeyI",
+      "canonical_url": "https://www.youtube.com/watch?v=p-sQ-asWeyI",
+      "title": "AI Self Portrait #claude #ai",
+      "published_at": "2025-08-03T18:40:47+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "14cb562d822aa153ee139d203579cc5e61f737d24f8466ab5cf68676723d03c7",
+        "character_count": 148,
+        "line_count": 4,
+        "excerpt": "\"Equatorial Complex\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 3.0 http://creativecommons.org/licenses/by/3.0/",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "http://creativecommons.org/licenses/by/3.0/",
+            "canonical_url": "http://creativecommons.org/licenses/by/3.0/",
+            "domain": "creativecommons.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 13,
+      "video_id": "XCpyZxFzGvk",
+      "canonical_url": "https://www.youtube.com/watch?v=XCpyZxFzGvk",
+      "title": "AI Self-Portrait #gemini #ai",
+      "published_at": "2025-08-03T18:40:38+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "14cb562d822aa153ee139d203579cc5e61f737d24f8466ab5cf68676723d03c7",
+        "character_count": 148,
+        "line_count": 4,
+        "excerpt": "\"Equatorial Complex\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 3.0 http://creativecommons.org/licenses/by/3.0/",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "http://creativecommons.org/licenses/by/3.0/",
+            "canonical_url": "http://creativecommons.org/licenses/by/3.0/",
+            "domain": "creativecommons.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          }
+        ]
+      }
+    },
+    {
+      "playlist_position": 14,
+      "video_id": "2YYjPs8t8MI",
+      "canonical_url": "https://www.youtube.com/watch?v=2YYjPs8t8MI",
+      "title": "The Chaos of AI Agents",
+      "published_at": "2025-07-26T12:00:04+00:00",
+      "channel_id": "UCwBhBDsqiQflTMLy2epbQVw",
+      "category_id": null,
+      "default_language": null,
+      "default_audio_language": null,
+      "live_broadcast_content": null,
+      "tags": [],
+      "duration_iso8601": null,
+      "duration_seconds": null,
+      "caption_available": null,
+      "definition": null,
+      "dimension": null,
+      "projection": null,
+      "licensed_content": null,
+      "privacy_status": "public",
+      "upload_status": null,
+      "made_for_kids": null,
+      "self_declared_made_for_kids": null,
+      "topic_categories": [],
+      "description": {
+        "sha256": "442f2fa4203730003427511a278e54c3b26e85a2601e3e714f70eb275742e7fa",
+        "character_count": 838,
+        "line_count": 20,
+        "excerpt": "Watch these AI Agents mess around in a virtual environment. I use google's gemini, anthropic's claude code, and NOT codex. They make some code and art and other stuff, and have some weird hallucinations. ~ MY LINKS ~ Patreon: https://www.patreon.com/emergentgarden Ko-fi: https://",
+        "chapters": [],
+        "outbound_links": [
+          {
+            "original_url": "https://www.patreon.com/emergentgarden",
+            "canonical_url": "https://patreon.com/emergentgarden",
+            "domain": "patreon.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://ko-fi.com/emergentgarden",
+            "canonical_url": "https://ko-fi.com/emergentgarden",
+            "domain": "ko-fi.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://github.com/MaxRobinsonTheGreat/agent_prompts",
+            "canonical_url": "https://github.com/MaxRobinsonTheGreat/agent_prompts",
+            "domain": "github.com",
+            "edge_class": "IMPLEMENTATION_CANDIDATE"
+          },
+          {
+            "original_url": "https://twitter.com/max_romana",
+            "canonical_url": "https://twitter.com/max_romana",
+            "domain": "twitter.com",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "canonical_url": "https://bsky.app/profile/emergentgarden.bsky.social",
+            "domain": "bsky.app",
+            "edge_class": "COMMUNITY_OR_SOCIAL"
+          },
+          {
+            "original_url": "https://youtube.com/@acolyte-compositions?si=2P97LlROhNgQYOa-",
+            "canonical_url": "https://youtube.com/@acolyte-compositions?si=2P97LlROhNgQYOa-",
+            "domain": "youtube.com",
+            "edge_class": "YOUTUBE_RELATED"
+          },
+          {
+            "original_url": "http://creativecommons.org/licenses/by/3.0/",
+            "canonical_url": "http://creativecommons.org/licenses/by/3.0/",
+            "domain": "creativecommons.org",
+            "edge_class": "CONTEXT_CANDIDATE"
+          }
+        ]
+      }
+    }
+  ]
+}

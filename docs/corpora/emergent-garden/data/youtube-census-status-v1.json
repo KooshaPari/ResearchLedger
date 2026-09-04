@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "eg-nested-corpus-2026-09",
+  "generated_at": "2026-09-04T23:10:11Z",
+  "gate": "G1_INVENTORY",
+  "state": "BLOCKED",
+  "provider": "youtube_atom_channel_feed",
+  "inventory_complete": false,
+  "normalized_video_count": 15,
+  "blocking_reason": "YOUTUBE_API_KEY was unavailable; the official Atom channel feed exposes only a recent window and cannot establish the complete uploads census.",
+  "api_key_present": false,
+  "next_action": "provide YOUTUBE_API_KEY through repository secrets and rerun the workflow"
+}

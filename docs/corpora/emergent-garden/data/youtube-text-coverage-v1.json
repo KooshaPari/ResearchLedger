@@ -1,0 +1,409 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "eg-nested-corpus-2026-09",
+  "generated_at": "2026-09-04T23:10:11Z",
+  "provider": "youtube_atom_channel_feed",
+  "inventory_complete": false,
+  "summary": {
+    "videos": 15,
+    "descriptions_present": 15,
+    "videos_with_chapters": 0,
+    "videos_with_outbound_links": 15,
+    "caption_available_true": 0,
+    "caption_available_false": 0,
+    "caption_availability_unknown": 15,
+    "transcripts_acquired": 0
+  },
+  "videos": [
+    {
+      "video_id": "ZBdAe3ZwKds",
+      "title": "AI plays Age of Empires II",
+      "published_at": "2026-08-15T12:00:32+00:00",
+      "description_present": true,
+      "description_character_count": 1268,
+      "description_sha256": "3a108bb18da9eb6d11be1f593e4ded038e78aaf16dadd8fbff09429cefb5c2b6",
+      "chapter_count": 0,
+      "outbound_link_count": 8,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "2g-CrQfYNtE",
+      "title": "Artificial Life",
+      "published_at": "2026-07-18T12:00:13+00:00",
+      "description_present": true,
+      "description_character_count": 3773,
+      "description_sha256": "b17db27ad0297a1472f096003148ce59123e5e8d779d3f7da982e46499520052",
+      "chapter_count": 0,
+      "outbound_link_count": 37,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "t7_ZXgfJVG8",
+      "title": "Recursive Self-Improvement",
+      "published_at": "2026-06-13T12:00:38+00:00",
+      "description_present": true,
+      "description_character_count": 2049,
+      "description_sha256": "bdeb70082a54962d5116ebd9efbd4f65e2d4bc544cf2b4ec1fb3bc9d1866ae7b",
+      "chapter_count": 0,
+      "outbound_link_count": 17,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "kVjhV-In25c",
+      "title": "The Brain Eating Machines",
+      "published_at": "2026-05-23T12:00:37+00:00",
+      "description_present": true,
+      "description_character_count": 2178,
+      "description_sha256": "100615d57f377ec82ca845011686e89e1898e7ce21bdfa148ce60ea032d837af",
+      "chapter_count": 0,
+      "outbound_link_count": 16,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Ipcr5heLOJ8",
+      "title": "AI for War (in minecraft)",
+      "published_at": "2026-03-21T12:00:35+00:00",
+      "description_present": true,
+      "description_character_count": 1134,
+      "description_sha256": "ca0db8d58364db242fc3db109f040f7e14ba6527cf720196b3729921405a8b47",
+      "chapter_count": 0,
+      "outbound_link_count": 10,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "DB-TD3s3MZ0",
+      "title": "Evolution in Higher Dimensions",
+      "published_at": "2026-02-28T13:00:23+00:00",
+      "description_present": true,
+      "description_character_count": 1181,
+      "description_sha256": "dacbf5a7531507132a98a04ebae75721bf0f7227e5685d246da459de6bd2f674",
+      "chapter_count": 0,
+      "outbound_link_count": 11,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "LxVQra1Z_jA",
+      "title": "Nature Sanctuary in stardew valley",
+      "published_at": "2026-01-24T13:00:39+00:00",
+      "description_present": true,
+      "description_character_count": 520,
+      "description_sha256": "80cc77ccc04f8697a31d9b86bbe14c1e9b617c1ca8e09a69b1ef544095a57a86",
+      "chapter_count": 0,
+      "outbound_link_count": 1,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "349r0xJFGNw",
+      "title": "Creatures in Higher Dimensions",
+      "published_at": "2025-12-20T13:00:04+00:00",
+      "description_present": true,
+      "description_character_count": 1787,
+      "description_sha256": "bfd516abb3990df2db9317d2d2bc874d1786b8c360068924cf4f25460bf5776d",
+      "chapter_count": 0,
+      "outbound_link_count": 13,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "0HqUYpGQIfs",
+      "title": "Emergent Complexity",
+      "published_at": "2025-11-22T13:00:04+00:00",
+      "description_present": true,
+      "description_character_count": 2973,
+      "description_sha256": "792febbff7a9d4072652ae1a116960fb7ef8c01eb80d10d4051d2d424e61c25d",
+      "chapter_count": 0,
+      "outbound_link_count": 30,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "--CteUWzErk",
+      "title": "Unleashing AI Slop Swarms",
+      "published_at": "2025-10-04T12:00:00+00:00",
+      "description_present": true,
+      "description_character_count": 1220,
+      "description_sha256": "c39c538852feebca91ae508521d3170cd21c87a9e96471e4272f69b35f1dfac9",
+      "chapter_count": 0,
+      "outbound_link_count": 12,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Wh4abvcUj8Q",
+      "title": "Can AI (actually) beat Minecraft?",
+      "published_at": "2025-09-21T12:01:03+00:00",
+      "description_present": true,
+      "description_character_count": 898,
+      "description_sha256": "24caa078dddd1e8c987c0c398b2d764962ab042610edb84763d6e4f069136697",
+      "chapter_count": 0,
+      "outbound_link_count": 12,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "DksO3mqh0kg",
+      "title": "Evolving Brains in the Life Engine (5 Year Anniversary!)",
+      "published_at": "2025-08-09T12:00:33+00:00",
+      "description_present": true,
+      "description_character_count": 1036,
+      "description_sha256": "dd294293ee079cf7b300544d2ba09955032c11d66f5d0df0743ec9c79ebcca7b",
+      "chapter_count": 0,
+      "outbound_link_count": 10,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "p-sQ-asWeyI",
+      "title": "AI Self Portrait #claude #ai",
+      "published_at": "2025-08-03T18:40:47+00:00",
+      "description_present": true,
+      "description_character_count": 148,
+      "description_sha256": "14cb562d822aa153ee139d203579cc5e61f737d24f8466ab5cf68676723d03c7",
+      "chapter_count": 0,
+      "outbound_link_count": 1,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "XCpyZxFzGvk",
+      "title": "AI Self-Portrait #gemini #ai",
+      "published_at": "2025-08-03T18:40:38+00:00",
+      "description_present": true,
+      "description_character_count": 148,
+      "description_sha256": "14cb562d822aa153ee139d203579cc5e61f737d24f8466ab5cf68676723d03c7",
+      "chapter_count": 0,
+      "outbound_link_count": 1,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "2YYjPs8t8MI",
+      "title": "The Chaos of AI Agents",
+      "published_at": "2025-07-26T12:00:04+00:00",
+      "description_present": true,
+      "description_character_count": 838,
+      "description_sha256": "442f2fa4203730003427511a278e54c3b26e85a2601e3e714f70eb275742e7fa",
+      "chapter_count": 0,
+      "outbound_link_count": 7,
+      "caption_available": null,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    }
+  ]
+}
