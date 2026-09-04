@@ -1,0 +1,50 @@
+name: Format Emergent Garden Once
+
+on:
+  push:
+    branches:
+      - docs/emergent-garden-nested-corpus-20260904
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/emergent-garden-nested-corpus-20260904
+          fetch-depth: 0
+
+      - name: Install pinned Prettier
+        shell: bash
+        run: npm install --global prettier@3.6.2
+
+      - name: Format Wave 1 research files
+        shell: bash
+        run: |
+          set -euo pipefail
+          prettier --write \
+            docs/corpora/emergent-garden/operations/CAMPAIGN_SPEC.md \
+            docs/corpora/emergent-garden/operations/LOCAL_AGENT_MASTER_PROMPT.md \
+            docs/corpora/emergent-garden/operations/campaign.yaml \
+            docs/corpora/emergent-garden/research/CLAIM-LEDGER-WAVE-1.md \
+            docs/corpora/emergent-garden/research/CONCEPT-ONTOLOGY-WAVE-1.md \
+            docs/corpora/emergent-garden/research/NESTED-SOURCE-GRAPH-WAVE-1.md \
+            docs/corpora/emergent-garden/research/PORTFOLIO-APPLICABILITY-WAVE-1.md \
+            docs/corpora/emergent-garden/research/WAVE-1-INVENTORY.json
+          git rm .github/workflows/format-emergent-garden-once.yml
+
+      - name: Commit formatted files and remove this workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/corpora/emergent-garden .github/workflows/format-emergent-garden-once.yml
+          git commit -m 'style: format emergent garden research snapshot'
+          git push origin HEAD:docs/emergent-garden-nested-corpus-20260904
