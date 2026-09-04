@@ -23,6 +23,9 @@ jobs:
     timeout-minutes: 15
     env:
       YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
+      INFISICAL_PROJECT_ID: ${{ vars.INFISICAL_PROJECT_ID || secrets.INFISICAL_PROJECT_ID || '8efe392e-56a6-4c3c-89f9-8141183dd7e8' }}
+      INFISICAL_ENV: ${{ vars.INFISICAL_ENV || github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/staging' && 'staging' || 'dev' }}
     steps:
       - name: Checkout corpus branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -34,11 +37,45 @@ jobs:
         shell: bash
         run: python3 -m py_compile scripts/research/collect_emergent_garden_youtube.py
 
+      - name: Install Infisical CLI when needed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$YOUTUBE_API_KEY" ] || [ -z "$INFISICAL_TOKEN" ]; then
+            echo 'Infisical CLI not required for this run.'
+            exit 0
+          fi
+          curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash
+          sudo apt-get install -y infisical
+
       - name: Collect normalized census
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/research/collect_emergent_garden_youtube.py
+          if [ -n "$YOUTUBE_API_KEY" ]; then
+            echo 'Using repository-scoped YouTube API credential.'
+            YOUTUBE_API_KEY_SOURCE=repository_secret \
+              python3 scripts/research/collect_emergent_garden_youtube.py
+          elif [ -n "$INFISICAL_TOKEN" ]; then
+            echo 'Checking the isolated Infisical environment for a YouTube API credential.'
+            if ! infisical run \
+              --projectId "$INFISICAL_PROJECT_ID" \
+              --env "$INFISICAL_ENV" \
+              --token "$INFISICAL_TOKEN" \
+              -- bash -ceu '
+                if [ -n "${YOUTUBE_API_KEY:-}" ]; then
+                  export YOUTUBE_API_KEY_SOURCE=infisical
+                fi
+                python3 scripts/research/collect_emergent_garden_youtube.py
+              '; then
+              echo '::warning::Infisical execution failed; recording the official Atom-feed fallback instead.'
+              unset YOUTUBE_API_KEY
+              python3 scripts/research/collect_emergent_garden_youtube.py
+            fi
+          else
+            echo '::notice::No YouTube API credential source is configured; recording the official Atom-feed fallback.'
+            python3 scripts/research/collect_emergent_garden_youtube.py
+          fi
 
       - name: Validate and format generated artifacts
         shell: bash
