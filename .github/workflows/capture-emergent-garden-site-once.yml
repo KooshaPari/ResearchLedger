@@ -1,0 +1,235 @@
+name: Capture Emergent Garden Site Once
+
+on:
+  push:
+    branches:
+      - docs/emergent-garden-nested-corpus-20260904
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/emergent-garden-nested-corpus-20260904
+          fetch-depth: 0
+
+      - name: Capture root links and project matches
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import html
+          import json
+          import re
+          import urllib.parse
+          import urllib.request
+          from datetime import datetime, timezone
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          SOURCE = "https://emergentgarden.io/"
+          MAX_BYTES = 1_000_000
+          PROJECTS = [
+              "Life Engine",
+              "Lenia",
+              "Neural Patterns",
+              "Evoloop",
+              "Functions in Hyperspace",
+              "Mindcraft",
+              "Langton's Ant Colony",
+              "Neural Hill Climber",
+              "Biomorphs 3D",
+              "Picbreeder",
+              "Game of Life",
+              "Germs Genetic Algorithm",
+              "Elementary CA",
+          ]
+
+          class LinkParser(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.links = []
+                  self.current = None
+                  self.title_parts = []
+                  self.in_title = False
+
+              def handle_starttag(self, tag, attrs):
+                  attrs = dict(attrs)
+                  if tag == "a" and attrs.get("href"):
+                      self.current = {
+                          "href": attrs["href"],
+                          "parts": [],
+                          "title": attrs.get("title", ""),
+                      }
+                  elif tag == "img" and self.current and attrs.get("alt"):
+                      self.current["parts"].append(attrs["alt"])
+                  elif tag == "title":
+                      self.in_title = True
+
+              def handle_data(self, data):
+                  if self.current:
+                      self.current["parts"].append(data)
+                  if self.in_title:
+                      self.title_parts.append(data)
+
+              def handle_endtag(self, tag):
+                  if tag == "a" and self.current:
+                      label = " ".join(" ".join(self.current["parts"]).split())
+                      self.links.append(
+                          {
+                              "href": self.current["href"],
+                              "label": label,
+                              "title": " ".join(self.current["title"].split()),
+                          }
+                      )
+                      self.current = None
+                  elif tag == "title":
+                      self.in_title = False
+
+          request = urllib.request.Request(
+              SOURCE,
+              headers={"User-Agent": "ResearchLedger/0.1 (+public creator-site capture)"},
+          )
+          with urllib.request.urlopen(request, timeout=20) as response:
+              body = response.read(MAX_BYTES + 1)
+              if len(body) > MAX_BYTES:
+                  raise SystemExit("creator-site response exceeded byte limit")
+              status = response.status
+              final_url = response.geturl()
+              content_type = response.headers.get_content_type()
+
+          if status != 200:
+              raise SystemExit(f"creator-site returned HTTP {status}")
+          if content_type not in {"text/html", "application/xhtml+xml"}:
+              raise SystemExit(f"unexpected content type: {content_type}")
+
+          text = body.decode("utf-8", errors="strict")
+          parser = LinkParser()
+          parser.feed(text)
+
+          anchors = []
+          seen = set()
+          for raw in parser.links:
+              absolute = urllib.parse.urljoin(final_url, raw["href"])
+              parsed = urllib.parse.urlsplit(absolute)
+              if parsed.scheme not in {"http", "https"}:
+                  continue
+              canonical = urllib.parse.urlunsplit(
+                  (parsed.scheme.lower(), parsed.netloc.lower(), parsed.path, parsed.query, "")
+              )
+              key = (canonical.rstrip("/"), raw["label"], raw["title"])
+              if key in seen:
+                  continue
+              seen.add(key)
+              anchors.append(
+                  {
+                      "original_href": raw["href"],
+                      "canonical_uri": canonical,
+                      "label": raw["label"],
+                      "title": raw["title"],
+                  }
+              )
+
+          def normalized(value):
+              return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
+
+          project_edges = []
+          for project in PROJECTS:
+              needle = normalized(project)
+              matches = []
+              for anchor in anchors:
+                  haystack = normalized(
+                      " ".join([anchor["label"], anchor["title"], anchor["canonical_uri"]])
+                  )
+                  if needle and needle in haystack:
+                      matches.append(anchor["canonical_uri"])
+              matches = sorted(set(matches))
+              project_edges.append(
+                  {
+                      "project": project,
+                      "status": "matched" if matches else "unmatched_in_static_html",
+                      "targets": matches,
+                  }
+              )
+
+          captured_at = datetime.now(timezone.utc).isoformat()
+          output = {
+              "schema_version": "1.0",
+              "campaign_id": "eg-nested-corpus-2026-09",
+              "source_uri": SOURCE,
+              "final_uri": final_url,
+              "captured_at": captured_at,
+              "http_status": status,
+              "content_type": content_type,
+              "byte_count": len(body),
+              "source_sha256": hashlib.sha256(body).hexdigest(),
+              "page_title": " ".join(" ".join(parser.title_parts).split()),
+              "anchor_count": len(anchors),
+              "anchors": sorted(anchors, key=lambda item: (item["canonical_uri"], item["label"])),
+              "project_edges": project_edges,
+              "limitations": [
+                  "Static HTML capture only; client-rendered links may be absent.",
+                  "A text match is a candidate creator-side edge, not proof of repository lineage.",
+                  "The raw HTML response is hashed but not committed.",
+              ],
+          }
+
+          data_dir = Path("docs/corpora/emergent-garden/data")
+          research_dir = Path("docs/corpora/emergent-garden/research")
+          data_dir.mkdir(parents=True, exist_ok=True)
+          research_dir.mkdir(parents=True, exist_ok=True)
+          json_path = data_dir / "creator-site-root-links.json"
+          json_path.write_text(json.dumps(output, indent=2, ensure_ascii=False) + "\n")
+
+          lines = [
+              "# Creator Site Root-Link Capture",
+              "",
+              "**Campaign:** `eg-nested-corpus-2026-09`  ",
+              f"**Source:** <{SOURCE}>  ",
+              f"**Captured:** {captured_at}  ",
+              f"**Response SHA-256:** `{output['source_sha256']}`  ",
+              f"**Static anchors:** {len(anchors)}",
+              "",
+              "## Gallery project matches",
+              "",
+              "| Project | Static HTML state | Targets |",
+              "|---|---|---|",
+          ]
+          for edge in project_edges:
+              targets = "<br>".join(f"<{target}>" for target in edge["targets"]) or "—"
+              lines.append(f"| {edge['project']} | `{edge['status']}` | {targets} |")
+          lines.extend(
+              [
+                  "",
+                  "## Interpretation boundary",
+                  "",
+                  "`matched` means the project name appeared in the static anchor label, title, or URL. It does not by itself prove Git ancestry, current authority, or implementation equivalence. `unmatched_in_static_html` may mean the project is client-rendered, represented through an image without useful alternative text, named differently, or absent from the current root page.",
+                  "",
+                  "The raw HTML response is not committed. The machine record preserves its digest, response metadata, normalized anchors, match outcomes, and limitations.",
+              ]
+          )
+          (research_dir / "CREATOR-SITE-ROOT-LINKS.md").write_text("\n".join(lines) + "\n")
+          PY
+
+          git rm .github/workflows/capture-emergent-garden-site-once.yml
+
+      - name: Commit capture and remove this workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            docs/corpora/emergent-garden/data/creator-site-root-links.json \
+            docs/corpora/emergent-garden/research/CREATOR-SITE-ROOT-LINKS.md
+          git add -u .github/workflows
+          git commit -m 'docs(content): capture emergent garden creator-site edges'
+          git push origin HEAD:docs/emergent-garden-nested-corpus-20260904
