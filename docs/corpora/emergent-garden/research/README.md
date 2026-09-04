@@ -56,15 +56,15 @@ These are not complete-channel counts. The Atom feed exposes a recent window and
 
 ## Gate state
 
-| Gate | State |
-|---|---|
-| `G1_INVENTORY` | **BLOCKED** — no `YOUTUBE_API_KEY` in repository secrets or the isolated Infisical `dev` environment |
-| `G2_TEXT_COVERAGE` | **PARTIAL** — recent descriptions covered; transcripts unacquired |
-| `G3_DIRECT_GRAPH` | **PARTIAL / RECENT WINDOW EXPANDED** — all discovered high-value targets expanded |
-| `G4_PROJECT_RELEVANCE` | **PARTIAL** — Wave 1 mappings retained; no broad new fanout clearance |
-| `G5_EXPERIMENT` | **SPECIFIED, NOT RUN** — Benchora PR #106 |
-| `G6_PROJECT_PR` | **ONE DOCUMENTATION PILOT OPEN** — no product-code implementation |
-| `G7_RELEASE` | **NOT APPLICABLE** |
+| Gate                   | State                                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| `G1_INVENTORY`         | **BLOCKED** — no `YOUTUBE_API_KEY` in repository secrets or the isolated Infisical `dev` environment |
+| `G2_TEXT_COVERAGE`     | **PARTIAL** — recent descriptions covered; transcripts unacquired                                    |
+| `G3_DIRECT_GRAPH`      | **PARTIAL / RECENT WINDOW EXPANDED** — all discovered high-value targets expanded                    |
+| `G4_PROJECT_RELEVANCE` | **PARTIAL** — Wave 1 mappings retained; no broad new fanout clearance                                |
+| `G5_EXPERIMENT`        | **SPECIFIED, NOT RUN** — Benchora PR #106                                                            |
+| `G6_PROJECT_PR`        | **ONE DOCUMENTATION PILOT OPEN** — no product-code implementation                                    |
+| `G7_RELEASE`           | **NOT APPLICABLE**                                                                                   |
 
 ## Current verdict
 

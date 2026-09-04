@@ -8,21 +8,21 @@
 
 ## Gallery project matches
 
-| Project | Static HTML state | Targets |
-|---|---|---|
-| Life Engine | `unmatched_in_static_html` | — |
-| Lenia | `unmatched_in_static_html` | — |
-| Neural Patterns | `unmatched_in_static_html` | — |
-| Evoloop | `unmatched_in_static_html` | — |
-| Functions in Hyperspace | `unmatched_in_static_html` | — |
-| Mindcraft | `matched` | <https://discord.gg/mp73p35dzC> |
-| Langton's Ant Colony | `unmatched_in_static_html` | — |
-| Neural Hill Climber | `unmatched_in_static_html` | — |
-| Biomorphs 3D | `unmatched_in_static_html` | — |
-| Picbreeder | `unmatched_in_static_html` | — |
-| Game of Life | `unmatched_in_static_html` | — |
-| Germs Genetic Algorithm | `unmatched_in_static_html` | — |
-| Elementary CA | `unmatched_in_static_html` | — |
+| Project                 | Static HTML state          | Targets                         |
+| ----------------------- | -------------------------- | ------------------------------- |
+| Life Engine             | `unmatched_in_static_html` | —                               |
+| Lenia                   | `unmatched_in_static_html` | —                               |
+| Neural Patterns         | `unmatched_in_static_html` | —                               |
+| Evoloop                 | `unmatched_in_static_html` | —                               |
+| Functions in Hyperspace | `unmatched_in_static_html` | —                               |
+| Mindcraft               | `matched`                  | <https://discord.gg/mp73p35dzC> |
+| Langton's Ant Colony    | `unmatched_in_static_html` | —                               |
+| Neural Hill Climber     | `unmatched_in_static_html` | —                               |
+| Biomorphs 3D            | `unmatched_in_static_html` | —                               |
+| Picbreeder              | `unmatched_in_static_html` | —                               |
+| Game of Life            | `unmatched_in_static_html` | —                               |
+| Germs Genetic Algorithm | `unmatched_in_static_html` | —                               |
+| Elementary CA           | `unmatched_in_static_html` | —                               |
 
 ## Interpretation boundary
 

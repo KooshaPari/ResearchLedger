@@ -8,15 +8,15 @@
 
 ## Gate state
 
-| Gate | State | Evidence |
-|---|---|---|
-| `G1_INVENTORY` | **BLOCKED** | No `YOUTUBE_API_KEY` exists in repository Actions secrets or the repository's isolated Infisical `dev` environment. The official Atom feed is recent-window only. |
-| `G2_TEXT_COVERAGE` | **PARTIAL** | Metadata for 15 recent uploads includes description hashes, lengths, excerpts, outbound links, and a transcript-route matrix. No transcript text was acquired. |
-| `G3_DIRECT_GRAPH` | **PARTIAL / RECENT WINDOW EXPANDED** | All 23 unique high-value targets found in the 15-description sample were expanded and revision- or response-pinned. Older descriptions remain outside the graph until G1 passes. |
-| `G4_PROJECT_RELEVANCE` | **PARTIAL** | Existing Wave 1 mechanism mappings remain valid; the new direct graph strengthens provenance but does not independently clear additional portfolio fanout. |
-| `G5_EXPERIMENT` | **SPECIFIED, NOT RUN** | Benchora draft PR #106 contains the first controlled coordination-topology pilot. No result claim exists. |
-| `G6_PROJECT_PR` | **ONE DOCUMENTATION PILOT OPEN** | Benchora PR #106 is documentation-only. No product-code implementation is authorized. |
-| `G7_RELEASE` | **NOT APPLICABLE** | No implementation or reproduced result exists to release. |
+| Gate                   | State                                | Evidence                                                                                                                                                                         |
+| ---------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `G1_INVENTORY`         | **BLOCKED**                          | No `YOUTUBE_API_KEY` exists in repository Actions secrets or the repository's isolated Infisical `dev` environment. The official Atom feed is recent-window only.                |
+| `G2_TEXT_COVERAGE`     | **PARTIAL**                          | Metadata for 15 recent uploads includes description hashes, lengths, excerpts, outbound links, and a transcript-route matrix. No transcript text was acquired.                   |
+| `G3_DIRECT_GRAPH`      | **PARTIAL / RECENT WINDOW EXPANDED** | All 23 unique high-value targets found in the 15-description sample were expanded and revision- or response-pinned. Older descriptions remain outside the graph until G1 passes. |
+| `G4_PROJECT_RELEVANCE` | **PARTIAL**                          | Existing Wave 1 mechanism mappings remain valid; the new direct graph strengthens provenance but does not independently clear additional portfolio fanout.                       |
+| `G5_EXPERIMENT`        | **SPECIFIED, NOT RUN**               | Benchora draft PR #106 contains the first controlled coordination-topology pilot. No result claim exists.                                                                        |
+| `G6_PROJECT_PR`        | **ONE DOCUMENTATION PILOT OPEN**     | Benchora PR #106 is documentation-only. No product-code implementation is authorized.                                                                                            |
+| `G7_RELEASE`           | **NOT APPLICABLE**                   | No implementation or reproduced result exists to release.                                                                                                                        |
 
 ## Completed in this checkpoint
 
@@ -42,12 +42,12 @@
 
 All 23 unique high-value targets expanded successfully:
 
-| Class | Unique targets | Expanded | Failed |
-|---|---:|---:|---:|
-| GitHub implementation candidates | 11 | 11 | 0 |
-| Primary arXiv papers | 3 | 3 | 0 |
-| Creator-controlled web surfaces | 9 | 9 | 0 |
-| **Total** | **23** | **23** | **0** |
+| Class                            | Unique targets | Expanded | Failed |
+| -------------------------------- | -------------: | -------: | -----: |
+| GitHub implementation candidates |             11 |       11 |      0 |
+| Primary arXiv papers             |              3 |        3 |      0 |
+| Creator-controlled web surfaces  |              9 |        9 |      0 |
+| **Total**                        |         **23** |   **23** |  **0** |
 
 The implementation frontier now directly includes:
 

@@ -125,9 +125,7 @@
     {
       "project": "Mindcraft",
       "status": "matched",
-      "targets": [
-        "https://discord.gg/mp73p35dzC"
-      ]
+      "targets": ["https://discord.gg/mp73p35dzC"]
     },
     {
       "project": "Langton's Ant Colony",
