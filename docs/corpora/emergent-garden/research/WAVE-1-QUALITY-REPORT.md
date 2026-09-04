@@ -23,19 +23,19 @@ The preferred interpretation survived an explicit skeptical pass, but several se
 
 ## 2. Materialized Wave 1 artifacts
 
-| Artifact | Count / status |
-|---|---:|
-| Anchor synthesis | 1 |
-| Claim records | 28 |
-| Normalized concepts | 40 |
-| Portfolio experiments | 10 |
-| High-information video nodes identified | 14 |
-| Video/project anchors analyzed | 13 at varying evidence depth |
-| Creator-owned public GitHub repositories enumerated | 30 |
-| Priority-A implementation repositories classified | 16 |
-| Controlled primary papers analyzed | 1 |
+| Artifact                                                              |                                       Count / status |
+| --------------------------------------------------------------------- | ---------------------------------------------------: |
+| Anchor synthesis                                                      |                                                    1 |
+| Claim records                                                         |                                                   28 |
+| Normalized concepts                                                   |                                                   40 |
+| Portfolio experiments                                                 |                                                   10 |
+| High-information video nodes identified                               |                                                   14 |
+| Video/project anchors analyzed                                        |                         13 at varying evidence depth |
+| Creator-owned public GitHub repositories enumerated                   |                                                   30 |
+| Priority-A implementation repositories classified                     |                                                   16 |
+| Controlled primary papers analyzed                                    |                                                    1 |
 | Current KooshaPari repositories directly inspected for Wave 1 mapping | 8 core product/tool repos plus prior authority repos |
-| Individual product PRs opened | 0, deliberately withheld |
+| Individual product PRs opened                                         |                             0, deliberately withheld |
 
 ## 3. Evidence coverage
 
@@ -73,28 +73,28 @@ Secondary indexes are not treated as canonical transcript, claim, or uploads-pla
 
 ## 4. Gate status
 
-| Gate | Result | Evidence / blocker |
-|---|---|---|
-| `G0_PREFLIGHT` | **PASS for Wave 1** | Authority, publication, scope, and non-destructive GitHub boundaries are explicit |
-| `G1_INVENTORY` | **INCOMPLETE** | 74-video external count and recent inventory exist; documented YouTube Data API uploads-playlist reconciliation has not run |
-| `G2_TEXT_COVERAGE` | **INCOMPLETE** | Selected transcript-derived notes exist; per-video acquisition route and complete availability matrix do not |
-| `G3_DIRECT_GRAPH` | **PASS for selected anchors** | Direct creator/project/paper edges are typed; this does not cover every channel description |
-| `G4_RECURSIVE_GRAPH` | **PARTIAL** | High-value implementation lineages expanded; bibliography/project frontier remains open |
-| `G5_SYNTHESIS` | **PASS for Wave 1** | Claims, ontology, contradictions, alternatives, and falsifiers are materialized |
-| `G6_PORTFOLIO_MAPPING` | **PASS for central research lead** | Actual current repository docs inspected; identity-conflicted repos blocked rather than forced |
-| `G7_GITHUB_PROJECTION` | **PARTIAL** | ResearchLedger draft PR contains canonical Wave 1 research; RepoLedger projection pending; no downstream product PRs |
-| `G8_INCREMENTAL_REFRESH` | **NOT RUN** | Requires canonical channel/source inventory and source-version manifest |
+| Gate                     | Result                             | Evidence / blocker                                                                                                          |
+| ------------------------ | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `G0_PREFLIGHT`           | **PASS for Wave 1**                | Authority, publication, scope, and non-destructive GitHub boundaries are explicit                                           |
+| `G1_INVENTORY`           | **INCOMPLETE**                     | 74-video external count and recent inventory exist; documented YouTube Data API uploads-playlist reconciliation has not run |
+| `G2_TEXT_COVERAGE`       | **INCOMPLETE**                     | Selected transcript-derived notes exist; per-video acquisition route and complete availability matrix do not                |
+| `G3_DIRECT_GRAPH`        | **PASS for selected anchors**      | Direct creator/project/paper edges are typed; this does not cover every channel description                                 |
+| `G4_RECURSIVE_GRAPH`     | **PARTIAL**                        | High-value implementation lineages expanded; bibliography/project frontier remains open                                     |
+| `G5_SYNTHESIS`           | **PASS for Wave 1**                | Claims, ontology, contradictions, alternatives, and falsifiers are materialized                                             |
+| `G6_PORTFOLIO_MAPPING`   | **PASS for central research lead** | Actual current repository docs inspected; identity-conflicted repos blocked rather than forced                              |
+| `G7_GITHUB_PROJECTION`   | **PARTIAL**                        | ResearchLedger draft PR contains canonical Wave 1 research; RepoLedger projection pending; no downstream product PRs        |
+| `G8_INCREMENTAL_REFRESH` | **NOT RUN**                        | Requires canonical channel/source inventory and source-version manifest                                                     |
 
 No aggregate “campaign complete” status is permitted while G1, G2, G4, G7, and G8 remain incomplete.
 
 ## 5. Claim-quality distribution
 
-| Claim status | Count | Meaning |
-|---|---:|---|
-| `SUPPORTED` | 8 | Direct creator or primary technical evidence supports bounded wording |
-| `SUPPORTED_WITH_LIMITS` | 10 | Supported for the referenced system/treatment; generalization remains bounded |
-| `PROVISIONAL` | 2 | Direct creator-controlled text or implementation evidence still required |
-| `ANALYST_INFERENCE` | 8 | Cross-source synthesis, explicitly not attributed to the creator |
+| Claim status            | Count | Meaning                                                                       |
+| ----------------------- | ----: | ----------------------------------------------------------------------------- |
+| `SUPPORTED`             |     8 | Direct creator or primary technical evidence supports bounded wording         |
+| `SUPPORTED_WITH_LIMITS` |    10 | Supported for the referenced system/treatment; generalization remains bounded |
+| `PROVISIONAL`           |     2 | Direct creator-controlled text or implementation evidence still required      |
+| `ANALYST_INFERENCE`     |     8 | Cross-source synthesis, explicitly not attributed to the creator              |
 
 The exact count is a Wave 1 editorial classification, not a statistical confidence score.
 
@@ -170,14 +170,14 @@ Blocking these is a quality result, not unfinished formatting.
 
 ## 8. Alternative-hypothesis audit
 
-| Hypothesis | Wave 1 result |
-|---|---|
-| `H1`: one real emergence-centered engineering philosophy unifies the corpus | **Partially supported**; mechanism recurrence is real, but it is not one formal architecture |
-| `H2`: similarities are mostly visual/metaphorical | **Not sufficient alone**; direct repositories and controlled Mindcraft evidence create technical recurrence |
-| `H3`: the portfolio already has a stronger formulation | **Supported in parts**; current trace, replay, hard-oracle, benchmark, and governance systems are more operationally explicit |
-| `H4`: deterministic infrastructure/hierarchy is the real lesson | **Strong competing interpretation**; coordination and actuator failures support it |
-| `H5`: ideas transfer uniformly across projects | **Rejected**; applicability varies and some identity-conflicted repos must not receive fanout |
-| `H6`: current evidence is too weak for any action | **Rejected for research contracts/experiments**, supported for immediate product-code adoption |
+| Hypothesis                                                                  | Wave 1 result                                                                                                                 |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `H1`: one real emergence-centered engineering philosophy unifies the corpus | **Partially supported**; mechanism recurrence is real, but it is not one formal architecture                                  |
+| `H2`: similarities are mostly visual/metaphorical                           | **Not sufficient alone**; direct repositories and controlled Mindcraft evidence create technical recurrence                   |
+| `H3`: the portfolio already has a stronger formulation                      | **Supported in parts**; current trace, replay, hard-oracle, benchmark, and governance systems are more operationally explicit |
+| `H4`: deterministic infrastructure/hierarchy is the real lesson             | **Strong competing interpretation**; coordination and actuator failures support it                                            |
+| `H5`: ideas transfer uniformly across projects                              | **Rejected**; applicability varies and some identity-conflicted repos must not receive fanout                                 |
+| `H6`: current evidence is too weak for any action                           | **Rejected for research contracts/experiments**, supported for immediate product-code adoption                                |
 
 ## 9. Publication and safety audit
 
@@ -203,19 +203,19 @@ It does not contain:
 
 ## 10. Reproduction status
 
-| Activity | Status |
-|---|---|
-| GitHub source/README inspection | Performed against public/connected current repository state |
-| Creator-site inspection | Performed |
-| Primary paper analysis | Performed |
-| Complete video transcript acquisition | Not performed |
-| Official YouTube API inventory | Not performed; API key not present in this chat environment |
-| Repository clone/build/test | Not performed |
-| Mindcraft benchmark reproduction | Not performed |
-| LifeEngine simulation run | Not performed |
-| fractalsearch autonomous run | Not performed |
-| AgentsOfEmpires game run | Not performed |
-| Portfolio experiment suite | Designed, not executed |
+| Activity                              | Status                                                      |
+| ------------------------------------- | ----------------------------------------------------------- |
+| GitHub source/README inspection       | Performed against public/connected current repository state |
+| Creator-site inspection               | Performed                                                   |
+| Primary paper analysis                | Performed                                                   |
+| Complete video transcript acquisition | Not performed                                               |
+| Official YouTube API inventory        | Not performed; API key not present in this chat environment |
+| Repository clone/build/test           | Not performed                                               |
+| Mindcraft benchmark reproduction      | Not performed                                               |
+| LifeEngine simulation run             | Not performed                                               |
+| fractalsearch autonomous run          | Not performed                                               |
+| AgentsOfEmpires game run              | Not performed                                               |
+| Portfolio experiment suite            | Designed, not executed                                      |
 
 ## 11. Wave 2 entrance criteria
 

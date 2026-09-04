@@ -13,13 +13,13 @@ The current public channel count is independently reported as 74 videos, but thi
 
 ### Evidence classes
 
-| Class | Meaning |
-|---|---|
-| `CREATOR_DIRECT` | Creator-controlled site, repository, prompt, or video description |
-| `PRIMARY_TECHNICAL` | Paper, source code, benchmark, or direct implementation artifact |
+| Class                | Meaning                                                             |
+| -------------------- | ------------------------------------------------------------------- |
+| `CREATOR_DIRECT`     | Creator-controlled site, repository, prompt, or video description   |
+| `PRIMARY_TECHNICAL`  | Paper, source code, benchmark, or direct implementation artifact    |
 | `TRANSCRIPT_DERIVED` | Timestamped transcript/summary mirror used to recover video content |
-| `SECONDARY_INDEX` | Search/index source used for title/date/coverage discovery only |
-| `ANALYST_INFERENCE` | Our synthesis; never represented as something Max explicitly said |
+| `SECONDARY_INDEX`    | Search/index source used for title/date/coverage discovery only     |
+| `ANALYST_INFERENCE`  | Our synthesis; never represented as something Max explicitly said   |
 
 ## Provisional corpus verdict
 

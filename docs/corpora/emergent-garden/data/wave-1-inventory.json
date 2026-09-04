@@ -43,7 +43,13 @@
       "url": "https://www.youtube.com/watch?v=0HqUYpGQIfs",
       "wave_status": "anchor_analyzed",
       "evidence_classes": ["creator_description", "transcript_derived"],
-      "primary_concepts": ["substrate", "building_block", "local_rule", "layered_emergence", "computational_irreducibility"]
+      "primary_concepts": [
+        "substrate",
+        "building_block",
+        "local_rule",
+        "layered_emergence",
+        "computational_irreducibility"
+      ]
     },
     {
       "node_id": "EG-VID-NCA",
@@ -53,7 +59,12 @@
       "url": "https://www.youtube.com/watch?v=3H79ZcBuw4M",
       "wave_status": "anchor_analyzed",
       "evidence_classes": ["creator_repository", "transcript_derived"],
-      "primary_concepts": ["neural_cellular_automaton", "homogeneous_local_update", "recurrence", "global_pattern"]
+      "primary_concepts": [
+        "neural_cellular_automaton",
+        "homogeneous_local_update",
+        "recurrence",
+        "global_pattern"
+      ]
     },
     {
       "node_id": "EG-VID-LIFE-BRAINS",
@@ -63,7 +74,12 @@
       "url": "https://www.youtube.com/watch?v=DksO3mqh0kg",
       "wave_status": "anchor_analyzed_provisional_controller_rationale",
       "evidence_classes": ["creator_repository", "transcript_derived"],
-      "primary_concepts": ["artificial_life", "state_machine_controller", "mutation", "endogenous_selection"]
+      "primary_concepts": [
+        "artificial_life",
+        "state_machine_controller",
+        "mutation",
+        "endogenous_selection"
+      ]
     },
     {
       "node_id": "EG-VID-TURMITES",
@@ -72,8 +88,17 @@
       "published_date": "2025-06-07",
       "url": "https://www.youtube.com/watch?v=7x9J7rsLC50",
       "wave_status": "anchor_analyzed",
-      "evidence_classes": ["creator_description", "creator_repository", "transcript_derived"],
-      "primary_concepts": ["state_transition", "turmite", "universal_computation", "multiple_actor_interaction"]
+      "evidence_classes": [
+        "creator_description",
+        "creator_repository",
+        "transcript_derived"
+      ],
+      "primary_concepts": [
+        "state_transition",
+        "turmite",
+        "universal_computation",
+        "multiple_actor_interaction"
+      ]
     },
     {
       "node_id": "EG-VID-GRADIENT",
@@ -82,8 +107,17 @@
       "published_date": "2025-03-01",
       "url": "https://www.youtube.com/watch?v=Anc2_mnb3V8",
       "wave_status": "anchor_analyzed",
-      "evidence_classes": ["creator_description", "creator_repositories", "transcript_derived"],
-      "primary_concepts": ["gradient_guided_search", "evolutionary_search", "search_space", "loss_landscape"]
+      "evidence_classes": [
+        "creator_description",
+        "creator_repositories",
+        "transcript_derived"
+      ],
+      "primary_concepts": [
+        "gradient_guided_search",
+        "evolutionary_search",
+        "search_space",
+        "loss_landscape"
+      ]
     },
     {
       "node_id": "EG-VID-CHAOS",
@@ -92,8 +126,17 @@
       "published_date": "2025-07-26",
       "url": "https://www.youtube.com/watch?v=2YYjPs8t8MI",
       "wave_status": "anchor_analyzed_run_artifacts_pending",
-      "evidence_classes": ["creator_description", "creator_prompts", "transcript_derived"],
-      "primary_concepts": ["open_ended_autonomy", "shared_state", "interference", "coordination_failure"]
+      "evidence_classes": [
+        "creator_description",
+        "creator_prompts",
+        "transcript_derived"
+      ],
+      "primary_concepts": [
+        "open_ended_autonomy",
+        "shared_state",
+        "interference",
+        "coordination_failure"
+      ]
     },
     {
       "node_id": "EG-VID-VISION",
@@ -103,7 +146,12 @@
       "url": "https://www.youtube.com/watch?v=iDJ6GrHNoDs",
       "wave_status": "anchor_analyzed",
       "evidence_classes": ["creator_description", "primary_paper"],
-      "primary_concepts": ["multimodal_observation", "structured_observation", "grounding", "abstraction_level"]
+      "primary_concepts": [
+        "multimodal_observation",
+        "structured_observation",
+        "grounding",
+        "abstraction_level"
+      ]
     },
     {
       "node_id": "EG-VID-MC-RELIABILITY",
@@ -113,7 +161,12 @@
       "url": "https://www.youtube.com/watch?v=Wh4abvcUj8Q",
       "wave_status": "anchor_analyzed_challenge_artifacts_pending",
       "evidence_classes": ["transcript_derived", "project_context"],
-      "primary_concepts": ["actuator_reliability", "state_freshness", "pathfinding", "privileged_state"]
+      "primary_concepts": [
+        "actuator_reliability",
+        "state_freshness",
+        "pathfinding",
+        "privileged_state"
+      ]
     },
     {
       "node_id": "EG-VID-RSI",
@@ -123,7 +176,12 @@
       "url": "https://www.youtube.com/watch?v=t7_ZXgfJVG8",
       "wave_status": "anchor_analyzed",
       "evidence_classes": ["creator_repository", "transcript_derived"],
-      "primary_concepts": ["weak_recursive_improvement", "incumbent", "rollback", "evaluator"]
+      "primary_concepts": [
+        "weak_recursive_improvement",
+        "incumbent",
+        "rollback",
+        "evaluator"
+      ]
     },
     {
       "node_id": "EG-VID-ALIFE",
@@ -133,7 +191,12 @@
       "url": "https://www.youtube.com/watch?v=2g-CrQfYNtE",
       "wave_status": "provisional_direct_text_pending",
       "evidence_classes": ["secondary_index", "transcript_derived"],
-      "primary_concepts": ["artificial_life", "evolutionary_optimization", "digital_organism", "self_organization"]
+      "primary_concepts": [
+        "artificial_life",
+        "evolutionary_optimization",
+        "digital_organism",
+        "self_organization"
+      ]
     },
     {
       "node_id": "EG-VID-HD-CREATURES",
@@ -142,8 +205,17 @@
       "published_date": "2025-12-20",
       "url": "https://www.youtube.com/watch?v=349r0xJFGNw",
       "wave_status": "anchor_analyzed",
-      "evidence_classes": ["creator_repository", "creator_linked_page", "transcript_derived"],
-      "primary_concepts": ["generative_representation", "function_tree", "phenotype", "visualization"]
+      "evidence_classes": [
+        "creator_repository",
+        "creator_linked_page",
+        "transcript_derived"
+      ],
+      "primary_concepts": [
+        "generative_representation",
+        "function_tree",
+        "phenotype",
+        "visualization"
+      ]
     },
     {
       "node_id": "EG-VID-HD-EVOLUTION",
@@ -153,7 +225,12 @@
       "url": "https://www.youtube.com/watch?v=DB-TD3s3MZ0",
       "wave_status": "anchor_analyzed_run_method_pending",
       "evidence_classes": ["creator_repository", "transcript_derived"],
-      "primary_concepts": ["generative_search", "function_mutation", "symbolic_regression", "aesthetic_selection"]
+      "primary_concepts": [
+        "generative_search",
+        "function_mutation",
+        "symbolic_regression",
+        "aesthetic_selection"
+      ]
     },
     {
       "node_id": "EG-VID-AOE",
@@ -163,7 +240,12 @@
       "url": "https://www.youtube.com/watch?v=ZBdAe3ZwKds",
       "wave_status": "anchor_analyzed_reproduction_pending",
       "evidence_classes": ["creator_repository", "transcript_derived"],
-      "primary_concepts": ["gui_automation", "tournament_evaluator", "heartbeat", "strategy_mutation"]
+      "primary_concepts": [
+        "gui_automation",
+        "tournament_evaluator",
+        "heartbeat",
+        "strategy_mutation"
+      ]
     },
     {
       "node_id": "EG-VID-AI-WAR",
@@ -177,36 +259,64 @@
     }
   ],
   "creator_repositories": [
-    {"name": "LifeEngine", "priority": "A", "status": "expanded"},
-    {"name": "mandelbrotnn", "priority": "A", "status": "expanded"},
-    {"name": "NeuralPatterns", "priority": "A", "status": "expanded"},
-    {"name": "ManimApproximations", "priority": "A", "status": "expanded_shallow"},
-    {"name": "hyperdimensions", "priority": "A", "status": "expanded"},
-    {"name": "EvolutionSimulator", "priority": "A", "status": "lineage_frontier"},
-    {"name": "CodeEvolver", "priority": "A", "status": "wave_2_frontier"},
-    {"name": "fractalsearch", "priority": "A", "status": "expanded"},
-    {"name": "slopcity", "priority": "A", "status": "wave_2_frontier"},
-    {"name": "StableDiffEvolution", "priority": "A", "status": "wave_2_frontier"},
-    {"name": "agent_prompts", "priority": "A", "status": "expanded"},
-    {"name": "turmites", "priority": "A", "status": "expanded"},
-    {"name": "AgentsOfEmpires", "priority": "A", "status": "expanded"},
-    {"name": "hillclimbers", "priority": "A", "status": "expanded_shallow"},
-    {"name": "mindcraft", "priority": "A", "status": "lineage_frontier"},
-    {"name": "mineflayer-dev", "priority": "A", "status": "selective_frontier"},
-    {"name": "Derelict", "priority": "B", "status": "stopped_pending_edge"},
-    {"name": "FruitFly", "priority": "B", "status": "classification_pending"},
-    {"name": "KillerKlicker", "priority": "C", "status": "stopped_pending_edge"},
-    {"name": "tsp-genetic", "priority": "B", "status": "historical_frontier"},
-    {"name": "AntiGoat", "priority": "B", "status": "classification_pending"},
-    {"name": "creative_project_1", "priority": "C", "status": "incidental"},
-    {"name": "SpookySpookers", "priority": "C", "status": "incidental"},
-    {"name": "MovieSearch", "priority": "C", "status": "incidental"},
-    {"name": "Holodeck", "priority": "B", "status": "classification_pending"},
-    {"name": "RRT", "priority": "B", "status": "expand_only_if_linked"},
-    {"name": "simple-classifier", "priority": "B", "status": "historical_context"},
-    {"name": "gameofur", "priority": "B", "status": "stopped_pending_edge"},
-    {"name": "MongoBurger", "priority": "C", "status": "incidental"},
-    {"name": "maxrobinsonthegreat.github.io", "priority": "C", "status": "redirect_provenance_only"}
+    { "name": "LifeEngine", "priority": "A", "status": "expanded" },
+    { "name": "mandelbrotnn", "priority": "A", "status": "expanded" },
+    { "name": "NeuralPatterns", "priority": "A", "status": "expanded" },
+    {
+      "name": "ManimApproximations",
+      "priority": "A",
+      "status": "expanded_shallow"
+    },
+    { "name": "hyperdimensions", "priority": "A", "status": "expanded" },
+    {
+      "name": "EvolutionSimulator",
+      "priority": "A",
+      "status": "lineage_frontier"
+    },
+    { "name": "CodeEvolver", "priority": "A", "status": "wave_2_frontier" },
+    { "name": "fractalsearch", "priority": "A", "status": "expanded" },
+    { "name": "slopcity", "priority": "A", "status": "wave_2_frontier" },
+    {
+      "name": "StableDiffEvolution",
+      "priority": "A",
+      "status": "wave_2_frontier"
+    },
+    { "name": "agent_prompts", "priority": "A", "status": "expanded" },
+    { "name": "turmites", "priority": "A", "status": "expanded" },
+    { "name": "AgentsOfEmpires", "priority": "A", "status": "expanded" },
+    { "name": "hillclimbers", "priority": "A", "status": "expanded_shallow" },
+    { "name": "mindcraft", "priority": "A", "status": "lineage_frontier" },
+    {
+      "name": "mineflayer-dev",
+      "priority": "A",
+      "status": "selective_frontier"
+    },
+    { "name": "Derelict", "priority": "B", "status": "stopped_pending_edge" },
+    { "name": "FruitFly", "priority": "B", "status": "classification_pending" },
+    {
+      "name": "KillerKlicker",
+      "priority": "C",
+      "status": "stopped_pending_edge"
+    },
+    { "name": "tsp-genetic", "priority": "B", "status": "historical_frontier" },
+    { "name": "AntiGoat", "priority": "B", "status": "classification_pending" },
+    { "name": "creative_project_1", "priority": "C", "status": "incidental" },
+    { "name": "SpookySpookers", "priority": "C", "status": "incidental" },
+    { "name": "MovieSearch", "priority": "C", "status": "incidental" },
+    { "name": "Holodeck", "priority": "B", "status": "classification_pending" },
+    { "name": "RRT", "priority": "B", "status": "expand_only_if_linked" },
+    {
+      "name": "simple-classifier",
+      "priority": "B",
+      "status": "historical_context"
+    },
+    { "name": "gameofur", "priority": "B", "status": "stopped_pending_edge" },
+    { "name": "MongoBurger", "priority": "C", "status": "incidental" },
+    {
+      "name": "maxrobinsonthegreat.github.io",
+      "priority": "C",
+      "status": "redirect_provenance_only"
+    }
   ],
   "primary_sources": [
     {
@@ -232,23 +342,91 @@
     }
   ],
   "portfolio_repositories": [
-    {"repository": "KooshaPari/ResearchLedger", "classification": ["DIRECTLY_ADOPT", "ALREADY_IMPLEMENTED"], "fanout_status": "canonical_branch_open"},
-    {"repository": "KooshaPari/RepoLedger", "classification": ["DIRECTLY_ADOPT"], "fanout_status": "projection_pending"},
-    {"repository": "KooshaPari/Benchora", "classification": ["DIRECTLY_ADOPT"], "fanout_status": "experiment_spec_only"},
-    {"repository": "KooshaPari/phenotype-journeys", "classification": ["DIRECTLY_ADOPT"], "fanout_status": "experiment_spec_only"},
-    {"repository": "KooshaPari/SessionLedger", "classification": ["DIRECTLY_ADOPT"], "fanout_status": "experiment_spec_only"},
-    {"repository": "KooshaPari/Tracera", "classification": ["DIRECTLY_ADOPT"], "fanout_status": "experiment_spec_only"},
-    {"repository": "KooshaPari/AgilePlus", "classification": ["DIRECTLY_ADOPT"], "fanout_status": "work_package_pending"},
-    {"repository": "KooshaPari/Agentora", "classification": ["EXPERIMENT", "CONTRADICTION"], "fanout_status": "withheld_until_experiment"},
-    {"repository": "KooshaPari/thegent", "classification": ["EXPERIMENT", "CONTRADICTION"], "fanout_status": "withheld_until_boundary_and_experiment"},
-    {"repository": "KooshaPari/helios-cli", "classification": ["EXPERIMENT", "ALREADY_IMPLEMENTED"], "fanout_status": "withheld_until_canonical_snapshot"},
-    {"repository": "KooshaPari/forgecode", "classification": ["CONTRADICTION"], "fanout_status": "blocked_by_identity"},
-    {"repository": "KooshaPari/HeliosLab", "classification": ["CONTRADICTION"], "fanout_status": "blocked_by_identity"},
-    {"repository": "KooshaPari/Civis", "classification": ["EXPERIMENT", "PHILOSOPHICAL_CONVERGENCE"], "fanout_status": "withheld_until_null_model_pilot"},
-    {"repository": "KooshaPari/hwLedger", "classification": ["RESEARCH_LEAD"], "fanout_status": "central_only"},
-    {"repository": "KooshaPari/Eidolon", "classification": ["EXPERIMENT"], "fanout_status": "central_only"},
-    {"repository": "KooshaPari/PlayCua", "classification": ["EXPERIMENT"], "fanout_status": "central_only"},
-    {"repository": "KooshaPari/PhenoSpecs", "classification": ["CONTRADICTION"], "fanout_status": "blocked_by_authority_conflict"}
+    {
+      "repository": "KooshaPari/ResearchLedger",
+      "classification": ["DIRECTLY_ADOPT", "ALREADY_IMPLEMENTED"],
+      "fanout_status": "canonical_branch_open"
+    },
+    {
+      "repository": "KooshaPari/RepoLedger",
+      "classification": ["DIRECTLY_ADOPT"],
+      "fanout_status": "projection_pending"
+    },
+    {
+      "repository": "KooshaPari/Benchora",
+      "classification": ["DIRECTLY_ADOPT"],
+      "fanout_status": "experiment_spec_only"
+    },
+    {
+      "repository": "KooshaPari/phenotype-journeys",
+      "classification": ["DIRECTLY_ADOPT"],
+      "fanout_status": "experiment_spec_only"
+    },
+    {
+      "repository": "KooshaPari/SessionLedger",
+      "classification": ["DIRECTLY_ADOPT"],
+      "fanout_status": "experiment_spec_only"
+    },
+    {
+      "repository": "KooshaPari/Tracera",
+      "classification": ["DIRECTLY_ADOPT"],
+      "fanout_status": "experiment_spec_only"
+    },
+    {
+      "repository": "KooshaPari/AgilePlus",
+      "classification": ["DIRECTLY_ADOPT"],
+      "fanout_status": "work_package_pending"
+    },
+    {
+      "repository": "KooshaPari/Agentora",
+      "classification": ["EXPERIMENT", "CONTRADICTION"],
+      "fanout_status": "withheld_until_experiment"
+    },
+    {
+      "repository": "KooshaPari/thegent",
+      "classification": ["EXPERIMENT", "CONTRADICTION"],
+      "fanout_status": "withheld_until_boundary_and_experiment"
+    },
+    {
+      "repository": "KooshaPari/helios-cli",
+      "classification": ["EXPERIMENT", "ALREADY_IMPLEMENTED"],
+      "fanout_status": "withheld_until_canonical_snapshot"
+    },
+    {
+      "repository": "KooshaPari/forgecode",
+      "classification": ["CONTRADICTION"],
+      "fanout_status": "blocked_by_identity"
+    },
+    {
+      "repository": "KooshaPari/HeliosLab",
+      "classification": ["CONTRADICTION"],
+      "fanout_status": "blocked_by_identity"
+    },
+    {
+      "repository": "KooshaPari/Civis",
+      "classification": ["EXPERIMENT", "PHILOSOPHICAL_CONVERGENCE"],
+      "fanout_status": "withheld_until_null_model_pilot"
+    },
+    {
+      "repository": "KooshaPari/hwLedger",
+      "classification": ["RESEARCH_LEAD"],
+      "fanout_status": "central_only"
+    },
+    {
+      "repository": "KooshaPari/Eidolon",
+      "classification": ["EXPERIMENT"],
+      "fanout_status": "central_only"
+    },
+    {
+      "repository": "KooshaPari/PlayCua",
+      "classification": ["EXPERIMENT"],
+      "fanout_status": "central_only"
+    },
+    {
+      "repository": "KooshaPari/PhenoSpecs",
+      "classification": ["CONTRADICTION"],
+      "fanout_status": "blocked_by_authority_conflict"
+    }
   ],
   "quality_gates": {
     "G0_PREFLIGHT": "pass_wave_1",
