@@ -6,6 +6,7 @@ on:
       - docs/emergent-garden-nested-corpus-20260904
     paths:
       - scripts/research/collect_emergent_garden_youtube.py
+      - scripts/research/build_emergent_garden_link_frontier.py
       - .github/workflows/emergent-garden-youtube-census.yml
   workflow_dispatch:
 
@@ -33,9 +34,12 @@ jobs:
           ref: docs/emergent-garden-nested-corpus-20260904
           fetch-depth: 0
 
-      - name: Validate collector
+      - name: Validate collectors
         shell: bash
-        run: python3 -m py_compile scripts/research/collect_emergent_garden_youtube.py
+        run: |
+          python3 -m py_compile \
+            scripts/research/collect_emergent_garden_youtube.py \
+            scripts/research/build_emergent_garden_link_frontier.py
 
       - name: Install Infisical CLI when needed
         shell: bash
@@ -77,6 +81,14 @@ jobs:
             python3 scripts/research/collect_emergent_garden_youtube.py
           fi
 
+      - name: Expand high-value direct links
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 scripts/research/build_emergent_garden_link_frontier.py
+
       - name: Validate and format generated artifacts
         shell: bash
         run: |
@@ -86,7 +98,11 @@ jobs:
           from pathlib import Path
 
           root = Path('docs/corpora/emergent-garden/data')
-          for path in sorted(root.glob('youtube-*-v1.json')):
+          paths = [
+              *sorted(root.glob('youtube-*-v1.json')),
+              root / 'direct-link-frontier-v1.json',
+          ]
+          for path in paths:
               json.loads(path.read_text(encoding='utf-8'))
               print(f'validated {path}')
           PY
@@ -96,9 +112,11 @@ jobs:
             docs/corpora/emergent-garden/data/youtube-text-coverage-v1.json \
             docs/corpora/emergent-garden/data/youtube-description-edges-v1.json \
             docs/corpora/emergent-garden/data/youtube-census-status-v1.json \
-            docs/corpora/emergent-garden/research/YOUTUBE-CENSUS-WAVE-2.md
+            docs/corpora/emergent-garden/data/direct-link-frontier-v1.json \
+            docs/corpora/emergent-garden/research/YOUTUBE-CENSUS-WAVE-2.md \
+            docs/corpora/emergent-garden/research/DIRECT-LINK-EXPANSION-WAVE-2.md
 
-      - name: Commit census result
+      - name: Commit census and direct-link results
         shell: bash
         run: |
           set -euo pipefail
@@ -109,10 +127,12 @@ jobs:
             docs/corpora/emergent-garden/data/youtube-text-coverage-v1.json \
             docs/corpora/emergent-garden/data/youtube-description-edges-v1.json \
             docs/corpora/emergent-garden/data/youtube-census-status-v1.json \
-            docs/corpora/emergent-garden/research/YOUTUBE-CENSUS-WAVE-2.md
+            docs/corpora/emergent-garden/data/direct-link-frontier-v1.json \
+            docs/corpora/emergent-garden/research/YOUTUBE-CENSUS-WAVE-2.md \
+            docs/corpora/emergent-garden/research/DIRECT-LINK-EXPANSION-WAVE-2.md
           if git diff --cached --quiet; then
-            echo 'No census changes to commit.'
+            echo 'No census or direct-link changes to commit.'
             exit 0
           fi
-          git commit -m 'data(research): capture Emergent Garden YouTube census'
+          git commit -m 'data(research): refresh Emergent Garden direct graph'
           git push origin HEAD:docs/emergent-garden-nested-corpus-20260904
