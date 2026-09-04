@@ -1,7 +1,7 @@
 # Emergent Garden YouTube Census — Wave 2
 
 **Campaign:** `eg-nested-corpus-2026-09`  
-**Captured:** 2026-09-04T23:10:11Z  
+**Captured:** 2026-09-04T23:13:36Z  
 **Provider:** `youtube_atom_channel_feed`  
 **G1 inventory gate:** **BLOCKED**  
 **Official uploads playlist:** `UUwBhBDsqiQflTMLy2epbQVw`  
