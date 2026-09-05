@@ -1,0 +1,49 @@
+name: Emergent Garden Wave 6 Public Text Inspection
+on:
+  push:
+    branches: [docs/emergent-garden-nested-corpus-20260904]
+    paths: [.github/workflows/emergent-garden-wave6-public-text.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Fetch only the fixed public pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/eg-public-pages"
+          python3 - <<'PY'
+          import hashlib,json,os,urllib.request,urllib.error
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'eg-public-pages'
+          urls=[
+            'https://lilys.ai/ko/notes/1148615',
+            'https://lilys.ai/it/notes/ai-agent-20251128/the-chaos-of-ai-agents',
+            'https://glasp.co/youtube/3H79ZcBuw4M',
+          ]
+          rows=[]
+          for n,url in enumerate(urls):
+              row={'requested_url':url,'credentialed':False}
+              try:
+                  req=urllib.request.Request(url,headers={'User-Agent':'ResearchLedger-PublicResearch/1.0','Accept':'text/html'})
+                  with urllib.request.urlopen(req,timeout=25) as response:
+                      body=response.read(4000001)
+                      row.update(status=response.status,final_url=response.geturl(),content_type=response.headers.get('Content-Type'))
+                  if len(body)>4000000: raise ValueError('BODY_LIMIT')
+                  row.update(bytes=len(body),sha256=hashlib.sha256(body).hexdigest(),path=f'page-{n}.html')
+                  (root/row['path']).write_bytes(body)
+              except Exception as e:
+                  row['failure']=type(e).__name__
+              rows.append(row)
+          (root/'receipt.json').write_text(json.dumps(rows,indent=2)+'\n')
+          print(json.dumps(rows,indent=2))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: eg-wave6-public-pages-${{ github.run_id }}
+          path: ${{ runner.temp }}/eg-public-pages/
+          retention-days: 1
+          if-no-files-found: error
