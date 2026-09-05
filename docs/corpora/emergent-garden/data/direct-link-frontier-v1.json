@@ -1,25 +1,26 @@
 {
   "schema_version": "1.0",
   "campaign_id": "eg-nested-corpus-2026-09",
-  "generated_at": "2026-09-04T23:21:39Z",
+  "generated_at": "2026-09-05T05:55:31Z",
   "input": {
     "path": "docs/corpora/emergent-garden/data/youtube-description-edges-v1.json",
-    "sha256": "284497d4d3f265244784db0e830e0536bf605517c453a58cdb7a526386fd15b6",
-    "generated_at": "2026-09-04T23:21:23Z",
-    "provider": "youtube_atom_channel_feed",
-    "inventory_complete": false
+    "sha256": "181bda36d25c1a325b89032761fa26a9680097ec29431d0d85ecf0bfece20c0f",
+    "generated_at": "2026-09-05T05:55:02Z",
+    "provider": "youtube_data_api_v3",
+    "inventory_complete": true
   },
   "summary": {
-    "input_edges": 186,
-    "input_unique_targets": 116,
-    "high_value_unique_targets": 23,
-    "implementation_targets": 11,
-    "paper_targets": 3,
-    "author_direct_targets": 9,
-    "expanded": 23,
-    "failed": 0,
+    "input_edges": 528,
+    "input_unique_targets": 300,
+    "high_value_unique_targets": 54,
+    "implementation_targets": 22,
+    "paper_targets": 19,
+    "author_direct_targets": 13,
+    "expanded": 53,
+    "failed": 1,
     "state_counts": {
-      "EXPANDED": 23
+      "EXPANDED": 53,
+      "FAILED": 1
     }
   },
   "expansions": {
@@ -33,7 +34,7 @@
           {
             "video_id": "ZBdAe3ZwKds",
             "title": "AI plays Age of Empires II",
-            "published_at": "2026-08-15T12:00:32+00:00"
+            "published_at": "2026-08-15T12:00:32Z"
           }
         ],
         "repository_full_name": "MaxRobinsonTheGreat/AgentsOfEmpires",
@@ -75,6 +76,353 @@
       },
       {
         "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/CodeEvolver",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "horha3LcHtY",
+            "title": "Evolving AI Code",
+            "published_at": "2024-08-12T13:30:30Z"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/CodeEvolver",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/CodeEvolver",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/CodeEvolver",
+          "description": "this is perhaps the most disgusting piece of code I've ever written. vanilla js, not even jquery baby, almost all one file. ",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "591acd495f5b35a5adef41e77d6c68a4bf8156f5",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/CodeEvolver/commit/591acd495f5b35a5adef41e77d6c68a4bf8156f5",
+          "created_at": "2024-03-18T03:02:42Z",
+          "updated_at": "2026-04-15T10:50:26Z",
+          "pushed_at": "2024-08-12T03:57:32Z",
+          "size_kib": 63,
+          "primary_language": null,
+          "topics": [],
+          "license_spdx": "GPL-3.0",
+          "open_issues_count": 2,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "966659229f2008c4361e194795d6f37659214904079bfd7fdd462f2cac248c4d",
+          "branch_response_sha256": "bb6157d7e06cd49d9a4a7a3f770d7f02cdd6286930b9b84e4b3dceb3a9dabf38",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "4f3734b37748fe1046a8ec94ed27aaaf4487bbf1",
+            "size": 40,
+            "response_sha256": "866a8800b20a19386831a2928c444a329de0c530dffadafbc87f72149be40c9f",
+            "content_sha256": "356e546d208cb73c14b67f99fb220c98756b12b318f8d9e56b8a0cb2b1862a32",
+            "excerpt": "[evolvecode.io](https://evolvecode.io/)",
+            "headings": []
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/EvolutionSimulator/blob/master/V2README.md",
+        "domain": "github.com",
+        "occurrence_count": 4,
+        "source_videos": [
+          {
+            "video_id": "OOCFgYzxxvs",
+            "title": "Natural Selection Simulation for 1 hour",
+            "published_at": "2021-09-04T14:00:10Z"
+          },
+          {
+            "video_id": "RO9rfa8-vwo",
+            "title": "Life Engine Update (now with graphs! 📈)",
+            "published_at": "2021-02-19T22:00:16Z"
+          },
+          {
+            "video_id": "HpgXTphPCP0",
+            "title": "Bugs are Features in Evolution [The Life Engine]",
+            "published_at": "2021-02-05T21:55:05Z"
+          },
+          {
+            "video_id": "4XEklaH9k6k",
+            "title": "Evolution Simulator [The Life Engine]",
+            "published_at": "2020-08-07T22:21:22Z"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/EvolutionSimulator",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/EvolutionSimulator",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/EvolutionSimulator",
+          "description": "First version of the evolution simulator (Not the Life Engine!)",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "master",
+          "head_sha": "207ae06d5eefaf333d5d8ceee614ed82aec6958e",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/EvolutionSimulator/commit/207ae06d5eefaf333d5d8ceee614ed82aec6958e",
+          "created_at": "2018-06-24T01:50:09Z",
+          "updated_at": "2026-07-23T04:47:57Z",
+          "pushed_at": "2021-08-29T00:32:35Z",
+          "size_kib": 33,
+          "primary_language": "HTML",
+          "topics": [],
+          "license_spdx": null,
+          "open_issues_count": 0,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "ba32bc7a76cb2841de27dd2a9fc5e947049d6c28d82904c087b0ea11f41a3bb2",
+          "branch_response_sha256": "aac198ccf9e5df244ef151f92ac6e1386333009071195be0c603bb5741d44204",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "a9df91107dc2869004b041f6194efc1b5c7ed2b9",
+            "size": 2612,
+            "response_sha256": "ad84233056f3d5e3fa83319f70c75576324286ba6a3a3092e11f30b242618a5c",
+            "content_sha256": "7034ef41130f146ae2faebfaadac3e5ba8b9cb71de3d52837e49ddfd5b268b4b",
+            "excerpt": "# NOTE This is the readme for the original evolution simulator, not the [Life Engine](https://thelifeengine.net). Go [here](https://github.com/MaxRobinsonTheGreat/EvolutionSimulator/blob/master/V2README.md) for the updated readme. # EVOLUTION SIMULATOR Designed and programmed by Max Robinson [Watch Life Evolve](https://students.cs.byu.edu/~maximo5/EvolutionSimulator) ## What is this? This program is designed to simulate the natural processes of evolution and population growth/decline. It places ",
+            "headings": [
+              "# NOTE",
+              "# EVOLUTION SIMULATOR",
+              "## What is this?",
+              "## Key Controls",
+              "## Rules",
+              "## Cell Types",
+              "## Notes:"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/EvolutionSimulatorV2",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "iSAKEnRfles",
+            "title": "How the Life Engine works",
+            "published_at": "2021-11-14T14:43:00Z"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/EvolutionSimulatorV2",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/LifeEngine",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/LifeEngine",
+          "description": "The Life Engine",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "master",
+          "head_sha": "15bb2fe444d3c5c0024dc92183fbda8249813fbb",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/LifeEngine/commit/15bb2fe444d3c5c0024dc92183fbda8249813fbb",
+          "created_at": "2020-06-30T19:44:54Z",
+          "updated_at": "2026-09-04T13:05:10Z",
+          "pushed_at": "2026-02-06T07:30:22Z",
+          "size_kib": 4557,
+          "primary_language": "JavaScript",
+          "topics": ["evolutionary-algorithms", "simulation"],
+          "license_spdx": "GPL-3.0",
+          "open_issues_count": 17,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "da13a01ced1169e4ac9c60faf153b5e3906150dbbf32cf2bcd647f49dd11b1db",
+          "branch_response_sha256": "46add2c788f0c115c7daedf1d2631c4eda7f3ee4d4501831102fb721a9c5bbdd",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "cc10a4621330254677fba63fc3b0a81f47305c12",
+            "size": 6525,
+            "response_sha256": "603519e327ab0c05ae734980069b6606613a7603f7c51f27cc9c35cb5057985d",
+            "content_sha256": "d0aae2e4c9eac187be848d228d847d4c02985fd7223c7c8f24eaba367116aaa6",
+            "excerpt": "This is the readme for my evolution simulator, The Life Engine. FOR FEATURE REQUESTS, USE THE DISCUSSIONS TAB. FOR BUG REPORTS, USE THE ISSUES TAB. :) # The Life Engine [Play here!](https://thelifeengine.net/) The life engine is a cellular automaton designed to simulate the long term processes of biological evolution. It allows organisms to eat, reproduce, mutate, and adapt. Unlike genetic algorithms, the life engine does not manually select the most \"fit\" organism for some given task, but rathe",
+            "headings": [
+              "# The Life Engine",
+              "# How to Run and Modify the Code",
+              "### Npm build commands",
+              "# How the Simulation Works",
+              "## The Environment",
+              "## Cells",
+              "### Independent Cells",
+              "### Organism Cells",
+              "## Organisms",
+              "## Reproduction",
+              "## Mutation",
+              "## Movement and Rotation",
+              "## Eyes and Brains"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/LifeEngine/blob/master/Changelog.md",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "CU9UcuKAwQI",
+            "title": "Life Engine Update and Open Source Discussion",
+            "published_at": "2021-12-22T14:00:05Z"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/LifeEngine",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/LifeEngine",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/LifeEngine",
+          "description": "The Life Engine",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "master",
+          "head_sha": "15bb2fe444d3c5c0024dc92183fbda8249813fbb",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/LifeEngine/commit/15bb2fe444d3c5c0024dc92183fbda8249813fbb",
+          "created_at": "2020-06-30T19:44:54Z",
+          "updated_at": "2026-09-04T13:05:10Z",
+          "pushed_at": "2026-02-06T07:30:22Z",
+          "size_kib": 4557,
+          "primary_language": "JavaScript",
+          "topics": ["evolutionary-algorithms", "simulation"],
+          "license_spdx": "GPL-3.0",
+          "open_issues_count": 17,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "da13a01ced1169e4ac9c60faf153b5e3906150dbbf32cf2bcd647f49dd11b1db",
+          "branch_response_sha256": "46add2c788f0c115c7daedf1d2631c4eda7f3ee4d4501831102fb721a9c5bbdd",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "cc10a4621330254677fba63fc3b0a81f47305c12",
+            "size": 6525,
+            "response_sha256": "603519e327ab0c05ae734980069b6606613a7603f7c51f27cc9c35cb5057985d",
+            "content_sha256": "d0aae2e4c9eac187be848d228d847d4c02985fd7223c7c8f24eaba367116aaa6",
+            "excerpt": "This is the readme for my evolution simulator, The Life Engine. FOR FEATURE REQUESTS, USE THE DISCUSSIONS TAB. FOR BUG REPORTS, USE THE ISSUES TAB. :) # The Life Engine [Play here!](https://thelifeengine.net/) The life engine is a cellular automaton designed to simulate the long term processes of biological evolution. It allows organisms to eat, reproduce, mutate, and adapt. Unlike genetic algorithms, the life engine does not manually select the most \"fit\" organism for some given task, but rathe",
+            "headings": [
+              "# The Life Engine",
+              "# How to Run and Modify the Code",
+              "### Npm build commands",
+              "# How the Simulation Works",
+              "## The Environment",
+              "## Cells",
+              "### Independent Cells",
+              "### Organism Cells",
+              "## Organisms",
+              "## Reproduction",
+              "## Mutation",
+              "## Movement and Rotation",
+              "## Eyes and Brains"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/ManimApproximations",
+        "domain": "github.com",
+        "occurrence_count": 2,
+        "source_videos": [
+          {
+            "video_id": "Anc2_mnb3V8",
+            "title": "Gradient Descent vs Evolution | How Neural Networks Learn",
+            "published_at": "2025-03-01T13:00:12Z"
+          },
+          {
+            "video_id": "TkwXa7Cvfr8",
+            "title": "Watching Neural Networks Learn",
+            "published_at": "2023-08-17T13:00:33Z"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/ManimApproximations",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/ManimApproximations",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/ManimApproximations",
+          "description": null,
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "c3351d2be43804ee514c91ca20270e0fb3593586",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/ManimApproximations/commit/c3351d2be43804ee514c91ca20270e0fb3593586",
+          "created_at": "2023-07-11T21:51:58Z",
+          "updated_at": "2026-03-09T11:48:33Z",
+          "pushed_at": "2025-03-01T02:58:43Z",
+          "size_kib": 34,
+          "primary_language": "Python",
+          "topics": [],
+          "license_spdx": null,
+          "open_issues_count": 0,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "c98b7c04f7d01ddef244530c85631311f7ab0a1a833395a17e3cebe4328824a8",
+          "branch_response_sha256": "5e08519489219bd5aa2422a94920b02ca5a691bbbeb1824c96c8b7030e73b453",
+          "readme": null,
+          "readme_error": "HTTPError: HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/StableDiffEvolution",
+        "domain": "github.com",
+        "occurrence_count": 2,
+        "source_videos": [
+          {
+            "video_id": "zYp2sDpWprU",
+            "title": "The Museum of AI Art",
+            "published_at": "2023-03-11T14:00:39Z"
+          },
+          {
+            "video_id": "V2gRUrr-Fbs",
+            "title": "The Creativity of AI Art",
+            "published_at": "2023-03-04T13:30:19Z"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/StableDiffEvolution",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/StableDiffEvolution",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/StableDiffEvolution",
+          "description": null,
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "72e6cb80fc7dc6cd48be73be6ba9f8594cc9421a",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/StableDiffEvolution/commit/72e6cb80fc7dc6cd48be73be6ba9f8594cc9421a",
+          "created_at": "2022-09-18T01:37:28Z",
+          "updated_at": "2026-03-04T13:11:07Z",
+          "pushed_at": "2023-03-14T01:58:53Z",
+          "size_kib": 67,
+          "primary_language": "Python",
+          "topics": [],
+          "license_spdx": "MIT",
+          "open_issues_count": 0,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "f8690c4fa52ff9b48826b0fe1aea61cc052c93296e4da4ba24955c74cb31baa2",
+          "branch_response_sha256": "91863693a7b05ee829d5accd4e47189eb09eb4438f0afba156bb13bdf26534ed",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "632b62490eb92c0f814e36f65426fc6b372e5c35",
+            "size": 411,
+            "response_sha256": "8d2c052dfd71be92fcb97c3957e4bcfaa57e1dc67dfd73aaa231724c796d6c89",
+            "content_sha256": "82a46097711df48e03f9ccd47fdf80cb07cc59454e3567b2df4eb5da493229a6",
+            "excerpt": "# StableDiffEvolution Scripts used to do some experiments with stable diffusion, including interpolation and evolution. The code is hacky and messy, ye be warned. Install prerequisites with pip: `pip install -r requirements.txt` You'll need to set up hugging face credentials to download and use stable diffusion, explained in the first few steps of this https://huggingface.co/CompVis/stable-diffusion-v1-4",
+            "headings": ["# StableDiffEvolution"]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
         "canonical_url": "https://github.com/MaxRobinsonTheGreat/agent_prompts",
         "domain": "github.com",
         "occurrence_count": 1,
@@ -82,7 +430,7 @@
           {
             "video_id": "2YYjPs8t8MI",
             "title": "The Chaos of AI Agents",
-            "published_at": "2025-07-26T12:00:04+00:00"
+            "published_at": "2025-07-26T12:00:04Z"
           }
         ],
         "repository_full_name": "MaxRobinsonTheGreat/agent_prompts",
@@ -123,7 +471,7 @@
           {
             "video_id": "t7_ZXgfJVG8",
             "title": "Recursive Self-Improvement",
-            "published_at": "2026-06-13T12:00:38+00:00"
+            "published_at": "2026-06-13T12:00:38Z"
           }
         ],
         "repository_full_name": "MaxRobinsonTheGreat/fractalsearch",
@@ -165,6 +513,55 @@
       },
       {
         "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/hillclimbers",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "Anc2_mnb3V8",
+            "title": "Gradient Descent vs Evolution | How Neural Networks Learn",
+            "published_at": "2025-03-01T13:00:12Z"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/hillclimbers",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/hillclimbers",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/hillclimbers",
+          "description": null,
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "1a576176c143ce4758cd2a6b2b543119b76b8ecf",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/hillclimbers/commit/1a576176c143ce4758cd2a6b2b543119b76b8ecf",
+          "created_at": "2025-02-17T04:33:32Z",
+          "updated_at": "2025-09-25T19:57:40Z",
+          "pushed_at": "2025-02-28T00:25:52Z",
+          "size_kib": 11,
+          "primary_language": "HTML",
+          "topics": [],
+          "license_spdx": "MIT",
+          "open_issues_count": 0,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "a4d93b2fcd4938e0d0a58fb052b0b6f434416a401728d7490d4aa38027881760",
+          "branch_response_sha256": "fcc01b8325278b8db33a5026ce5eaca0fd7ad4c5c279a9482abfc884f0f474b3",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "f8f8db9b03843b6cc4c41056d34a0561799c48bb",
+            "size": 14,
+            "response_sha256": "98ee71d5f875708134b642e1d55dd83da8621da93b445c64df6964e9ae904092",
+            "content_sha256": "3ebd811d9339f0755edde9f7bab7488db63d0c1da3f5c926983acf0d9cbec533",
+            "excerpt": "# hillclimbers",
+            "headings": ["# hillclimbers"]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
         "canonical_url": "https://github.com/MaxRobinsonTheGreat/hyperdimensions",
         "domain": "github.com",
         "occurrence_count": 2,
@@ -172,12 +569,12 @@
           {
             "video_id": "DB-TD3s3MZ0",
             "title": "Evolution in Higher Dimensions",
-            "published_at": "2026-02-28T13:00:23+00:00"
+            "published_at": "2026-02-28T13:00:23Z"
           },
           {
             "video_id": "349r0xJFGNw",
             "title": "Creatures in Higher Dimensions",
-            "published_at": "2025-12-20T13:00:04+00:00"
+            "published_at": "2025-12-20T13:00:04Z"
           }
         ],
         "repository_full_name": "MaxRobinsonTheGreat/hyperdimensions",
@@ -213,12 +610,32 @@
         "edge_class": "IMPLEMENTATION_CANDIDATE",
         "canonical_url": "https://github.com/MaxRobinsonTheGreat/mandelbrotnn",
         "domain": "github.com",
-        "occurrence_count": 1,
+        "occurrence_count": 5,
         "source_videos": [
           {
             "video_id": "t7_ZXgfJVG8",
             "title": "Recursive Self-Improvement",
-            "published_at": "2026-06-13T12:00:38+00:00"
+            "published_at": "2026-06-13T12:00:38Z"
+          },
+          {
+            "video_id": "Anc2_mnb3V8",
+            "title": "Gradient Descent vs Evolution | How Neural Networks Learn",
+            "published_at": "2025-03-01T13:00:12Z"
+          },
+          {
+            "video_id": "TkwXa7Cvfr8",
+            "title": "Watching Neural Networks Learn",
+            "published_at": "2023-08-17T13:00:33Z"
+          },
+          {
+            "video_id": "lFHJqay0zCs",
+            "title": "Neural network learns the Mandelbrot [Part 2]",
+            "published_at": "2021-02-27T22:38:14Z"
+          },
+          {
+            "video_id": "QmPBLroyHB0",
+            "title": "Neural Network learns the Mandelbrot set [Part 1]",
+            "published_at": "2021-02-24T23:04:45Z"
           }
         ],
         "repository_full_name": "MaxRobinsonTheGreat/mandelbrotnn",
@@ -271,7 +688,7 @@
           {
             "video_id": "--CteUWzErk",
             "title": "Unleashing AI Slop Swarms",
-            "published_at": "2025-10-04T12:00:00+00:00"
+            "published_at": "2025-10-04T12:00:00Z"
           }
         ],
         "repository_full_name": "MaxRobinsonTheGreat/slopcity",
@@ -319,6 +736,177 @@
       },
       {
         "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/turmites",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "7x9J7rsLC50",
+            "title": "Ants that are Computers",
+            "published_at": "2025-06-07T13:00:24Z"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/turmites",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/turmites",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/turmites",
+          "description": "langton's ant colony",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "fd3cfb116a8f964e92eb46ce63ec0f92df3e86d7",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/turmites/commit/fd3cfb116a8f964e92eb46ce63ec0f92df3e86d7",
+          "created_at": "2025-04-17T16:19:16Z",
+          "updated_at": "2026-08-31T05:59:08Z",
+          "pushed_at": "2026-07-30T17:04:37Z",
+          "size_kib": 182,
+          "primary_language": "JavaScript",
+          "topics": [],
+          "license_spdx": "MIT",
+          "open_issues_count": 1,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "20347a4ebf25dee23dc755ecab2641cb997638d715ecad63e3625338688677c0",
+          "branch_response_sha256": "37c2fbf15bdc2ae474de18eb97069088676d9ffc04bf1688c8bf8cd29c89f341",
+          "readme": null,
+          "readme_error": "HTTPError: HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/MaxRobinsonTheGreat/webgl-convolution",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "Oljolj-ke9Q",
+            "title": "Simple neural cellular automata",
+            "published_at": "2021-10-16T13:53:30Z"
+          }
+        ],
+        "repository_full_name": "MaxRobinsonTheGreat/webgl-convolution",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "MaxRobinsonTheGreat/NeuralPatterns",
+          "html_url": "https://github.com/MaxRobinsonTheGreat/NeuralPatterns",
+          "description": "Source code for Neural Patterns",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "main",
+          "head_sha": "b039bdd434e236be8e0ed094cf2bd543411f6c10",
+          "head_commit_url": "https://github.com/MaxRobinsonTheGreat/NeuralPatterns/commit/b039bdd434e236be8e0ed094cf2bd543411f6c10",
+          "created_at": "2021-08-02T04:01:27Z",
+          "updated_at": "2026-07-15T14:36:52Z",
+          "pushed_at": "2021-12-12T02:35:35Z",
+          "size_kib": 570,
+          "primary_language": "Vue",
+          "topics": [],
+          "license_spdx": "MIT",
+          "open_issues_count": 6,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "a2b63dad704c1c98a9c72f8f7b3828803382633e21aa8b83205c2eda346642b2",
+          "branch_response_sha256": "ff09521cc2696cbba703c2ad83edf89739f36ae110c8e6d20b2d58c0af7ffa7b",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "059ab840c437c52ab4a2afa525828f96f0831586",
+            "size": 739,
+            "response_sha256": "5baae58156ac82ef494a7ec66d48c1c587f306bb25ad7843ecc41f6a163843f9",
+            "content_sha256": "60bbd9b87ca43c0d0e8c30a7579b793fccbf3f31938063238811ae71ac3e423a",
+            "excerpt": "# Neural Patterns This repo contains the source code for [neuralpatterns.io](https://neuralpatterns.io/), which is a web toy for generating simple neural cellular automata in the browser. It uses webgl to run the core simulation, which is a 3x3 convolution followed by an activation function applied to each pixel. [The code is open source under the mit license](https://github.com/MaxRobinsonTheGreat/webgl-convolution/blob/main/LICENSE). ## To run locally Clone this repo and run this command ``` n",
+            "headings": [
+              "# Neural Patterns",
+              "## To run locally",
+              "### Customize configuration"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/PrismarineJS/mineflayer",
+        "domain": "github.com",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "NTHWMk5pcYs",
+            "title": "Playing Minecraft with ChatGPT | Mindcraft",
+            "published_at": "2024-02-17T14:00:14Z"
+          }
+        ],
+        "repository_full_name": "PrismarineJS/mineflayer",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "PrismarineJS/mineflayer",
+          "html_url": "https://github.com/PrismarineJS/mineflayer",
+          "description": "Create Minecraft bots with a powerful, stable, and high level JavaScript API.",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "master",
+          "head_sha": "c07e457f79fd6faef17b195a47b798f27031e867",
+          "head_commit_url": "https://github.com/PrismarineJS/mineflayer/commit/c07e457f79fd6faef17b195a47b798f27031e867",
+          "created_at": "2011-01-23T09:41:55Z",
+          "updated_at": "2026-09-04T21:33:32Z",
+          "pushed_at": "2026-09-05T00:58:13Z",
+          "size_kib": 13182,
+          "primary_language": "JavaScript",
+          "topics": [
+            "bot",
+            "minecraft",
+            "minecraft-api",
+            "minecraft-bot",
+            "network",
+            "nodejs"
+          ],
+          "license_spdx": "MIT",
+          "open_issues_count": 508,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "aeb8b5e7d1e07cee585960501be19119b3a5937daa31c01fc2236a46fc1593b8",
+          "branch_response_sha256": "831af08af59731617a7cf6d14335bdad89e8c856c508c61b823a15f51de06c34",
+          "readme": {
+            "path": "docs/README.md",
+            "blob_sha": "851dd556a20106fb90b3dfb6af5063acc7f21a02",
+            "size": 16753,
+            "response_sha256": "74054b81f3a778dc2fc3e2ff827ffc8d1a0acab33b0b9316d848a441735441aa",
+            "content_sha256": "19ffbba5e5252b788553668f0da2bd4bbbd2b5baf092247c288854ebfccd0cd3",
+            "excerpt": "# Mineflayer [![NPM version](https://img.shields.io/npm/v/mineflayer.svg?color=success&label=npm%20package&logo=npm)](https://www.npmjs.com/package/mineflayer) [![Build Status](https://img.shields.io/github/actions/workflow/status/PrismarineJS/mineflayer/ci.yml.svg?label=CI&logo=github&logoColor=lightgrey)](https://github.com/PrismarineJS/mineflayer/actions?query=workflow%3A%22CI%22) [![Try it on gitpod](https://img.shields.io/static/v1.svg?label=try&message=on%20gitpod&color=brightgreen&logo=gi",
+            "headings": [
+              "# Mineflayer",
+              "## Features",
+              "### Roadmap",
+              "## Installation",
+              "## Documentation",
+              "## Contribute",
+              "## Usage",
+              "### Echo Example",
+              "#### Connecting to a Realm",
+              "### See what your bot is doing",
+              "#### More Examples",
+              "### Modules",
+              "#### The Node Way™",
+              "#### Modules",
+              "### Debug",
+              "## Third Party Plugins",
+              "## Projects Using Mineflayer",
+              "## Testing",
+              "### Testing everything",
+              "### Testing specific version"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
         "canonical_url": "https://github.com/cabaletta/baritone",
         "domain": "github.com",
         "occurrence_count": 1,
@@ -326,7 +914,7 @@
           {
             "video_id": "Wh4abvcUj8Q",
             "title": "Can AI (actually) beat Minecraft?",
-            "published_at": "2025-09-21T12:01:03+00:00"
+            "published_at": "2025-09-21T12:01:03Z"
           }
         ],
         "repository_full_name": "cabaletta/baritone",
@@ -343,7 +931,7 @@
           "head_sha": "64333af99a072caa3f4d6f17e4b223a5ae7da3f4",
           "head_commit_url": "https://github.com/cabaletta/baritone/commit/64333af99a072caa3f4d6f17e4b223a5ae7da3f4",
           "created_at": "2018-08-01T15:34:21Z",
-          "updated_at": "2026-09-04T23:07:59Z",
+          "updated_at": "2026-09-05T05:09:44Z",
           "pushed_at": "2026-09-01T22:45:33Z",
           "size_kib": 17139,
           "primary_language": "Java",
@@ -362,7 +950,7 @@
           "open_issues_count": 928,
           "parent_full_name": null,
           "source_full_name": null,
-          "repository_response_sha256": "d4c70a5cb32ea1bfc232f70fbdcfc30f27ccfa0f5232a538efe2c6ce38aa284b",
+          "repository_response_sha256": "f6ee78b66a854a99f557057522d0630cf631538a57a505297de7f538a070d2b3",
           "branch_response_sha256": "af205da3773f9d89aa4a78031f2b8a6e6f2545e4937932c9609be10515cd20a8",
           "readme": {
             "path": "README.md",
@@ -395,7 +983,7 @@
           {
             "video_id": "t7_ZXgfJVG8",
             "title": "Recursive Self-Improvement",
-            "published_at": "2026-06-13T12:00:38+00:00"
+            "published_at": "2026-06-13T12:00:38Z"
           }
         ],
         "repository_full_name": "karpathy/autoresearch",
@@ -412,7 +1000,7 @@
           "head_sha": "228791fb499afffb54b46200aca536f79142f117",
           "head_commit_url": "https://github.com/karpathy/autoresearch/commit/228791fb499afffb54b46200aca536f79142f117",
           "created_at": "2026-03-06T22:00:43Z",
-          "updated_at": "2026-09-04T23:20:47Z",
+          "updated_at": "2026-09-05T05:22:06Z",
           "pushed_at": "2026-03-26T00:07:37Z",
           "size_kib": 530,
           "primary_language": "Python",
@@ -421,7 +1009,7 @@
           "open_issues_count": 194,
           "parent_full_name": null,
           "source_full_name": null,
-          "repository_response_sha256": "de69772e3b1b8b17d1ac4702edb42b9019d4d6f2fd1b32d3c0884417703becfc",
+          "repository_response_sha256": "cab61da3763eb695549c6a4a79e0cfb5ba51d2bbedb5ce5a5bb8c0229915020d",
           "branch_response_sha256": "dd081587bbe05161a3875113a7c6b486dfcb72c43d4d8302ab68fc6f00956d1a",
           "readme": {
             "path": "README.md",
@@ -451,6 +1039,114 @@
       },
       {
         "edge_class": "IMPLEMENTATION_CANDIDATE",
+        "canonical_url": "https://github.com/kolbytn/mindcraft",
+        "domain": "github.com",
+        "occurrence_count": 9,
+        "source_videos": [
+          {
+            "video_id": "iDJ6GrHNoDs",
+            "title": "Vision and Vibe Coding | Mindcraft Update",
+            "published_at": "2025-04-05T12:00:59Z"
+          },
+          {
+            "video_id": "uLRKXEHxZ-U",
+            "title": "AI talks to AI in Minecraft",
+            "published_at": "2024-12-21T17:00:51Z"
+          },
+          {
+            "video_id": "gRotoL8P8D8",
+            "title": "How to Play Minecraft with AI (mindcraft tutorial)",
+            "published_at": "2024-11-16T13:00:49Z"
+          },
+          {
+            "video_id": "KxaPYhfJV4U",
+            "title": "4 AIs Survive 10 Days in Minecraft",
+            "published_at": "2024-10-26T12:00:23Z"
+          },
+          {
+            "video_id": "IeXadWbvDiE",
+            "title": "AI Plays Minecraft Forever (and dies)",
+            "published_at": "2024-09-20T12:00:21Z"
+          },
+          {
+            "video_id": "kbf9QJJn-UQ",
+            "title": "AI Builds with Cheats | Mindcraft",
+            "published_at": "2024-06-14T13:00:48Z"
+          },
+          {
+            "video_id": "VXQ-AnQ6N6A",
+            "title": "AI Builds in Creative Mode | Mindcraft",
+            "published_at": "2024-05-26T13:00:32Z"
+          },
+          {
+            "video_id": "Xd5PLYl4Q5Q",
+            "title": "AI Builds Stuff in Minecraft | Mindcraft",
+            "published_at": "2024-03-29T15:00:17Z"
+          },
+          {
+            "video_id": "NTHWMk5pcYs",
+            "title": "Playing Minecraft with ChatGPT | Mindcraft",
+            "published_at": "2024-02-17T14:00:14Z"
+          }
+        ],
+        "repository_full_name": "kolbytn/mindcraft",
+        "expansion_state": "EXPANDED",
+        "repository": {
+          "full_name": "mindcraft-bots/mindcraft",
+          "html_url": "https://github.com/mindcraft-bots/mindcraft",
+          "description": "Minecraft AI with LLMs+Mineflayer",
+          "fork": false,
+          "archived": false,
+          "disabled": false,
+          "visibility": "public",
+          "default_branch": "develop",
+          "head_sha": "5f3acc87b479864124173de444f31fa5538f94a6",
+          "head_commit_url": "https://github.com/mindcraft-bots/mindcraft/commit/5f3acc87b479864124173de444f31fa5538f94a6",
+          "created_at": "2023-08-16T06:39:59Z",
+          "updated_at": "2026-09-05T05:24:38Z",
+          "pushed_at": "2026-06-10T14:58:17Z",
+          "size_kib": 50982,
+          "primary_language": "JavaScript",
+          "topics": [],
+          "license_spdx": "MIT",
+          "open_issues_count": 54,
+          "parent_full_name": null,
+          "source_full_name": null,
+          "repository_response_sha256": "612f95d96420f3bb203e5452a5305129f0079a3cb92b306fda08a897ab467292",
+          "branch_response_sha256": "c94d80cf829f6e96b0a80889dc508d33333d95e0387b3e97fe9be5ca21b7eaf6",
+          "readme": {
+            "path": "README.md",
+            "blob_sha": "fbc6339f467963b9bd959153c4a9d7557cef4de0",
+            "size": 13264,
+            "response_sha256": "961dd48333fbf7032f56e20f2ab72d30299e265f6f080df5d527b3ad4d5599c5",
+            "content_sha256": "cc58f52ba9c1ffa0a20c7b6264ceb2c82d37188006c54974589a8f58e355cc41",
+            "excerpt": "🧠mindcraft⛏️ Crafting minds for Minecraft with LLMs and Mineflayer! FAQ | Discord Support | Video Tutorial | Blog Post | Paper Website | MineCollab > [!Caution] Do not connect this bot to public servers with coding enabled. This project allows an LLM to write/execute code on your computer. The code is sandboxed, but still vulnerable to injection attacks. Code writing is disabled by default, you can enable it by setting `allow_insecure_coding` to `true` in `settings.js`. Ye be warned. # Getting S",
+            "headings": [
+              "# Getting Started",
+              "## Requirements",
+              "## Install and Run",
+              "# Configuration",
+              "## Model Customization",
+              "## Online Servers",
+              "## Tasks",
+              "## Docker Container",
+              "# Bot Profiles",
+              "## Model Specifications",
+              "## Embedding Models",
+              "## Voice Synthesis Models",
+              "## Specifying Profiles via Command Line",
+              "# Contributing",
+              "## Patches",
+              "## Development Team",
+              "## Citation:",
+              "## Contributors"
+            ]
+          },
+          "readme_error": null
+        }
+      },
+      {
+        "edge_class": "IMPLEMENTATION_CANDIDATE",
         "canonical_url": "https://github.com/mboop127/AutoDE",
         "domain": "github.com",
         "occurrence_count": 1,
@@ -458,7 +1154,7 @@
           {
             "video_id": "ZBdAe3ZwKds",
             "title": "AI plays Age of Empires II",
-            "published_at": "2026-08-15T12:00:32+00:00"
+            "published_at": "2026-08-15T12:00:32Z"
           }
         ],
         "repository_full_name": "mboop127/AutoDE",
@@ -507,12 +1203,12 @@
           {
             "video_id": "Ipcr5heLOJ8",
             "title": "AI for War (in minecraft)",
-            "published_at": "2026-03-21T12:00:35+00:00"
+            "published_at": "2026-03-21T12:00:35Z"
           },
           {
             "video_id": "Wh4abvcUj8Q",
             "title": "Can AI (actually) beat Minecraft?",
-            "published_at": "2025-09-21T12:01:03+00:00"
+            "published_at": "2025-09-21T12:01:03Z"
           }
         ],
         "repository_full_name": "mindcraft-bots/mindcraft",
@@ -529,7 +1225,7 @@
           "head_sha": "5f3acc87b479864124173de444f31fa5538f94a6",
           "head_commit_url": "https://github.com/mindcraft-bots/mindcraft/commit/5f3acc87b479864124173de444f31fa5538f94a6",
           "created_at": "2023-08-16T06:39:59Z",
-          "updated_at": "2026-09-04T23:00:57Z",
+          "updated_at": "2026-09-05T05:24:38Z",
           "pushed_at": "2026-06-10T14:58:17Z",
           "size_kib": 50982,
           "primary_language": "JavaScript",
@@ -538,7 +1234,7 @@
           "open_issues_count": 54,
           "parent_full_name": null,
           "source_full_name": null,
-          "repository_response_sha256": "4b65481347faed726233b8854b9dcd9dbcd86516c3a663cc8741b3243d999212",
+          "repository_response_sha256": "612f95d96420f3bb203e5452a5305129f0079a3cb92b306fda08a897ab467292",
           "branch_response_sha256": "c94d80cf829f6e96b0a80889dc508d33333d95e0387b3e97fe9be5ca21b7eaf6",
           "readme": {
             "path": "README.md",
@@ -580,7 +1276,7 @@
           {
             "video_id": "Wh4abvcUj8Q",
             "title": "Can AI (actually) beat Minecraft?",
-            "published_at": "2025-09-21T12:01:03+00:00"
+            "published_at": "2025-09-21T12:01:03Z"
           }
         ],
         "repository_full_name": "mindcraft-ce/mindcraft-ce",
@@ -606,7 +1302,7 @@
           "open_issues_count": 33,
           "parent_full_name": "mindcraft-bots/mindcraft",
           "source_full_name": "mindcraft-bots/mindcraft",
-          "repository_response_sha256": "c344bef5793451453b3bb6aeb6872289b9e8dad41378229a023cb03fa3ea63f5",
+          "repository_response_sha256": "d29fd48c5544c3cfe0bfde0db0c9149684240e7e30430e90c36ef17f080c1fe4",
           "branch_response_sha256": "5cbc2317889c879efe41118758ee3cd37fbe4d458d50abdbcd5af9a613b8568c",
           "readme": {
             "path": "README.md",
@@ -645,6 +1341,409 @@
     "primary_sources": [
       {
         "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/1412.0233",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "Anc2_mnb3V8",
+            "title": "Gradient Descent vs Evolution | How Neural Networks Learn",
+            "published_at": "2025-03-01T13:00:12Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "1412.0233",
+          "versioned_id": "1412.0233v3",
+          "title": "The Loss Surfaces of Multilayer Networks",
+          "abstract_sha256": "4e34a7ad5f735bbcfe6e3203cc9784d6ad5a3312b54131eb1f676bb17ca7a867",
+          "abstract_excerpt": "We study the connection between the highly non-convex loss function of a simple model of the fully-connected feed-forward neural network and the Hamiltonian of the spherical spin-glass model under the assumptions of: i) variable independence, ii) redundancy in network parametrization, and iii) uniformity. These assumptions enable us to explain the complexity of the fully decoupled neural network through the prism of the results from random matrix theory. We show that for large-size decoupled networks the lowest critical values of the random loss function form a layered structure and they are located in a well-defined band lower-bounded by the global minimum. The number of local minima outsid",
+          "authors": [
+            "Anna Choromanska",
+            "Mikael Henaff",
+            "Michael Mathieu",
+            "Gérard Ben Arous",
+            "Yann LeCun"
+          ],
+          "published_at": "2014-11-30T15:48:16Z",
+          "updated_at": "2015-01-21T22:25:26Z",
+          "categories": ["cs.LG"],
+          "primary_category": "cs.LG",
+          "comment": "",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/1412.0233v3",
+            "pdf": "https://arxiv.org/pdf/1412.0233v3"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/1809.11096",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "gvNdCRe3T-g",
+            "title": "Ai that makes thumbnails (or any image)",
+            "published_at": "2022-07-09T13:00:20Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "1809.11096",
+          "versioned_id": "1809.11096v2",
+          "title": "Large Scale GAN Training for High Fidelity Natural Image Synthesis",
+          "abstract_sha256": "e1803e456b4536996d3637bab615d1f891323a5800868f3427f1f81414c5d35e",
+          "abstract_excerpt": "Despite recent progress in generative image modeling, successfully generating high-resolution, diverse samples from complex datasets such as ImageNet remains an elusive goal. To this end, we train Generative Adversarial Networks at the largest scale yet attempted, and study the instabilities specific to such scale. We find that applying orthogonal regularization to the generator renders it amenable to a simple \"truncation trick,\" allowing fine control over the trade-off between sample fidelity and variety by reducing the variance of the Generator's input. Our modifications lead to models which set the new state of the art in class-conditional image synthesis. When trained on ImageNet at 128x",
+          "authors": ["Andrew Brock", "Jeff Donahue", "Karen Simonyan"],
+          "published_at": "2018-09-28T15:38:49Z",
+          "updated_at": "2019-02-25T21:32:06Z",
+          "categories": ["cs.LG", "stat.ML"],
+          "primary_category": "cs.LG",
+          "comment": "",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/1809.11096v2",
+            "pdf": "https://arxiv.org/pdf/1809.11096v2"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/1901.01753",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "IeXadWbvDiE",
+            "title": "AI Plays Minecraft Forever (and dies)",
+            "published_at": "2024-09-20T12:00:21Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "1901.01753",
+          "versioned_id": "1901.01753v3",
+          "title": "Paired Open-Ended Trailblazer (POET): Endlessly Generating Increasingly Complex and Diverse Learning Environments and Their Solutions",
+          "abstract_sha256": "7be1e67bd436f7bb7a274df172dfd0e7d71d8fbc1f304e3a2e97ba31f4cd7208",
+          "abstract_excerpt": "While the history of machine learning so far largely encompasses a series of problems posed by researchers and algorithms that learn their solutions, an important question is whether the problems themselves can be generated by the algorithm at the same time as they are being solved. Such a process would in effect build its own diverse and expanding curricula, and the solutions to problems at various stages would become stepping stones towards solving even more challenging problems later in the process. The Paired Open-Ended Trailblazer (POET) algorithm introduced in this paper does just that: it pairs the generation of environmental challenges and the optimization of agents to solve those ch",
+          "authors": [
+            "Rui Wang",
+            "Joel Lehman",
+            "Jeff Clune",
+            "Kenneth O. Stanley"
+          ],
+          "published_at": "2019-01-07T11:28:36Z",
+          "updated_at": "2019-02-21T01:17:31Z",
+          "categories": ["cs.NE"],
+          "primary_category": "cs.NE",
+          "comment": "28 pages, 9 figures",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/1901.01753v3",
+            "pdf": "https://arxiv.org/pdf/1901.01753v3"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2006.10739",
+        "domain": "arxiv.org",
+        "occurrence_count": 2,
+        "source_videos": [
+          {
+            "video_id": "TkwXa7Cvfr8",
+            "title": "Watching Neural Networks Learn",
+            "published_at": "2023-08-17T13:00:33Z"
+          },
+          {
+            "video_id": "lFHJqay0zCs",
+            "title": "Neural network learns the Mandelbrot [Part 2]",
+            "published_at": "2021-02-27T22:38:14Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2006.10739",
+          "versioned_id": "2006.10739v1",
+          "title": "Fourier Features Let Networks Learn High Frequency Functions in Low Dimensional Domains",
+          "abstract_sha256": "ac0f28c06cda5d9e54e09080a8441e4c51a6f674101047fc7ccad446a4dd234b",
+          "abstract_excerpt": "We show that passing input points through a simple Fourier feature mapping enables a multilayer perceptron (MLP) to learn high-frequency functions in low-dimensional problem domains. These results shed light on recent advances in computer vision and graphics that achieve state-of-the-art results by using MLPs to represent complex 3D objects and scenes. Using tools from the neural tangent kernel (NTK) literature, we show that a standard MLP fails to learn high frequencies both in theory and in practice. To overcome this spectral bias, we use a Fourier feature mapping to transform the effective NTK into a stationary kernel with a tunable bandwidth. We suggest an approach for selecting problem-",
+          "authors": [
+            "Matthew Tancik",
+            "Pratul P. Srinivasan",
+            "Ben Mildenhall",
+            "Sara Fridovich-Keil",
+            "Nithin Raghavan",
+            "Utkarsh Singhal",
+            "Ravi Ramamoorthi",
+            "Jonathan T. Barron",
+            "Ren Ng"
+          ],
+          "published_at": "2020-06-18T17:59:11Z",
+          "updated_at": "2020-06-18T17:59:11Z",
+          "categories": ["cs.CV", "cs.LG"],
+          "primary_category": "cs.CV",
+          "comment": "Project page: https://people.eecs.berkeley.edu/~bmild/fourfeat/",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2006.10739v1",
+            "pdf": "https://arxiv.org/pdf/2006.10739v1"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2006.11239",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "gvNdCRe3T-g",
+            "title": "Ai that makes thumbnails (or any image)",
+            "published_at": "2022-07-09T13:00:20Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2006.11239",
+          "versioned_id": "2006.11239v2",
+          "title": "Denoising Diffusion Probabilistic Models",
+          "abstract_sha256": "bf974f17323db74dbe2b11bd0deb1ee66796ecc7c14ca3cf3ad9e7637d244edc",
+          "abstract_excerpt": "We present high quality image synthesis results using diffusion probabilistic models, a class of latent variable models inspired by considerations from nonequilibrium thermodynamics. Our best results are obtained by training on a weighted variational bound designed according to a novel connection between diffusion probabilistic models and denoising score matching with Langevin dynamics, and our models naturally admit a progressive lossy decompression scheme that can be interpreted as a generalization of autoregressive decoding. On the unconditional CIFAR10 dataset, we obtain an Inception score of 9.46 and a state-of-the-art FID score of 3.17. On 256x256 LSUN, we obtain sample quality similar",
+          "authors": ["Jonathan Ho", "Ajay Jain", "Pieter Abbeel"],
+          "published_at": "2020-06-19T17:24:44Z",
+          "updated_at": "2020-12-16T21:15:05Z",
+          "categories": ["cs.LG", "stat.ML"],
+          "primary_category": "cs.LG",
+          "comment": "",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2006.11239v2",
+            "pdf": "https://arxiv.org/pdf/2006.11239v2"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2103.05247",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "0QczhVg5HaI",
+            "title": "Why Neural Networks can learn (almost) anything",
+            "published_at": "2022-03-12T14:00:01Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2103.05247",
+          "versioned_id": "2103.05247v2",
+          "title": "Pretrained Transformers as Universal Computation Engines",
+          "abstract_sha256": "6d698829d50bb6e2e8ed6823ca4397035252a7b75903c581bb6152f452aa20ee",
+          "abstract_excerpt": "We investigate the capability of a transformer pretrained on natural language to generalize to other modalities with minimal finetuning -- in particular, without finetuning of the self-attention and feedforward layers of the residual blocks. We consider such a model, which we call a Frozen Pretrained Transformer (FPT), and study finetuning it on a variety of sequence classification tasks spanning numerical computation, vision, and protein fold prediction. In contrast to prior works which investigate finetuning on the same modality as the pretraining dataset, we show that pretraining on natural language can improve performance and compute efficiency on non-language downstream tasks. Additiona",
+          "authors": [
+            "Kevin Lu",
+            "Aditya Grover",
+            "Pieter Abbeel",
+            "Igor Mordatch"
+          ],
+          "published_at": "2021-03-09T06:39:56Z",
+          "updated_at": "2021-06-30T17:34:46Z",
+          "categories": ["cs.AI", "cs.LG"],
+          "primary_category": "cs.LG",
+          "comment": "",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2103.05247v2",
+            "pdf": "https://arxiv.org/pdf/2103.05247v2"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2105.05233?curius=520",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "gvNdCRe3T-g",
+            "title": "Ai that makes thumbnails (or any image)",
+            "published_at": "2022-07-09T13:00:20Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2105.05233",
+          "versioned_id": "2105.05233v4",
+          "title": "Diffusion Models Beat GANs on Image Synthesis",
+          "abstract_sha256": "c8820870f0c975c83ab540e020319147e5d6e2bb45cd9089d47ea858b08ac051",
+          "abstract_excerpt": "We show that diffusion models can achieve image sample quality superior to the current state-of-the-art generative models. We achieve this on unconditional image synthesis by finding a better architecture through a series of ablations. For conditional image synthesis, we further improve sample quality with classifier guidance: a simple, compute-efficient method for trading off diversity for fidelity using gradients from a classifier. We achieve an FID of 2.97 on ImageNet 128$\\times$128, 4.59 on ImageNet 256$\\times$256, and 7.72 on ImageNet 512$\\times$512, and we match BigGAN-deep even with as few as 25 forward passes per sample, all while maintaining better coverage of the distribution. Fina",
+          "authors": ["Prafulla Dhariwal", "Alex Nichol"],
+          "published_at": "2021-05-11T17:50:24Z",
+          "updated_at": "2021-06-01T17:49:49Z",
+          "categories": ["cs.AI", "cs.CV", "cs.LG", "stat.ML"],
+          "primary_category": "cs.LG",
+          "comment": "Added compute requirements, ImageNet 256$\\times$256 upsampling FID and samples, DDIM guided sampler, fixed typos",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2105.05233v4",
+            "pdf": "https://arxiv.org/pdf/2105.05233v4"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2105.13290",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "gvNdCRe3T-g",
+            "title": "Ai that makes thumbnails (or any image)",
+            "published_at": "2022-07-09T13:00:20Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2105.13290",
+          "versioned_id": "2105.13290v3",
+          "title": "CogView: Mastering Text-to-Image Generation via Transformers",
+          "abstract_sha256": "1393207c1691e7aed2f40eeb35c23ad0daa355b0e9457df4f228c0feba16fab5",
+          "abstract_excerpt": "Text-to-Image generation in the general domain has long been an open problem, which requires both a powerful generative model and cross-modal understanding. We propose CogView, a 4-billion-parameter Transformer with VQ-VAE tokenizer to advance this problem. We also demonstrate the finetuning strategies for various downstream tasks, e.g. style learning, super-resolution, text-image ranking and fashion design, and methods to stabilize pretraining, e.g. eliminating NaN losses. CogView achieves the state-of-the-art FID on the blurred MS COCO dataset, outperforming previous GAN-based models and a recent similar work DALL-E.",
+          "authors": [
+            "Ming Ding",
+            "Zhuoyi Yang",
+            "Wenyi Hong",
+            "Wendi Zheng",
+            "Chang Zhou",
+            "Da Yin",
+            "Junyang Lin",
+            "Xu Zou",
+            "Zhou Shao",
+            "Hongxia Yang",
+            "Jie Tang"
+          ],
+          "published_at": "2021-05-26T16:52:53Z",
+          "updated_at": "2021-11-05T06:10:15Z",
+          "categories": ["cs.CV", "cs.LG"],
+          "primary_category": "cs.CV",
+          "comment": "to appear in NeurIPS 2021",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2105.13290v3",
+            "pdf": "https://arxiv.org/pdf/2105.13290v3"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
         "canonical_url": "https://arxiv.org/abs/2201.05989",
         "domain": "arxiv.org",
         "occurrence_count": 1,
@@ -652,7 +1751,7 @@
           {
             "video_id": "t7_ZXgfJVG8",
             "title": "Recursive Self-Improvement",
-            "published_at": "2026-06-13T12:00:38+00:00"
+            "published_at": "2026-06-13T12:00:38Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -682,16 +1781,337 @@
           }
         },
         "provider_response": {
-          "requested_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
-          "final_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
           "http_status": 200,
           "content_type": "application/atom+xml",
-          "content_length_header": "8477",
-          "captured_byte_count": 8477,
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "2a2dd969c6f0061bf465a20b27c40722249058902116d09d8343f9c65b7d66cd"
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2301.12050",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "NTHWMk5pcYs",
+            "title": "Playing Minecraft with ChatGPT | Mindcraft",
+            "published_at": "2024-02-17T14:00:14Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2301.12050",
+          "versioned_id": "2301.12050v2",
+          "title": "Do Embodied Agents Dream of Pixelated Sheep: Embodied Decision Making using Language Guided World Modelling",
+          "abstract_sha256": "e0bd5f9f246a7c03d653336904c0c495e6de184352cf2c904f43b22ecb6f4aae",
+          "abstract_excerpt": "Reinforcement learning (RL) agents typically learn tabula rasa, without prior knowledge of the world. However, if initialized with knowledge of high-level subgoals and transitions between subgoals, RL agents could utilize this Abstract World Model (AWM) for planning and exploration. We propose using few-shot large language models (LLMs) to hypothesize an AWM, that will be verified through world experience, to improve sample efficiency of RL agents. Our DECKARD agent applies LLM-guided exploration to item crafting in Minecraft in two phases: (1) the Dream phase where the agent uses an LLM to decompose a task into a sequence of subgoals, the hypothesized AWM; and (2) the Wake phase where the a",
+          "authors": [
+            "Kolby Nottingham",
+            "Prithviraj Ammanabrolu",
+            "Alane Suhr",
+            "Yejin Choi",
+            "Hannaneh Hajishirzi",
+            "Sameer Singh",
+            "Roy Fox"
+          ],
+          "published_at": "2023-01-28T02:04:07Z",
+          "updated_at": "2023-04-27T15:14:01Z",
+          "categories": ["cs.CL", "cs.LG"],
+          "primary_category": "cs.LG",
+          "comment": "in proceedings of ICML 23",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2301.12050v2",
+            "pdf": "https://arxiv.org/pdf/2301.12050v2"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2303.17580",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "c9c5a4IsjOA",
+            "title": "Code that Writes Code and ChatGPT",
+            "published_at": "2023-05-12T13:00:33Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2303.17580",
+          "versioned_id": "2303.17580v4",
+          "title": "HuggingGPT: Solving AI Tasks with ChatGPT and its Friends in Hugging Face",
+          "abstract_sha256": "4ddab3ad61a046fe11ddf68025292f3d11b59ce43662479c06f5075267f04414",
+          "abstract_excerpt": "Solving complicated AI tasks with different domains and modalities is a key step toward artificial general intelligence. While there are numerous AI models available for various domains and modalities, they cannot handle complicated AI tasks autonomously. Considering large language models (LLMs) have exhibited exceptional abilities in language understanding, generation, interaction, and reasoning, we advocate that LLMs could act as a controller to manage existing AI models to solve complicated AI tasks, with language serving as a generic interface to empower this. Based on this philosophy, we present HuggingGPT, an LLM-powered agent that leverages LLMs (e.g., ChatGPT) to connect various AI m",
+          "authors": [
+            "Yongliang Shen",
+            "Kaitao Song",
+            "Xu Tan",
+            "Dongsheng Li",
+            "Weiming Lu",
+            "Yueting Zhuang"
+          ],
+          "published_at": "2023-03-30T17:48:28Z",
+          "updated_at": "2023-12-03T18:17:21Z",
+          "categories": ["cs.AI", "cs.CL", "cs.CV", "cs.LG"],
+          "primary_category": "cs.CL",
+          "comment": "",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2303.17580v4",
+            "pdf": "https://arxiv.org/pdf/2303.17580v4"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2304.03442",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "uLRKXEHxZ-U",
+            "title": "AI talks to AI in Minecraft",
+            "published_at": "2024-12-21T17:00:51Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2304.03442",
+          "versioned_id": "2304.03442v2",
+          "title": "Generative Agents: Interactive Simulacra of Human Behavior",
+          "abstract_sha256": "b9205ed79d058490ec68d28a5c70fff7f8ca61e4e3d6d01a39349e917c9d973c",
+          "abstract_excerpt": "Believable proxies of human behavior can empower interactive applications ranging from immersive environments to rehearsal spaces for interpersonal communication to prototyping tools. In this paper, we introduce generative agents--computational software agents that simulate believable human behavior. Generative agents wake up, cook breakfast, and head to work; artists paint, while authors write; they form opinions, notice each other, and initiate conversations; they remember and reflect on days past as they plan the next day. To enable generative agents, we describe an architecture that extends a large language model to store a complete record of the agent's experiences using natural languag",
+          "authors": [
+            "Joon Sung Park",
+            "Joseph C. O'Brien",
+            "Carrie J. Cai",
+            "Meredith Ringel Morris",
+            "Percy Liang",
+            "Michael S. Bernstein"
+          ],
+          "published_at": "2023-04-07T01:55:19Z",
+          "updated_at": "2023-08-06T00:21:19Z",
+          "categories": ["cs.AI", "cs.HC", "cs.LG"],
+          "primary_category": "cs.HC",
+          "comment": "",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2304.03442v2",
+            "pdf": "https://arxiv.org/pdf/2304.03442v2"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2405.15568",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "IeXadWbvDiE",
+            "title": "AI Plays Minecraft Forever (and dies)",
+            "published_at": "2024-09-20T12:00:21Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2405.15568",
+          "versioned_id": "2405.15568v3",
+          "title": "OMNI-EPIC: Open-endedness via Models of human Notions of Interestingness with Environments Programmed in Code",
+          "abstract_sha256": "ce0785297b6eae26a6b99ba99841073b6ac9c47b63e3e0be5102c9a5ae686c84",
+          "abstract_excerpt": "Open-ended and AI-generating algorithms aim to continuously generate and solve increasingly complex tasks indefinitely, offering a promising path toward more general intelligence. To accomplish this grand vision, learning must occur within a vast array of potential tasks. Existing approaches to automatically generating environments are constrained within manually predefined, often narrow distributions of environment, limiting their ability to create any learning environment. To address this limitation, we introduce a novel framework, OMNI-EPIC, that augments previous work in Open-endedness via Models of human Notions of Interestingness (OMNI) with Environments Programmed in Code (EPIC). OMNI",
+          "authors": [
+            "Maxence Faldor",
+            "Jenny Zhang",
+            "Antoine Cully",
+            "Jeff Clune"
+          ],
+          "published_at": "2024-05-24T13:57:32Z",
+          "updated_at": "2025-02-14T14:24:59Z",
+          "categories": ["cs.AI"],
+          "primary_category": "cs.AI",
+          "comment": "",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2405.15568v3",
+            "pdf": "https://arxiv.org/pdf/2405.15568v3"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2406.04268",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "IeXadWbvDiE",
+            "title": "AI Plays Minecraft Forever (and dies)",
+            "published_at": "2024-09-20T12:00:21Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2406.04268",
+          "versioned_id": "2406.04268v1",
+          "title": "Open-Endedness is Essential for Artificial Superhuman Intelligence",
+          "abstract_sha256": "874f34b6a897a3f061bd9b9f984a743c013a22436119c294cf596819d5ab63ac",
+          "abstract_excerpt": "In recent years there has been a tremendous surge in the general capabilities of AI systems, mainly fuelled by training foundation models on internetscale data. Nevertheless, the creation of openended, ever self-improving AI remains elusive. In this position paper, we argue that the ingredients are now in place to achieve openendedness in AI systems with respect to a human observer. Furthermore, we claim that such open-endedness is an essential property of any artificial superhuman intelligence (ASI). We begin by providing a concrete formal definition of open-endedness through the lens of novelty and learnability. We then illustrate a path towards ASI via open-ended systems built on top of f",
+          "authors": [
+            "Edward Hughes",
+            "Michael Dennis",
+            "Jack Parker-Holder",
+            "Feryal Behbahani",
+            "Aditi Mavalankar",
+            "Yuge Shi",
+            "Tom Schaul",
+            "Tim Rocktaschel"
+          ],
+          "published_at": "2024-06-06T17:15:02Z",
+          "updated_at": "2024-06-06T17:15:02Z",
+          "categories": ["cs.AI", "cs.LG"],
+          "primary_category": "cs.LG",
+          "comment": "",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2406.04268v1",
+            "pdf": "https://arxiv.org/pdf/2406.04268v1"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/abs/2411.00114",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "uLRKXEHxZ-U",
+            "title": "AI talks to AI in Minecraft",
+            "published_at": "2024-12-21T17:00:51Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2411.00114",
+          "versioned_id": "2411.00114v1",
+          "title": "Project Sid: Many-agent simulations toward AI civilization",
+          "abstract_sha256": "7069837f025b15138b0fe382995090b835e405313f71009a43d0e163a2aa6eab",
+          "abstract_excerpt": "AI agents have been evaluated in isolation or within small groups, where interactions remain limited in scope and complexity. Large-scale simulations involving many autonomous agents -- reflecting the full spectrum of civilizational processes -- have yet to be explored. Here, we demonstrate how 10 - 1000+ AI agents behave and progress within agent societies. We first introduce the PIANO (Parallel Information Aggregation via Neural Orchestration) architecture, which enables agents to interact with humans and other agents in real-time while maintaining coherence across multiple output streams. We then evaluate agent performance in agent simulations using civilizational benchmarks inspired by h",
+          "authors": [
+            "Altera. AL",
+            "Andrew Ahn",
+            "Nic Becker",
+            "Stephanie Carroll",
+            "Nico Christie",
+            "Manuel Cortes",
+            "Arda Demirci",
+            "Melissa Du",
+            "Frankie Li",
+            "Shuying Luo",
+            "Peter Y Wang",
+            "Mathew Willows",
+            "Feitong Yang",
+            "Guangyu Robert Yang"
+          ],
+          "published_at": "2024-10-31T18:11:22Z",
+          "updated_at": "2024-10-31T18:11:22Z",
+          "categories": ["cs.AI", "cs.MA"],
+          "primary_category": "cs.AI",
+          "comment": "35 pages, 14 figures",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2411.00114v1",
+            "pdf": "https://arxiv.org/pdf/2411.00114v1"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
         }
       },
       {
@@ -703,7 +2123,7 @@
           {
             "video_id": "2g-CrQfYNtE",
             "title": "Artificial Life",
-            "published_at": "2026-07-18T12:00:13+00:00"
+            "published_at": "2026-07-18T12:00:13Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -735,16 +2155,16 @@
           }
         },
         "provider_response": {
-          "requested_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
-          "final_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
           "http_status": 200,
           "content_type": "application/atom+xml",
-          "content_length_header": "8477",
-          "captured_byte_count": 8477,
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "2a2dd969c6f0061bf465a20b27c40722249058902116d09d8343f9c65b7d66cd"
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
         }
       },
       {
@@ -756,7 +2176,7 @@
           {
             "video_id": "t7_ZXgfJVG8",
             "title": "Recursive Self-Improvement",
-            "published_at": "2026-06-13T12:00:38+00:00"
+            "published_at": "2026-06-13T12:00:38Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -786,20 +2206,171 @@
           }
         },
         "provider_response": {
-          "requested_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
-          "final_url": "https://export.arxiv.org/api/query?id_list=2201.05989%2C2412.17799%2C2505.22954&max_results=3",
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
           "http_status": 200,
           "content_type": "application/atom+xml",
-          "content_length_header": "8477",
-          "captured_byte_count": 8477,
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "2a2dd969c6f0061bf465a20b27c40722249058902116d09d8343f9c65b7d66cd"
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/pdf/2012.03016.pdf",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "0QczhVg5HaI",
+            "title": "Why Neural Networks can learn (almost) anything",
+            "published_at": "2022-03-12T14:00:01Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2012.03016",
+          "versioned_id": "2012.03016v2",
+          "title": "A three layer neural network can represent any multivariate function",
+          "abstract_sha256": "7b13bc99f87611ca82440ccefb6f092f649fc30cf3fef915c9f167da98bf647e",
+          "abstract_excerpt": "In 1987, Hecht-Nielsen showed that any continuous multivariate function can be implemented by a certain type three-layer neural network. This result was very much discussed in neural network literature. In this paper we prove that not only continuous functions but also all discontinuous functions can be implemented by such neural networks.",
+          "authors": ["Vugar Ismailov"],
+          "published_at": "2020-12-05T12:11:09Z",
+          "updated_at": "2022-01-16T03:18:18Z",
+          "categories": ["cs.LG", "math.FA", "stat.ML"],
+          "primary_category": "cs.LG",
+          "comment": "9 pages; a few references added",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2012.03016v2",
+            "pdf": "https://arxiv.org/pdf/2012.03016v2"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+        }
+      },
+      {
+        "edge_class": "PRIMARY_SOURCE_CANDIDATE",
+        "canonical_url": "https://arxiv.org/pdf/2504.17950",
+        "domain": "arxiv.org",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "MeEcxh9St24",
+            "title": "Mindcraft Research Paper!",
+            "published_at": "2025-05-10T12:00:38Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "paper": {
+          "arxiv_id": "2504.17950",
+          "versioned_id": "2504.17950v1",
+          "title": "Collaborating Action by Action: A Multi-agent LLM Framework for Embodied Reasoning",
+          "abstract_sha256": "3bbe0fd5dd0b15468586a709eb8c0d28e92bbdebcef4fe502bead46a2c3b88ca",
+          "abstract_excerpt": "Collaboration is ubiquitous and essential in day-to-day life -- from exchanging ideas, to delegating tasks, to generating plans together. This work studies how LLMs can adaptively collaborate to perform complex embodied reasoning tasks. To this end we introduce MINDcraft, an easily extensible platform built to enable LLM agents to control characters in the open-world game of Minecraft; and MineCollab, a benchmark to test the different dimensions of embodied and collaborative reasoning. An experimental study finds that the primary bottleneck in collaborating effectively for current state-of-the-art agents is efficient natural language communication, with agent performance dropping as much as ",
+          "authors": [
+            "Isadora White",
+            "Kolby Nottingham",
+            "Ayush Maniar",
+            "Max Robinson",
+            "Hansen Lillemark",
+            "Mehul Maheshwari",
+            "Lianhui Qin",
+            "Prithviraj Ammanabrolu"
+          ],
+          "published_at": "2025-04-24T21:28:16Z",
+          "updated_at": "2025-04-24T21:28:16Z",
+          "categories": ["cs.CL", "cs.MA"],
+          "primary_category": "cs.MA",
+          "comment": "9 pages of main paper with 6 main figures, overall 28 pages",
+          "journal_reference": "",
+          "doi": "",
+          "links": {
+            "alternate": "https://arxiv.org/abs/2504.17950v1",
+            "pdf": "https://arxiv.org/pdf/2504.17950v1"
+          }
+        },
+        "provider_response": {
+          "requested_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "final_url": "https://export.arxiv.org/api/query?id_list=1412.0233%2C1809.11096%2C1901.01753%2C2006.10739%2C2006.11239%2C2103.05247%2C2105.05233%2C2105.13290%2C2201.05989%2C2301.12050%2C2303.17580%2C2304.03442%2C2405.15568%2C2406.04268%2C2411.00114%2C2412.17799%2C2505.22954%2C2012.03016%2C2504.17950&max_results=19",
+          "http_status": 200,
+          "content_type": "application/atom+xml",
+          "content_length_header": "43725",
+          "captured_byte_count": 43725,
+          "capture_truncated": false,
+          "etag": null,
+          "last_modified": null,
+          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
         }
       }
     ],
     "author_direct": [
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://emergentgarden.io/",
+        "domain": "emergentgarden.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "1OxBv9Q7Uxo",
+            "title": "\"Vibe Coding\"",
+            "published_at": "2025-05-03T12:00:03Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://emergentgarden.io/",
+          "final_url": "https://emergentgarden.io/",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "4997",
+          "captured_byte_count": 4997,
+          "capture_truncated": false,
+          "etag": "\"d6a8adbd84a0a1fd40ba0ab45a93c174\"",
+          "last_modified": "Thu, 30 Jul 2026 18:15:14 GMT",
+          "response_sha256": "f72c46b0ee5b01b5cb66006e7fc262e563aefcfa5dbe279289e9beee19eb48e1",
+          "page_title": "Emergent Garden",
+          "headings": [
+            "Emergent Garden",
+            "hello_world",
+            "Community",
+            "My Channel",
+            "Support",
+            "Contact",
+            "To Advertisers:"
+          ],
+          "text_excerpt": "Emergent Garden Emergent Garden About Gallery Community Support Contact hello_world I'm Max. This website is a fancy linktree to my projects and social media. I'm an independent software engineer with a lot of random interests. I love making things. I do a lot of stuff with artificial life, artificial intelligence, web development, games, simulations, and more. My main fascination is emergent complexity, which permeates every inch of this weird universe. Simple things come together to make compl"
+        }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://evolvecode.io/",
+        "domain": "evolvecode.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "horha3LcHtY",
+            "title": "Evolving AI Code",
+            "published_at": "2024-08-12T13:30:30Z"
+          }
+        ],
+        "expansion_state": "FAILED",
+        "error": "HTTPError: HTTP Error 404: Not Found"
+      },
       {
         "edge_class": "AUTHOR_DIRECT",
         "canonical_url": "https://evolvecode.io/alife/aquarium.html",
@@ -809,7 +2380,7 @@
           {
             "video_id": "2g-CrQfYNtE",
             "title": "Artificial Life",
-            "published_at": "2026-07-18T12:00:13+00:00"
+            "published_at": "2026-07-18T12:00:13Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -838,7 +2409,7 @@
           {
             "video_id": "2g-CrQfYNtE",
             "title": "Artificial Life",
-            "published_at": "2026-07-18T12:00:13+00:00"
+            "published_at": "2026-07-18T12:00:13Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -867,7 +2438,7 @@
           {
             "video_id": "2g-CrQfYNtE",
             "title": "Artificial Life",
-            "published_at": "2026-07-18T12:00:13+00:00"
+            "published_at": "2026-07-18T12:00:13Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -896,7 +2467,7 @@
           {
             "video_id": "2g-CrQfYNtE",
             "title": "Artificial Life",
-            "published_at": "2026-07-18T12:00:13+00:00"
+            "published_at": "2026-07-18T12:00:13Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -925,7 +2496,7 @@
           {
             "video_id": "DB-TD3s3MZ0",
             "title": "Evolution in Higher Dimensions",
-            "published_at": "2026-02-28T13:00:23+00:00"
+            "published_at": "2026-02-28T13:00:23Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -954,12 +2525,12 @@
           {
             "video_id": "DB-TD3s3MZ0",
             "title": "Evolution in Higher Dimensions",
-            "published_at": "2026-02-28T13:00:23+00:00"
+            "published_at": "2026-02-28T13:00:23Z"
           },
           {
             "video_id": "349r0xJFGNw",
             "title": "Creatures in Higher Dimensions",
-            "published_at": "2025-12-20T13:00:04+00:00"
+            "published_at": "2025-12-20T13:00:04Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -988,7 +2559,7 @@
           {
             "video_id": "DB-TD3s3MZ0",
             "title": "Evolution in Higher Dimensions",
-            "published_at": "2026-02-28T13:00:23+00:00"
+            "published_at": "2026-02-28T13:00:23Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -1012,12 +2583,22 @@
         "edge_class": "AUTHOR_DIRECT",
         "canonical_url": "https://evolvecode.io/turmites/index.html",
         "domain": "evolvecode.io",
-        "occurrence_count": 1,
+        "occurrence_count": 3,
         "source_videos": [
           {
             "video_id": "0HqUYpGQIfs",
             "title": "Emergent Complexity",
-            "published_at": "2025-11-22T13:00:04+00:00"
+            "published_at": "2025-11-22T13:00:04Z"
+          },
+          {
+            "video_id": "7x9J7rsLC50",
+            "title": "Ants that are Computers",
+            "published_at": "2025-06-07T13:00:24Z"
+          },
+          {
+            "video_id": "1OxBv9Q7Uxo",
+            "title": "\"Vibe Coding\"",
+            "published_at": "2025-05-03T12:00:03Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -1041,12 +2622,27 @@
         "edge_class": "AUTHOR_DIRECT",
         "canonical_url": "https://neuralpatterns.io/",
         "domain": "neuralpatterns.io",
-        "occurrence_count": 1,
+        "occurrence_count": 4,
         "source_videos": [
           {
             "video_id": "2g-CrQfYNtE",
             "title": "Artificial Life",
-            "published_at": "2026-07-18T12:00:13+00:00"
+            "published_at": "2026-07-18T12:00:13Z"
+          },
+          {
+            "video_id": "34KhwO7Txhs",
+            "title": "I Quit my Job to make Weird Programs",
+            "published_at": "2025-01-18T13:00:04Z"
+          },
+          {
+            "video_id": "3H79ZcBuw4M",
+            "title": "What are neural cellular automata?",
+            "published_at": "2021-11-21T14:00:01Z"
+          },
+          {
+            "video_id": "Oljolj-ke9Q",
+            "title": "Simple neural cellular automata",
+            "published_at": "2021-10-16T13:53:30Z"
           }
         ],
         "expansion_state": "EXPANDED",
@@ -1065,14 +2661,72 @@
           "headings": [],
           "text_excerpt": "neuralpatterns We're sorry but neuralpatterns doesn't work properly without JavaScript enabled. Please enable it to continue."
         }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://neuralpatterns.io/hill_climber.html",
+        "domain": "neuralpatterns.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "Anc2_mnb3V8",
+            "title": "Gradient Descent vs Evolution | How Neural Networks Learn",
+            "published_at": "2025-03-01T13:00:12Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://neuralpatterns.io/hill_climber.html",
+          "final_url": "https://neuralpatterns.io/hill_climber.html",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "32471",
+          "captured_byte_count": 32471,
+          "capture_truncated": false,
+          "etag": "\"0ea21aeb5060104c29a276d44b6898a1\"",
+          "last_modified": "Thu, 27 Feb 2025 23:24:31 GMT",
+          "response_sha256": "b187ada940382a18ec80a7ef02e1d9c646577c1712146ba8f4bcc98ce30aa2c4",
+          "page_title": "Neural Mountaineer",
+          "headings": [],
+          "text_excerpt": "Neural Mountaineer body { margin: 0; overflow: hidden; } .function { -webkit-user-select: none; /* Safari */ -moz-user-select: none; /* Firefox */ -ms-user-select: none; /* IE10+/Edge */ user-select: none; /* Standard */ } select { background-color: #333; color: white; border: none; } .dg { font-size: 18px; } // Climbing Neural Mountain let topHeight, bottomHeight; const calcHeights = () => { topHeight = window.innerHeight / 3; bottomHeight = window.innerHeight - topHeight; }; calcHeights(); con"
+        }
+      },
+      {
+        "edge_class": "AUTHOR_DIRECT",
+        "canonical_url": "https://neuralpatterns.io/nn_tuner.html",
+        "domain": "neuralpatterns.io",
+        "occurrence_count": 1,
+        "source_videos": [
+          {
+            "video_id": "Anc2_mnb3V8",
+            "title": "Gradient Descent vs Evolution | How Neural Networks Learn",
+            "published_at": "2025-03-01T13:00:12Z"
+          }
+        ],
+        "expansion_state": "EXPANDED",
+        "capture": {
+          "requested_url": "https://neuralpatterns.io/nn_tuner.html",
+          "final_url": "https://neuralpatterns.io/nn_tuner.html",
+          "http_status": 200,
+          "content_type": "text/html",
+          "content_length_header": "11248",
+          "captured_byte_count": 11248,
+          "capture_truncated": false,
+          "etag": "\"81fbac2ec4afe8d677f78ff9e17d444c\"",
+          "last_modified": "Thu, 27 Feb 2025 23:24:30 GMT",
+          "response_sha256": "4f79752cb44fced985aff9542f717b285cde0838a4615d840d32dbf8b30b0d10",
+          "page_title": "Neural Network Approximation",
+          "headings": [],
+          "text_excerpt": "Neural Network Approximation body { margin: 0; overflow: hidden; } #info { position: absolute; top: 10px; width: 100%; text-align: center; color: #ddd; font-family: Arial, sans-serif; } select { background-color: #333; color: white; border: none; } .dg { font-size: 18px; } // true function setup function trueFunction(x) { return Math.sin(x); } class NeuralNetwork { constructor(neurons, activation) { if (neurons Math.random() * 8 - 4); const dataPoints = XData.map(x => new THREE.Vector3(x, trueFu"
+        }
       }
     ]
   },
   "limits": [
-    "Input descriptions cover only the official Atom recent window because G1 is blocked.",
-    "Repository and web metadata are point-in-time captures, not reproduction results.",
-    "README excerpts and abstracts are publication-safe summaries, not full mirrored documents.",
-    "Creator-controlled page reachability does not prove source-repository lineage.",
-    "Only high-value direct edges are expanded; broader context and social links remain unexpanded."
-  ]
+    "Reconciled public uploads API snapshot; not private/deleted history or a transcript corpus.",
+    "Expansion is metadata retrieval, not full-text review or experiment reproduction.",
+    "Only the configured direct-link classes are expanded; other targets remain pending.",
+    "Reachability does not establish authorship, endorsement, or implementation lineage."
+  ],
+  "refresh_or_delete_by": "2026-10-05T05:55:01Z"
 }
