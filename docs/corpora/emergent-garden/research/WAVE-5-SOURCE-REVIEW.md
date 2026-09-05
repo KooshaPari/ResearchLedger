@@ -26,7 +26,7 @@ The direct arXiv inventory now has selected-method records for all 19 identified
 
 ## R02 — MineRL Diamond 2021: task interface is part of the result
 
-Source: Kanervisto et al., [PMLR 176 paper](https://proceedings.mlr.press/v176/kanervisto22a/kanervisto22a.pdf). Direct description link from *Can AI (actually) beat Minecraft?*. Read scope: track definitions, environment/actions, evaluation and results; result figure and track tables visually inspected.
+Source: Kanervisto et al., [PMLR 176 paper](https://proceedings.mlr.press/v176/kanervisto22a/kanervisto22a.pdf). Direct description link from _Can AI (actually) beat Minecraft?_. Read scope: track definitions, environment/actions, evaluation and results; result figure and track tables visually inspected.
 
 The research and introductory tracks allow different domain knowledge, reward engineering and compute. The research track obfuscates interfaces and constrains interaction/training resources; the introductory track is less restrictive. The reported evaluation uses unseen environments and 100 episodes. The paper explicitly warns that the tracks are not directly comparable.
 
@@ -34,7 +34,7 @@ Our implication: a Mineflayer command interface, an obfuscated learning benchmar
 
 ## R03 — Picbreeder 2011: asynchronous branching is not shared-state consensus
 
-Source: Secretan et al., *Picbreeder: A Case Study in Collaborative Evolutionary Exploration of Design Space*, DOI `10.1162/EVCO_a_00030`. The [UCF institutional record](https://stars.library.ucf.edu/facultybib2010/1881/) verifies the work identity. The original description URL and the institutional download were inaccessible in this reader; the [Santa Fe Institute manuscript mirror](https://wiki.santafe.edu/images/1/1e/Secretan_ecj11.pdf) was readable. It is a 30-page prepublication manuscript, not a claimed byte-identical final publisher PDF.
+Source: Secretan et al., _Picbreeder: A Case Study in Collaborative Evolutionary Exploration of Design Space_, DOI `10.1162/EVCO_a_00030`. The [UCF institutional record](https://stars.library.ucf.edu/facultybib2010/1881/) verifies the work identity. The original description URL and the institutional download were inaccessible in this reader; the [Santa Fe Institute manuscript mirror](https://wiki.santafe.edu/images/1/1e/Secretan_ecj11.pdf) was readable. It is a 30-page prepublication manuscript, not a claimed byte-identical final publisher PDF.
 
 Read scope: representation and branching (2.6–3.6), architecture (4), observational study (5), and limitations (6–7); Figure 7 inspected visually. Users fork an evolvable representation while parent and descendants remain separately available. Search does not require averaging everyone into one preference. The published-image statistics omit abandoned series and intermediate unpublished images. Generations and graph complexity correlate weakly with ratings; this is not a randomized demonstration that more operators monotonically improve quality.
 
@@ -42,7 +42,7 @@ Our implication for operator-human scaling: let operators explore branches again
 
 ## R04 — Step size can change the system being studied
 
-Discovery path: the creator's Lenia demo link → [Lenia project references](https://chakazul.github.io/lenia.html) → Davis and Bongard, [arXiv:2205.12728v1](https://arxiv.org/pdf/2205.12728v1), *Step Size is a Consequential Parameter in Continuous Cellular Automata*. This is a nested research extension, not a direct video citation or proof of creator influence.
+Discovery path: the creator's Lenia demo link → [Lenia project references](https://chakazul.github.io/lenia.html) → Davis and Bongard, [arXiv:2205.12728v1](https://arxiv.org/pdf/2205.12728v1), _Step Size is a Consequential Parameter in Continuous Cellular Automata_. This is a nested research extension, not a direct video citation or proof of creator influence.
 
 Read scope: the complete three-page paper's text, with the [authors' supporting explanation](https://rivesunder.github.io/yuca/step_size.html). PDF screenshot attempts failed; no independently inspected figure measurements are claimed. The examples report disappearance at step sizes that are too small as well as too large; one pattern changes qualitative movement with step size. Initial placement, grid and numerical precision can also matter.
 
