@@ -1,0 +1,12 @@
+{
+  "boundary": "19 direct arXiv works selected from the reconciled 74-upload description census; not all nested sources",
+  "total_direct_papers": 19,
+  "selected_method_reviews_across_waves": 19,
+  "new_in_wave_5": ["2405.15568v3"],
+  "limited_depth_exceptions": 0,
+  "full_appendix_and_code_reviews": false,
+  "independent_paper_reproductions": 0,
+  "inherits": "primary-paper-coverage-v4.json",
+  "current_review": "WAVE-5-SOURCE-REVIEW.md",
+  "scope_limit": "Selected methods and limitations with per-source locators; coverage count is not scientific verification or exhaustive reading."
+}

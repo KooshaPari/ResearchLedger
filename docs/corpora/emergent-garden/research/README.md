@@ -1,34 +1,35 @@
 # Emergent Garden research index
 
-Campaign `eg-nested-corpus-2026-09`. Current unit: **Wave 4 method review and verified artifact recovery**. Campaign completion remains partial.
+Campaign `eg-nested-corpus-2026-09`. Current unit: **Wave 5 source methods, Git lineage and evidence-admission checks**. Campaign completion remains partial.
 
 ## Current entry points
 
-- [Wave 4 execution checkpoint](WAVE-4-EXECUTION-CHECKPOINT.md): completed work, actual recovery and unresolved evidence.
-- [Method reviews](WAVE-4-METHODS-REVIEW.md) and [machine-readable review scope](../data/wave-4-source-reviews.json): nine newly reviewed direct papers and deeper Instant-NGP methods.
-- [Transfer boundaries](WAVE-4-TRANSFER-BOUNDARIES.md): explicit deductions, counterexamples and proposed controls.
-- [Direct-paper coverage](../data/primary-paper-coverage-v4.json): 18 selected-method records across Waves 3–4 and one limited-depth exception among 19 direct arXiv works.
-- [Transcript route audit](../data/transcript-route-audit-v4.json): attempts and failures; no complete transcript acquired.
-- [Comment aggregate revalidation](../data/comment-revalidation-v4.json): 30,572 records and the persistent count discrepancy, without a fresh raw-text semantic review.
+- [Wave 5 source review](WAVE-5-SOURCE-REVIEW.md): OMNI-EPIC methods, MineRL comparison controls, Picbreeder, timestep and historical Mindcraft.
+- [Repository identity and ancestry](WAVE-5-LINEAGE-AND-TRANSFER.md): exact observed IDs and Git evidence, not inferred authorship or behavioral equivalence.
+- [Execution checkpoint](WAVE-5-EXECUTION-CHECKPOINT.md): executed work, scope and unresolved evidence.
+- [Direct-paper coverage](../data/primary-paper-coverage-v5.json): 19 selected-method records, not 19 reproductions.
+- [Capture receipts](../data/wave-5-intake-receipts.json) and [synthetic admission results](../data/wave-5-admission-results.json).
 
 ## Preserved evidence
 
-The [official census](2026-09-04-official-census-checkpoint.md) reconciled 74 public uploads. It yielded 62 non-empty descriptions, 528 description edges, 300 normalized target URLs and 93 domains. The [description ledger](../data/youtube-description-edges-v1.json) and [direct frontier](../data/direct-link-frontier-v1.json) preserve source locators and retrieved revisions. URL counts do not equal distinct works or full reviews.
+The [official census](2026-09-04-official-census-checkpoint.md) reconciled 74 public uploads: 62 non-empty descriptions, 528 description edges, 300 normalized target URLs and 93 domains. The [description ledger](../data/youtube-description-edges-v1.json) and [direct frontier](../data/direct-link-frontier-v1.json) preserve source locators and retrieved revisions. URL counts do not equal distinct works or full reviews.
 
-[Wave 3 comments and synthesis](WAVE-3-COMMENTS-AND-SYNTHESIS.md), its [primary-source depth](WAVE-3-PRIMARY-SOURCES.md) and [receipt](../data/wave-3-execution-receipt.json) remain available. They reported 203 creator records reviewed and a chapter-parser correction. The current unit distinguishes inherited findings from re-executed checks and flags unrecovered derived graph/private input rather than silently manufacturing it.
+[Wave 3 comments and synthesis](WAVE-3-COMMENTS-AND-SYNTHESIS.md), its [primary-source depth](WAVE-3-PRIMARY-SOURCES.md) and [receipt](../data/wave-3-execution-receipt.json) remain available. They reported 203 creator records reviewed and a chapter-parser correction. Missing private input is not silently replaced with invented evidence.
 
-The prior [anchor synthesis](WAVE-1-ANCHOR-CORPUS.md), [chronology](CREATOR-CHRONOLOGY-WAVE-1.md), [project identities](PROJECT-GALLERY-WAVE-1.md), [claim ledger](CLAIM-LEDGER-WAVE-1.md), [ontology](CONCEPT-ONTOLOGY-WAVE-1.md), [source graph](NESTED-SOURCE-GRAPH-WAVE-1.md), and [portfolio mapping](PORTFOLIO-APPLICABILITY-WAVE-1.md) remain historical research. Later corrections qualify their claims; a larger census does not automatically validate them.
+[Wave 4 checkpoint](WAVE-4-EXECUTION-CHECKPOINT.md), [method reviews](WAVE-4-METHODS-REVIEW.md), [transfer boundaries](WAVE-4-TRANSFER-BOUNDARIES.md), [transcript-route audit](../data/transcript-route-audit-v4.json) and [comment revalidation](../data/comment-revalidation-v4.json) preserve the previous unit. The actual Wave 4 package corrected the earlier three-file status stub.
+
+The [anchor synthesis](WAVE-1-ANCHOR-CORPUS.md), [chronology](CREATOR-CHRONOLOGY-WAVE-1.md), [project identities](PROJECT-GALLERY-WAVE-1.md), [claim ledger](CLAIM-LEDGER-WAVE-1.md), [ontology](CONCEPT-ONTOLOGY-WAVE-1.md) and [portfolio mapping](PORTFOLIO-APPLICABILITY-WAVE-1.md) remain historical. Later corrections qualify their claims.
 
 ## Tools and validation
 
-The [v2 census collector](../../../../scripts/research/collect_emergent_garden_youtube_v2.py) checks public-upload reconciliation. [Comment intake](../../../../scripts/research/collect_emergent_garden_comments.py) accounts for incomplete embedded reply sets. [Offline analysis](../../../../scripts/research/analyze_comment_corpus.py) requires the actual private source inputs; missing input is not success. The [bundle verifier](../../../../scripts/research/verify_research_bundle.py) checks a packaged handoff's manifest, required artifacts and bytes without executing source material.
+The [v2 collector](../../../../scripts/research/collect_emergent_garden_youtube_v2.py) checks public-upload reconciliation. [Comment intake](../../../../scripts/research/collect_emergent_garden_comments.py) accounts for incomplete reply sets. [Offline comment analysis](../../../../scripts/research/analyze_comment_corpus.py) requires the actual private inputs. The [new evidence checker](../../../../scripts/research/assess_research_evidence.py) checks record sufficiency and declared comparison controls; it is not a truth oracle. [Bundle verification](../../../../scripts/research/verify_research_bundle.py) checks required payloads and bytes without executing source material.
 
-Forty-six inherited offline tests and twelve new package-integrity tests were run. No live coordination or model-provider benchmark is represented by these tests.
+Wave 5 adds 12 tests to the 58-test suite. All 70 passed locally, and all 32 synthetic admission cases matched their expectations. A publication-run result, application-wide CI and live benchmark outcomes must be reported separately.
 
-## Current limits
+## Remaining limits
 
-Full transcripts remain unacquired. The one-comment discrepancy, full OMNI-EPIC method reading, exhaustive audience review, broad recursive-source closure and historical code lineage remain open. The live Benchora experiment remains proposed, not executed. ResearchLedger stays canonical; RepoLedger stores projection state; project drafts contain bounded proposals only.
+Full transcripts remain unacquired. The one-comment discrepancy, exhaustive audience review, broad recursive-source closure and historical behavior reconstruction remain open. The live Benchora experiment remains proposed. No source findings automatically authorize product-code changes.
 
-The corpus supports a family resemblance across different kinds of generative and adaptive systems, not a universal architecture or a rule that more agents are better. See the Wave 3 correction record and Wave 4 counterexamples before translating a source into an engineering requirement.
+The corpus supports family resemblance across different generative and adaptive systems, not a universal architecture or a rule that more agents are better. ResearchLedger stays canonical; RepoLedger stores append-only projection state; project drafts contain bounded proposals only.
 
-Recorded API-data refresh-or-delete deadline: `2026-10-05T05:55:01Z`. No unattended service or completed release is claimed.
+Recorded API-data refresh-or-delete deadline: `2026-10-05T05:55:01Z`. No unattended service or release is claimed.
