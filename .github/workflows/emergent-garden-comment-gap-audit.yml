@@ -1,0 +1,72 @@
+name: Emergent Garden Comment Gap Audit
+
+on:
+  push:
+    branches:
+      - docs/emergent-garden-nested-corpus-20260904
+    paths:
+      - .github/workflows/emergent-garden-comment-gap-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact research source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Compare repeated public-comment enumerations
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/eg-gap"
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, 'scripts/research')
+          from collect_emergent_garden_comments import Client, capture_video, now
+          api = Client(os.environ['YOUTUBE_API_KEY'], max_requests=250, max_seconds=300)
+          video = 'Y5OUS-pM9Mc'
+          counts = []
+          captures = []
+          for order in ('time', 'relevance', 'time'):
+              details = api('videos', {'part': 'statistics', 'id': video})
+              counts.append(details['items'][0]['statistics'].get('commentCount'))
+              def ordered(resource, params):
+                  return api(resource, {**params, **({'order': order} if resource == 'commentThreads' else {})})
+              result = capture_video(ordered, video)
+              captures.append({'order': order, 'summary': result['summary'],
+                  'records': [{'id': r['comment_id'], 'parent_id': r['parent_id'],
+                      'text_sha256': r['text_sha256']} for r in result['comments']]})
+          details = api('videos', {'part': 'statistics', 'id': video})
+          counts.append(details['items'][0]['statistics'].get('commentCount'))
+          report = {'captured_at': now(), 'video_id': video, 'reported_counts': counts,
+              'api_requests': len(api.audit), 'captures': captures,
+              'scope': 'IDs and hashes only; comment text and author profiles omitted'}
+          target = Path(os.environ['RUNNER_TEMP']) / 'eg-gap'
+          text = json.dumps(report, indent=2) + '\n'
+          assert os.environ['YOUTUBE_API_KEY'] not in text
+          (target / 'gap-audit.json').write_text(text)
+          print(json.dumps({'counts': counts, 'summaries': [c['summary'] for c in captures], 'requests': len(api.audit)}))
+          PY
+
+      - name: Retain short-lived audit receipts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: emergent-garden-comment-gap-${{ github.run_id }}
+          path: ${{ runner.temp }}/eg-gap/
+          retention-days: 1
+          if-no-files-found: error
