@@ -1,119 +1,83 @@
 # Emergent Garden Research Index
 
-**Campaign:** `eg-nested-corpus-2026-09`  
-**Current completed unit:** Wave 2 recent-window census and high-value direct-link expansion  
-**Campaign completion:** incomplete  
-**Blocking gate:** `G1_INVENTORY` — ResearchLedger issue #82
+**Campaign:** `eg-nested-corpus-2026-09`
 
-## Wave 1 artifacts
+**Current unit:** reconciled official API inventory and bounded direct-source metadata expansion.
 
-1. [`WAVE-1-ANCHOR-CORPUS.md`](WAVE-1-ANCHOR-CORPUS.md) — source-backed synthesis across artificial life, cellular automata, optimization, agent swarms, embodied agents, recursive artifact improvement, and real-game automation.
-2. [`CREATOR-CHRONOLOGY-WAVE-1.md`](CREATOR-CHRONOLOGY-WAVE-1.md) — longitudinal map from early evolutionary toys through neural local rules, Mindcraft, coordination experiments, recursive code search, and foreground game automation.
-3. [`PROJECT-GALLERY-WAVE-1.md`](PROJECT-GALLERY-WAVE-1.md) — identity and implementation map for the thirteen projects named by the creator gallery, with confirmed, probable, ambiguous, and unresolved states.
-4. [`CLAIM-LEDGER-WAVE-1.md`](CLAIM-LEDGER-WAVE-1.md) — 28 claims with evidence class, confidence, competing interpretations, and falsification conditions.
-5. [`CONCEPT-ONTOLOGY-WAVE-1.md`](CONCEPT-ONTOLOGY-WAVE-1.md) — 40 normalized concepts, causal relations, anti-conflation rules, and portfolio translations.
-6. [`NESTED-SOURCE-GRAPH-WAVE-1.md`](NESTED-SOURCE-GRAPH-WAVE-1.md) — roots, video nodes, 30 creator-owned repositories, expanded implementation lineages, stop decisions, and the Wave 2 frontier.
-7. [`PORTFOLIO-APPLICABILITY-WAVE-1.md`](PORTFOLIO-APPLICABILITY-WAVE-1.md) — evidence-gated repository mapping and ten falsifiable portfolio experiments.
-8. [`WAVE-1-QUALITY-REPORT.md`](WAVE-1-QUALITY-REPORT.md) — coverage, evidence limitations, gate status, alternative-hypothesis audit, and reproduction status.
-9. [`../data/wave-1-inventory.json`](../data/wave-1-inventory.json) — machine-readable Wave 1 inventory and quality state.
+**Inventory gate:** `G1_INVENTORY` PASS for public uploads visible at capture.
 
-## Wave 2 artifacts
+**Campaign completion:** incomplete; source-text acquisition and recursive research remain partial.
 
-1. [`YOUTUBE-CENSUS-WAVE-2.md`](YOUTUBE-CENSUS-WAVE-2.md) — official-source recent-window metadata census, description coverage, outbound-link counts, transcript-route policy, and the explicit G1 blocker.
-2. [`DIRECT-LINK-EXPANSION-WAVE-2.md`](DIRECT-LINK-EXPANSION-WAVE-2.md) — revision- and response-pinned expansion of 23 high-value targets discovered in the recent description window.
-3. [`WAVE-2-CHECKPOINT.md`](WAVE-2-CHECKPOINT.md) — gate state, completed evidence, new findings, alternatives, blocked work, and fanout boundaries.
-4. [`../data/youtube-channel-inventory-v1.json`](../data/youtube-channel-inventory-v1.json) — normalized recent-window video and description metadata.
-5. [`../data/youtube-text-coverage-v1.json`](../data/youtube-text-coverage-v1.json) — per-video text and transcript-route coverage matrix.
-6. [`../data/youtube-description-edges-v1.json`](../data/youtube-description-edges-v1.json) — normalized outbound links from the returned descriptions.
-7. [`../data/direct-link-frontier-v1.json`](../data/direct-link-frontier-v1.json) — machine-readable repository, paper, and creator-surface expansion state.
-8. [`../data/youtube-census-status-v1.json`](../data/youtube-census-status-v1.json) — machine-readable G1 state and next action.
-9. [`../../../../scripts/research/collect_emergent_garden_youtube.py`](../../../../scripts/research/collect_emergent_garden_youtube.py) — official Data API collector with an explicitly incomplete official Atom fallback.
-10. [`../../../../scripts/research/build_emergent_garden_link_frontier.py`](../../../../scripts/research/build_emergent_garden_link_frontier.py) — bounded high-value edge expander.
+## Start here
 
-## Current bounded coverage
+Read the [official census checkpoint](2026-09-04-official-census-checkpoint.md) for the current evidence, limitations, corrected counting units, and next research unit. The successful [acquisition run](https://github.com/KooshaPari/ResearchLedger/actions/runs/33948427726) committed its outputs at `6b41757eb9bb85eb1842a41920770758557b3def`.
 
-### Wave 1 synthesis
+The missing-credential blocker in issue #82 is resolved by actual API execution, not merely by the operator's installation confirmation. Earlier Atom-window statements describe prior checkpoints.
 
-- 16 identified high-value video or release nodes;
-- 13 analyzed anchor videos;
-- 30 public creator-owned GitHub repositories enumerated;
-- 13 creator-gallery projects classified;
-- 28 falsifiable claims;
-- 40 normalized concepts;
-- 10 portfolio experiment contracts.
+## Current observed coverage
 
-### Wave 2 recent-window evidence
+- 74 public uploads, with two identical ordered enumerations and matching before/after channel counts.
+- All 13 reconciliation checks pass; no missing details, duplicate IDs, invalid rows, or wrong-channel records.
+- 62 non-empty descriptions; 12 empty descriptions; 58 videos with extracted links.
+- 528 video-to-URL edges, 300 normalized target URLs, and 93 domains.
+- 54 selected priority target URLs: 22 GitHub, 19 arXiv, and 13 creator-page targets.
+- 53 metadata retrieval successes and one failed root-page fetch at `https://evolvecode.io/`.
+- Zero transcript texts acquired. Zero chapter records parsed; that parsing result still needs verification.
+- 21 offline reconciliation and redaction tests passed locally and in the acquisition workflow.
 
-- 15 records returned by the official YouTube Atom channel feed;
-- 15 non-empty description records represented by hashes, lengths, excerpts, and normalized links;
-- 186 description edges and 116 unique targets across 49 domains;
-- 23 unique high-value targets expanded: 11 repositories, 3 primary papers, and 9 creator-controlled pages;
-- 23 successful expansions and 0 expansion failures;
-- 0 transcript records acquired;
-- 1 explicit credential blocker, tracked in [issue #82](https://github.com/KooshaPari/ResearchLedger/issues/82).
+Target URLs are not interchangeable with distinct intellectual works or repository identities. The 22 GitHub targets contain alias duplicates. The remaining 246 URLs are not automatically irrelevant. Retrieved metadata is not full source review or independent reproduction.
 
-These are not complete-channel counts. The Atom feed exposes a recent window and cannot establish the exhaustive uploads boundary.
+## Current source records
 
-## Gate state
+1. [Official census report](YOUTUBE-CENSUS-WAVE-2.md) — current public inventory, description metadata, coarse caption flags, and reconciliation.
+2. [Curated direct-link report](DIRECT-LINK-EXPANSION-WAVE-2.md) — actual acquisition scope, URL-level outcomes, known failure, and remaining evidence gaps.
+3. [Normalized video inventory](../data/youtube-channel-inventory-v1.json) — video identity, dates, durations, description hashes, and links.
+4. [Text-coverage matrix](../data/youtube-text-coverage-v1.json) — per-video metadata and unacquired transcript state.
+5. [Description-edge ledger](../data/youtube-description-edges-v1.json) — source videos, original and normalized URLs, and provisional edge classes.
+6. [Direct-source frontier](../data/direct-link-frontier-v1.json) — target metadata, revisions or response hashes, and retrieval outcomes.
+7. [Census gate status](../data/youtube-census-status-v1.json) — machine-checked G1 state, reconciliation, and counts.
+8. [Exact-output manifest](../data/youtube-census-manifest-v2.json) — acquisition revision, run, file hashes, and subsequent narrative correction.
+9. [Current checkpoint](2026-09-04-official-census-checkpoint.md) — scope, defects, next work, and publication limits.
 
-| Gate                   | State                                                                                                |
-| ---------------------- | ---------------------------------------------------------------------------------------------------- |
-| `G1_INVENTORY`         | **BLOCKED** — no `YOUTUBE_API_KEY` in repository secrets or the isolated Infisical `dev` environment |
-| `G2_TEXT_COVERAGE`     | **PARTIAL** — recent descriptions covered; transcripts unacquired                                    |
-| `G3_DIRECT_GRAPH`      | **PARTIAL / RECENT WINDOW EXPANDED** — all discovered high-value targets expanded                    |
-| `G4_PROJECT_RELEVANCE` | **PARTIAL** — Wave 1 mappings retained; no broad new fanout clearance                                |
-| `G5_EXPERIMENT`        | **SPECIFIED, NOT RUN** — Benchora PR #106                                                            |
-| `G6_PROJECT_PR`        | **ONE DOCUMENTATION PILOT OPEN** — no product-code implementation                                    |
-| `G7_RELEASE`           | **NOT APPLICABLE**                                                                                   |
+## Collectors and tests
 
-## Current verdict
+The [v2 collector](../../../../scripts/research/collect_emergent_garden_youtube_v2.py) is the credentialed acquisition entry point. Its [21-test suite](../../../../scripts/research/test_emergent_garden_youtube_v2.py) covers count reconciliation, pagination, ownership, missing records, duplicate records, and credential-safe failures.
 
-The strongest supported unifier is not “emergence is good.” It is iterative rule-space design:
+The [original collector](../../../../scripts/research/collect_emergent_garden_youtube.py) remains for pure parsing and export helpers plus the historical Atom route; its older completeness decision is not used by v2. The [direct-link expander](../../../../scripts/research/build_emergent_garden_link_frontier.py) retrieves bounded metadata. Its inherited narrative generator still needs the current curated scope/counting corrections incorporated before another refresh.
 
-```text
-choose a compact substrate
-→ execute it in an environment
-→ observe and preserve consequences
-→ evaluate useful and harmful behavior
-→ change rules, representation, tools, topology, or pressure
-→ retain rollback and repeat
-```
+## Preserved Wave 1 research
 
-The chronology and direct graph support continuity across artificial organisms, neural cellular automata, mutable function trees, Minecraft agents, recursive code modification, and Age of Empires tournaments. The common object is an executable search space, not one model architecture.
+1. [Anchor synthesis](WAVE-1-ANCHOR-CORPUS.md).
+2. [Creator chronology](CREATOR-CHRONOLOGY-WAVE-1.md).
+3. [Project-gallery identities](PROJECT-GALLERY-WAVE-1.md).
+4. [28-claim ledger](CLAIM-LEDGER-WAVE-1.md).
+5. [40-concept ontology](CONCEPT-ONTOLOGY-WAVE-1.md).
+6. [Nested source graph](NESTED-SOURCE-GRAPH-WAVE-1.md).
+7. [Portfolio applicability and ten experiment contracts](PORTFOLIO-APPLICABILITY-WAVE-1.md).
+8. [Wave 1 quality report](WAVE-1-QUALITY-REPORT.md).
+9. [Wave 1 machine inventory](../data/wave-1-inventory.json).
+10. [Historical Wave 2 checkpoint](WAVE-2-CHECKPOINT.md).
 
-The direct graph adds three practical distinctions:
+These artifacts preserve prior evidence and interpretations. A larger channel census does not independently revalidate every prior synthesis claim.
 
-1. planner, observation, actuator, environment, and evaluator are separate interfaces;
-2. foreground GUI execution and mutable local files are first-class operational constraints;
-3. shared-artifact swarms need ownership, merge, rollback, and orphan-prevention controls.
+## Working hypothesis, not an adopted universal architecture
 
-## Strongest correction to the initial thesis
+The earlier synthesis proposed a recurring loop: choose a representation, execute operators in an environment, observe and retain consequences, evaluate, alter the representation or rules, and repeat with recovery available.
 
-The channel is not uniformly pro-decentralization or pro-open-ended autonomy. Later Mindcraft work adds structured task files, blocked actions, controlled evaluations, safety switches, and action-level collaboration. Directly linked open-ended-search papers also retain learned or benchmark-grounded evaluators, archives, and selection procedures.
+Continue testing that interpretation against alternative explanations: genuine technical continuity, a useful metaphor, selective sampling, playful aesthetic exploration, independent prior work, and cases where centralized control is better. Neither open-endedness nor more agents is assumed to improve results.
 
-The defensible portfolio rule is therefore:
+## Current gates
 
-```text
-enable bounded exploration
-+ preserve evidence and rollback
-+ keep global invariants explicit
-+ evaluate in the real environment
-+ select coordination topology from controlled comparisons
-```
+- G1: PASS for the current public API inventory, not inaccessible history.
+- G2: PARTIAL; description metadata acquired, exact transcript text still unacquired.
+- G3: PARTIAL; selected metadata expanded, with one failure, unresolved aliases, omitted domains, and unreviewed source contents.
+- G4: PARTIAL; portfolio relevance still requires current repository evidence.
+- G5: SPECIFIED, NOT RUN; Benchora #106 remains documentation only.
+- G6: bounded existing draft PRs; no general product-code clearance.
+- G7: no release or merge.
 
-## Evidence restrictions
+## Next evidence-producing work
 
-The campaign does not claim:
+Validate chapter extraction and the caption signal, reconcile URL aliases without discarding provenance, review the failed root, and promote omitted first-party or primary-source domains. Then follow older description chains through their actual implementations and papers, retaining locators and contrary evidence.
 
-- that the 15 Atom-feed records are the complete official upload inventory;
-- complete transcript, caption, chapter, or description-history coverage;
-- reproduction of creator experiments or paper results;
-- that every outbound link proves authorship, endorsement, or repository lineage;
-- one formal architecture across every project;
-- that Patreon posts map one-to-one to public videos;
-- authorization for broad project-code changes;
-- clearance for further individual repository PR fanout based only on thematic similarity.
-
-## Next admissible transition
-
-`G1_INVENTORY` can advance only after a key restricted to YouTube Data API v3 is stored under the exact name `YOUTUBE_API_KEY` in repository Actions secrets or the repository's Infisical `dev` environment and the census workflow reconciles the complete uploads playlist. Unsupported scraping is not an acceptable substitute.
+The recorded metadata refresh-or-delete deadline is `2026-10-05T05:55:01Z`; no unattended refresh service is claimed. ResearchLedger owns the corpus, RepoLedger receives append-only fleet projections, and individual repositories receive only justified derived findings.
