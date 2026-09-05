@@ -1,0 +1,13 @@
+{
+  "scope": "Public web and connector routes attempted in Wave 4; not all possible transcript services",
+  "full_transcripts_acquired_this_wave": 0,
+  "routes": [
+    {"url":"https://glasp.co/youtube/3H79ZcBuw4M","result":"TRUNCATED_PREVIEW_ONLY","next_link_result":"Read More fetch failed; not promoted to full transcript"},
+    {"url":"https://glasp.co/youtube/Wh4abvcUj8Q","result":"PREVIEW_AND_TRANSFORMED_SUMMARY_ONLY"},
+    {"url":"https://notes.laratranslate.com/emergent-complexity-3015e0b4/summary","result":"SUMMARY_NOT_TRANSCRIPT"},
+    {"url":"https://www.youtube.com/watch?v=0HqUYpGQIfs","result":"WEB_FETCH_FAILED"},
+    {"provider":"Plugin directory","query":"YouTube transcript","result":"No connected full-transcript capability found; vidIQ listing was analytics, not used as transcript evidence"}
+  ],
+  "non_conclusions": ["Does not establish that captions do not exist", "No Gemini connection or video analysis executed", "No excerpt or generated summary counted as a complete transcript", "No verification or access-control bypass attempted"],
+  "rights_and_storage": "No new full transcript acquired or published. Future full-text intake must preserve route, language, timestamps, origin and retention permissions."
+}
