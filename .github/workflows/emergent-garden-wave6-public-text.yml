@@ -19,11 +19,7 @@ jobs:
           import hashlib,json,os,urllib.request,urllib.error
           from pathlib import Path
           root=Path(os.environ['RUNNER_TEMP'])/'eg-public-pages'
-          urls=[
-            'https://lilys.ai/ko/notes/1148615',
-            'https://lilys.ai/it/notes/ai-agent-20251128/the-chaos-of-ai-agents',
-            'https://glasp.co/youtube/3H79ZcBuw4M',
-          ]
+          urls=['https://lilys.ai/ko/notes/289435','https://lilys.ai/ko/notes/607483']
           rows=[]
           for n,url in enumerate(urls):
               row={'requested_url':url,'credentialed':False}
