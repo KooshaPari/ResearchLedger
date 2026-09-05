@@ -1,0 +1,1945 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "eg-nested-corpus-2026-09",
+  "generated_at": "2026-09-05T05:55:02Z",
+  "provider": "youtube_data_api_v3",
+  "inventory_complete": true,
+  "summary": {
+    "videos": 74,
+    "descriptions_present": 62,
+    "videos_with_chapters": 0,
+    "videos_with_outbound_links": 58,
+    "caption_available_true": 0,
+    "caption_available_false": 74,
+    "caption_availability_unknown": 0,
+    "transcripts_acquired": 0
+  },
+  "videos": [
+    {
+      "video_id": "ZBdAe3ZwKds",
+      "title": "AI plays Age of Empires II",
+      "published_at": "2026-08-15T12:00:32Z",
+      "description_present": true,
+      "description_character_count": 1268,
+      "description_sha256": "3a108bb18da9eb6d11be1f593e4ded038e78aaf16dadd8fbff09429cefb5c2b6",
+      "chapter_count": 0,
+      "outbound_link_count": 8,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "2g-CrQfYNtE",
+      "title": "Artificial Life",
+      "published_at": "2026-07-18T12:00:13Z",
+      "description_present": true,
+      "description_character_count": 3773,
+      "description_sha256": "b17db27ad0297a1472f096003148ce59123e5e8d779d3f7da982e46499520052",
+      "chapter_count": 0,
+      "outbound_link_count": 37,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "t7_ZXgfJVG8",
+      "title": "Recursive Self-Improvement",
+      "published_at": "2026-06-13T12:00:38Z",
+      "description_present": true,
+      "description_character_count": 2049,
+      "description_sha256": "bdeb70082a54962d5116ebd9efbd4f65e2d4bc544cf2b4ec1fb3bc9d1866ae7b",
+      "chapter_count": 0,
+      "outbound_link_count": 17,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "kVjhV-In25c",
+      "title": "The Brain Eating Machines",
+      "published_at": "2026-05-23T12:00:37Z",
+      "description_present": true,
+      "description_character_count": 2178,
+      "description_sha256": "100615d57f377ec82ca845011686e89e1898e7ce21bdfa148ce60ea032d837af",
+      "chapter_count": 0,
+      "outbound_link_count": 16,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Ipcr5heLOJ8",
+      "title": "AI for War (in minecraft)",
+      "published_at": "2026-03-21T12:00:35Z",
+      "description_present": true,
+      "description_character_count": 1134,
+      "description_sha256": "ca0db8d58364db242fc3db109f040f7e14ba6527cf720196b3729921405a8b47",
+      "chapter_count": 0,
+      "outbound_link_count": 10,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "DB-TD3s3MZ0",
+      "title": "Evolution in Higher Dimensions",
+      "published_at": "2026-02-28T13:00:23Z",
+      "description_present": true,
+      "description_character_count": 1181,
+      "description_sha256": "dacbf5a7531507132a98a04ebae75721bf0f7227e5685d246da459de6bd2f674",
+      "chapter_count": 0,
+      "outbound_link_count": 11,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "LxVQra1Z_jA",
+      "title": "Nature Sanctuary in stardew valley",
+      "published_at": "2026-01-24T13:00:39Z",
+      "description_present": true,
+      "description_character_count": 520,
+      "description_sha256": "80cc77ccc04f8697a31d9b86bbe14c1e9b617c1ca8e09a69b1ef544095a57a86",
+      "chapter_count": 0,
+      "outbound_link_count": 1,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "349r0xJFGNw",
+      "title": "Creatures in Higher Dimensions",
+      "published_at": "2025-12-20T13:00:04Z",
+      "description_present": true,
+      "description_character_count": 1787,
+      "description_sha256": "bfd516abb3990df2db9317d2d2bc874d1786b8c360068924cf4f25460bf5776d",
+      "chapter_count": 0,
+      "outbound_link_count": 13,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "0HqUYpGQIfs",
+      "title": "Emergent Complexity",
+      "published_at": "2025-11-22T13:00:04Z",
+      "description_present": true,
+      "description_character_count": 2973,
+      "description_sha256": "792febbff7a9d4072652ae1a116960fb7ef8c01eb80d10d4051d2d424e61c25d",
+      "chapter_count": 0,
+      "outbound_link_count": 30,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "--CteUWzErk",
+      "title": "Unleashing AI Slop Swarms",
+      "published_at": "2025-10-04T12:00:00Z",
+      "description_present": true,
+      "description_character_count": 1220,
+      "description_sha256": "c39c538852feebca91ae508521d3170cd21c87a9e96471e4272f69b35f1dfac9",
+      "chapter_count": 0,
+      "outbound_link_count": 12,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Wh4abvcUj8Q",
+      "title": "Can AI (actually) beat Minecraft?",
+      "published_at": "2025-09-21T12:01:03Z",
+      "description_present": true,
+      "description_character_count": 898,
+      "description_sha256": "24caa078dddd1e8c987c0c398b2d764962ab042610edb84763d6e4f069136697",
+      "chapter_count": 0,
+      "outbound_link_count": 12,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "DksO3mqh0kg",
+      "title": "Evolving Brains in the Life Engine (5 Year Anniversary!)",
+      "published_at": "2025-08-09T12:00:33Z",
+      "description_present": true,
+      "description_character_count": 1036,
+      "description_sha256": "dd294293ee079cf7b300544d2ba09955032c11d66f5d0df0743ec9c79ebcca7b",
+      "chapter_count": 0,
+      "outbound_link_count": 10,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "p-sQ-asWeyI",
+      "title": "AI Self Portrait #claude #ai",
+      "published_at": "2025-08-03T18:40:47Z",
+      "description_present": true,
+      "description_character_count": 148,
+      "description_sha256": "14cb562d822aa153ee139d203579cc5e61f737d24f8466ab5cf68676723d03c7",
+      "chapter_count": 0,
+      "outbound_link_count": 1,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "XCpyZxFzGvk",
+      "title": "AI Self-Portrait #gemini #ai",
+      "published_at": "2025-08-03T18:40:38Z",
+      "description_present": true,
+      "description_character_count": 148,
+      "description_sha256": "14cb562d822aa153ee139d203579cc5e61f737d24f8466ab5cf68676723d03c7",
+      "chapter_count": 0,
+      "outbound_link_count": 1,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "2YYjPs8t8MI",
+      "title": "The Chaos of AI Agents",
+      "published_at": "2025-07-26T12:00:04Z",
+      "description_present": true,
+      "description_character_count": 838,
+      "description_sha256": "442f2fa4203730003427511a278e54c3b26e85a2601e3e714f70eb275742e7fa",
+      "chapter_count": 0,
+      "outbound_link_count": 7,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "7x9J7rsLC50",
+      "title": "Ants that are Computers",
+      "published_at": "2025-06-07T13:00:24Z",
+      "description_present": true,
+      "description_character_count": 749,
+      "description_sha256": "8d2e962d64d3c43a443c9ac707eecaf7d659b835a00359e7a60cbf5cb2f08954",
+      "chapter_count": 0,
+      "outbound_link_count": 8,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "MeEcxh9St24",
+      "title": "Mindcraft Research Paper!",
+      "published_at": "2025-05-10T12:00:38Z",
+      "description_present": true,
+      "description_character_count": 436,
+      "description_sha256": "1b17518e0a11d9448288f081ecd80de1f2f1b3b085704e2296e8f1fd5426e962",
+      "chapter_count": 0,
+      "outbound_link_count": 10,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "1OxBv9Q7Uxo",
+      "title": "\"Vibe Coding\"",
+      "published_at": "2025-05-03T12:00:03Z",
+      "description_present": true,
+      "description_character_count": 1233,
+      "description_sha256": "37867896bc634e6bdaaa76f988ba46222bf57fe6029ad27e7924b9ae8d4f46fe",
+      "chapter_count": 0,
+      "outbound_link_count": 11,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "H_-wtBeL99c",
+      "title": "AI Collab | 3 agents cooking",
+      "published_at": "2025-04-24T16:16:26Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "vuBycbn35Rw",
+      "title": "AI collab | pyramid timelapse",
+      "published_at": "2025-04-23T16:18:24Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "VMAyxwMKiBc",
+      "title": "AI collab | successful craft",
+      "published_at": "2025-04-20T16:12:54Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "NL1annIFX2k",
+      "title": "AI collab | useless talk",
+      "published_at": "2025-04-20T16:12:19Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "FbNJ3cR_RWY",
+      "title": "AI collab | Cooking",
+      "published_at": "2025-04-19T17:54:33Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "TtHg3AagACg",
+      "title": "AI collab | pyramid finish",
+      "published_at": "2025-04-18T15:59:10Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "ZS2AgDKDVLk",
+      "title": "AI collab | pyramid base",
+      "published_at": "2025-04-18T15:58:27Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "nSHetOFrVPI",
+      "title": "AI collab | church fail",
+      "published_at": "2025-04-17T15:35:24Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Cpy4kQ9-bsg",
+      "title": "AI collab | church decent",
+      "published_at": "2025-04-16T16:39:20Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "iDJ6GrHNoDs",
+      "title": "Vision and Vibe Coding | Mindcraft Update",
+      "published_at": "2025-04-05T12:00:59Z",
+      "description_present": true,
+      "description_character_count": 940,
+      "description_sha256": "d768189bee82e2b23cb80b81506a06fa342091bc39dde50fdc62574f1dae4a41",
+      "chapter_count": 0,
+      "outbound_link_count": 8,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Anc2_mnb3V8",
+      "title": "Gradient Descent vs Evolution | How Neural Networks Learn",
+      "published_at": "2025-03-01T13:00:12Z",
+      "description_present": true,
+      "description_character_count": 2109,
+      "description_sha256": "8a43f84f87a983e322308eaa491e3054d46439e477ed957d5a4e5bb7cfc735d1",
+      "chapter_count": 0,
+      "outbound_link_count": 18,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "0itA2K-eTMI",
+      "title": "AI Utopia Towers",
+      "published_at": "2025-02-02T20:16:11Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "FCnQvdypW_I",
+      "title": "Good and Evil AI in Minecraft",
+      "published_at": "2025-02-02T15:00:17Z",
+      "description_present": true,
+      "description_character_count": 1814,
+      "description_sha256": "f8c8b76d833589ac924676ee6fc35b0adf58104e5356712c6e5ccc6b90a14888",
+      "chapter_count": 0,
+      "outbound_link_count": 8,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "34KhwO7Txhs",
+      "title": "I Quit my Job to make Weird Programs",
+      "published_at": "2025-01-18T13:00:04Z",
+      "description_present": true,
+      "description_character_count": 1223,
+      "description_sha256": "ae845f468c5f4fb26a581acec0beaffd923aaae0611ef770fcc363a0e24730b4",
+      "chapter_count": 0,
+      "outbound_link_count": 10,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "uLRKXEHxZ-U",
+      "title": "AI talks to AI in Minecraft",
+      "published_at": "2024-12-21T17:00:51Z",
+      "description_present": true,
+      "description_character_count": 1131,
+      "description_sha256": "7821d7aaa7076668a871b0bbe37dd3fbe781e027c0fdd7b47cbd9d0cbb74e264",
+      "chapter_count": 0,
+      "outbound_link_count": 8,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "uYl7ecvolN4",
+      "title": "Mega Pyramid",
+      "published_at": "2024-11-24T16:11:58Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "gRotoL8P8D8",
+      "title": "How to Play Minecraft with AI (mindcraft tutorial)",
+      "published_at": "2024-11-16T13:00:49Z",
+      "description_present": true,
+      "description_character_count": 956,
+      "description_sha256": "da7f4dd3c2736be00e304fe69547ab0fc692defd0fb6732c89da836af3b9808b",
+      "chapter_count": 0,
+      "outbound_link_count": 7,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "KxaPYhfJV4U",
+      "title": "4 AIs Survive 10 Days in Minecraft",
+      "published_at": "2024-10-26T12:00:23Z",
+      "description_present": true,
+      "description_character_count": 835,
+      "description_sha256": "9461af5484cd69e926008c6a7fd50fe0415f8c965526a89a9e5fb4f8aee582b8",
+      "chapter_count": 0,
+      "outbound_link_count": 6,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "IeXadWbvDiE",
+      "title": "AI Plays Minecraft Forever (and dies)",
+      "published_at": "2024-09-20T12:00:21Z",
+      "description_present": true,
+      "description_character_count": 1773,
+      "description_sha256": "72fd37abfb3df46f30ec09219af6e5a1a9f7f2e2d618dd15256a1bb77e0cd4bc",
+      "chapter_count": 0,
+      "outbound_link_count": 15,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "R-5I-DqSs3E",
+      "title": "Life Engine Survival of the Fittest | Community Update",
+      "published_at": "2024-09-08T23:54:15Z",
+      "description_present": true,
+      "description_character_count": 567,
+      "description_sha256": "adc1e210a2a2c290a240c883a2da4596012f342b2e2cfbaf94ceaaefaa877794",
+      "chapter_count": 0,
+      "outbound_link_count": 4,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "horha3LcHtY",
+      "title": "Evolving AI Code",
+      "published_at": "2024-08-12T13:30:30Z",
+      "description_present": true,
+      "description_character_count": 394,
+      "description_sha256": "b62985e0a77cd87458fe1793408d181e2f29be8639ac04661620bb05a81a1ad0",
+      "chapter_count": 0,
+      "outbound_link_count": 4,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "kbf9QJJn-UQ",
+      "title": "AI Builds with Cheats | Mindcraft",
+      "published_at": "2024-06-14T13:00:48Z",
+      "description_present": true,
+      "description_character_count": 766,
+      "description_sha256": "f25643829617cd8f2f95fed2aa21d0f7f6e272c6ec1fbce03cb51147e482ad27",
+      "chapter_count": 0,
+      "outbound_link_count": 5,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "VXQ-AnQ6N6A",
+      "title": "AI Builds in Creative Mode | Mindcraft",
+      "published_at": "2024-05-26T13:00:32Z",
+      "description_present": true,
+      "description_character_count": 843,
+      "description_sha256": "6c745bac1adc66069b405b3d861c76b6e244f807dc228f285bb54fcf7df97adb",
+      "chapter_count": 0,
+      "outbound_link_count": 6,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "DZoGhEqY-tE",
+      "title": "Justice for Gemini #minecraft #gemini",
+      "published_at": "2024-04-26T23:38:26Z",
+      "description_present": false,
+      "description_character_count": 0,
+      "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Xd5PLYl4Q5Q",
+      "title": "AI Builds Stuff in Minecraft | Mindcraft",
+      "published_at": "2024-03-29T15:00:17Z",
+      "description_present": true,
+      "description_character_count": 673,
+      "description_sha256": "fa174c243e358c1bab0aebd254565317dda1333a5df0aafee2fad1c37f050aa3",
+      "chapter_count": 0,
+      "outbound_link_count": 5,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "NTHWMk5pcYs",
+      "title": "Playing Minecraft with ChatGPT | Mindcraft",
+      "published_at": "2024-02-17T14:00:14Z",
+      "description_present": true,
+      "description_character_count": 916,
+      "description_sha256": "3d6808e7bad063b26ac7b3d8af029838b123cbe57d2bdb1461581e36818db57c",
+      "chapter_count": 0,
+      "outbound_link_count": 9,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Y5OUS-pM9Mc",
+      "title": "Memes, Genes, and Brain Viruses",
+      "published_at": "2023-10-28T14:00:32Z",
+      "description_present": true,
+      "description_character_count": 2539,
+      "description_sha256": "a966a73d10b4d8c2f6033a56cbc9d05c0e81aa845831c11b0771973fcc316721",
+      "chapter_count": 0,
+      "outbound_link_count": 29,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "TkwXa7Cvfr8",
+      "title": "Watching Neural Networks Learn",
+      "published_at": "2023-08-17T13:00:33Z",
+      "description_present": true,
+      "description_character_count": 1050,
+      "description_sha256": "25d38b2d423a4e2c40e08e580c825218d730a5a18d8fc233893a6337519aed95",
+      "chapter_count": 0,
+      "outbound_link_count": 10,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "np6ZVZIs7f8",
+      "title": "Life Engine Unnatural Battle Royale",
+      "published_at": "2023-06-18T21:35:29Z",
+      "description_present": true,
+      "description_character_count": 558,
+      "description_sha256": "cfdfd7b452951ee9ec6f59c7453cd3ed380907f6443c0f7eb2b9ed6308dd78ee",
+      "chapter_count": 0,
+      "outbound_link_count": 6,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "lFCo1FFtDdI",
+      "title": "50k Subscribers!🤯",
+      "published_at": "2023-05-21T13:00:35Z",
+      "description_present": true,
+      "description_character_count": 50,
+      "description_sha256": "d7ca0b92b3cbad495bfebba32ad52e84fef3624defbcf876f2a5581579531e80",
+      "chapter_count": 0,
+      "outbound_link_count": 1,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "c9c5a4IsjOA",
+      "title": "Code that Writes Code and ChatGPT",
+      "published_at": "2023-05-12T13:00:33Z",
+      "description_present": true,
+      "description_character_count": 1304,
+      "description_sha256": "f7d3adca78fdb97f34b8626158f55acfdf9e1c45907deebec5f8b103f5aa2dbb",
+      "chapter_count": 0,
+      "outbound_link_count": 14,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "i4TZ3BbCYws",
+      "title": "A Cell that Kills Everything (Life Engine)",
+      "published_at": "2023-04-30T13:00:34Z",
+      "description_present": true,
+      "description_character_count": 544,
+      "description_sha256": "947aaf9d768ec95e1e9c75782ddc9abaebe7c9605a9f8d839491895bc425092d",
+      "chapter_count": 0,
+      "outbound_link_count": 4,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "ra3qrZtLbrk",
+      "title": "Seasons (AI Japanese Woodblock Print)",
+      "published_at": "2023-03-26T13:00:37Z",
+      "description_present": true,
+      "description_character_count": 35,
+      "description_sha256": "a9eac4c101447c99379c69402cdfb9a7eb4df86914da58304ce67f3f2e515440",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Eno1febS2_k",
+      "title": "A City Through the Future",
+      "published_at": "2023-03-19T13:00:10Z",
+      "description_present": true,
+      "description_character_count": 144,
+      "description_sha256": "6eab149a84321061d4713d9589fac56f448b929e6206c0a4da8349dfe1eee2aa",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "XdnKXTQBl90",
+      "title": "Atoms To Earth #shorts #stablediffusion",
+      "published_at": "2023-03-12T19:06:55Z",
+      "description_present": true,
+      "description_character_count": 451,
+      "description_sha256": "5bf97e4a105a1693b2f50c2be65362c0202ecb097efbd0aba45a276128cc8055",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "zYp2sDpWprU",
+      "title": "The Museum of AI Art",
+      "published_at": "2023-03-11T14:00:39Z",
+      "description_present": true,
+      "description_character_count": 1031,
+      "description_sha256": "ca8cb3fe8d232ad905acb5d476c17447e3c7c6792f5d1772a5f6294ffedd710c",
+      "chapter_count": 0,
+      "outbound_link_count": 8,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "V2gRUrr-Fbs",
+      "title": "The Creativity of AI Art",
+      "published_at": "2023-03-04T13:30:19Z",
+      "description_present": true,
+      "description_character_count": 1283,
+      "description_sha256": "910f390878eccb151cd953ba6005a0c84307f7ffb3940b9af1158aeeff91d302",
+      "chapter_count": 0,
+      "outbound_link_count": 12,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Tbtj0aL1inQ",
+      "title": "Is AI Art Theft?",
+      "published_at": "2022-12-19T14:42:09Z",
+      "description_present": true,
+      "description_character_count": 1832,
+      "description_sha256": "f712c0f20fbd4fb26882ca8f67f96f12b82607f289fd803841c42cb32b44ec7e",
+      "chapter_count": 0,
+      "outbound_link_count": 14,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "U8aOnRic07I",
+      "title": "Slime Mold \"Simulation\" #shorts #stablediffusion",
+      "published_at": "2022-11-06T16:36:34Z",
+      "description_present": true,
+      "description_character_count": 102,
+      "description_sha256": "2127c76d29c2d24be3ba0794ae26417d27791b86b58a0662fd8257438de4fc14",
+      "chapter_count": 0,
+      "outbound_link_count": 1,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "K8TG0ZwYu7Y",
+      "title": "Evolving AI Art",
+      "published_at": "2022-10-29T13:00:09Z",
+      "description_present": true,
+      "description_character_count": 1369,
+      "description_sha256": "f14f7f48db227254d07e4536be80ce3ab869a38c487037561c367804025c49e8",
+      "chapter_count": 0,
+      "outbound_link_count": 14,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "ozNCUQ1v4uA",
+      "title": "Putting YOUR creations in the Life Engine",
+      "published_at": "2022-09-05T22:02:58Z",
+      "description_present": true,
+      "description_character_count": 855,
+      "description_sha256": "2149ffb75dc72286ba2085e2eeee2aaf2175cf55041283edd114fcd37657b23b",
+      "chapter_count": 0,
+      "outbound_link_count": 4,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "gvNdCRe3T-g",
+      "title": "Ai that makes thumbnails (or any image)",
+      "published_at": "2022-07-09T13:00:20Z",
+      "description_present": true,
+      "description_character_count": 1929,
+      "description_sha256": "ca0e2d82e7876c0677834d28198f3e6167f71fe7154cecc2d945817a26ab26d3",
+      "chapter_count": 0,
+      "outbound_link_count": 23,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "0QczhVg5HaI",
+      "title": "Why Neural Networks can learn (almost) anything",
+      "published_at": "2022-03-12T14:00:01Z",
+      "description_present": true,
+      "description_character_count": 1492,
+      "description_sha256": "09ea286edb60c0c6ee7eb2b8454046ccf096df1b40e4b68bb15f90a86ec735ce",
+      "chapter_count": 0,
+      "outbound_link_count": 13,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "CU9UcuKAwQI",
+      "title": "Life Engine Update and Open Source Discussion",
+      "published_at": "2021-12-22T14:00:05Z",
+      "description_present": true,
+      "description_character_count": 483,
+      "description_sha256": "0fdc863a1ff5247487f830bbf9ea1cfa3cac46a90542220f4c0e7ad9492d3297",
+      "chapter_count": 0,
+      "outbound_link_count": 4,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "NPlAEnGX4Dg",
+      "title": "Organic neural cellular automata",
+      "published_at": "2021-12-12T14:00:15Z",
+      "description_present": true,
+      "description_character_count": 730,
+      "description_sha256": "97e603f6130e4f5605f1c7f39481e81714e7355c1fd58a0da9f4f12474b85e22",
+      "chapter_count": 0,
+      "outbound_link_count": 5,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "3H79ZcBuw4M",
+      "title": "What are neural cellular automata?",
+      "published_at": "2021-11-21T14:00:01Z",
+      "description_present": true,
+      "description_character_count": 657,
+      "description_sha256": "a470edbd2f9b0362c840ce4432c143a6bb2878bd1fae7b2b3dda98b1e418080c",
+      "chapter_count": 0,
+      "outbound_link_count": 5,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "iSAKEnRfles",
+      "title": "How the Life Engine works",
+      "published_at": "2021-11-14T14:43:00Z",
+      "description_present": true,
+      "description_character_count": 490,
+      "description_sha256": "01aa34ee2b23b9a6199ab416be936860b87af3fa852ff08d25a6a80347f7563f",
+      "chapter_count": 0,
+      "outbound_link_count": 3,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "Oljolj-ke9Q",
+      "title": "Simple neural cellular automata",
+      "published_at": "2021-10-16T13:53:30Z",
+      "description_present": true,
+      "description_character_count": 869,
+      "description_sha256": "d8e24adc6057b6cad3f2e40f075fad4c56f15c1bcfbaca7a39a3c74ac35e14da",
+      "chapter_count": 0,
+      "outbound_link_count": 4,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "OOCFgYzxxvs",
+      "title": "Natural Selection Simulation for 1 hour",
+      "published_at": "2021-09-04T14:00:10Z",
+      "description_present": true,
+      "description_character_count": 1258,
+      "description_sha256": "1040f5676301d11d3c32107950e51b6a77c677ed19ab5819511a8301b03f48a4",
+      "chapter_count": 0,
+      "outbound_link_count": 3,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "lFHJqay0zCs",
+      "title": "Neural network learns the Mandelbrot [Part 2]",
+      "published_at": "2021-02-27T22:38:14Z",
+      "description_present": true,
+      "description_character_count": 1218,
+      "description_sha256": "eb83fc29b5fcfd3389c5ef2227eb616462df5219795005bf859cf464cdfd7632",
+      "chapter_count": 0,
+      "outbound_link_count": 4,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "QmPBLroyHB0",
+      "title": "Neural Network learns the Mandelbrot set [Part 1]",
+      "published_at": "2021-02-24T23:04:45Z",
+      "description_present": true,
+      "description_character_count": 1140,
+      "description_sha256": "029f9e85edeaec206c61596ade979cb7e6ea6e23aa0303f818b528cb3f935dc4",
+      "chapter_count": 0,
+      "outbound_link_count": 2,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "RO9rfa8-vwo",
+      "title": "Life Engine Update (now with graphs! 📈)",
+      "published_at": "2021-02-19T22:00:16Z",
+      "description_present": true,
+      "description_character_count": 1205,
+      "description_sha256": "841f7d8e753f9961604abb240bcf3b2a588387cf2c14ae9fe4c193073c11116a",
+      "chapter_count": 0,
+      "outbound_link_count": 3,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "HpgXTphPCP0",
+      "title": "Bugs are Features in Evolution [The Life Engine]",
+      "published_at": "2021-02-05T21:55:05Z",
+      "description_present": true,
+      "description_character_count": 958,
+      "description_sha256": "80e4dee4dcf6b4b342d3019c5e3b27d58f64a62fe985666f0c6b630eb628b95f",
+      "chapter_count": 0,
+      "outbound_link_count": 3,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "uGkkm023BSs",
+      "title": "Building a Zoo with Evolution [The Life Engine]",
+      "published_at": "2021-01-29T21:40:38Z",
+      "description_present": true,
+      "description_character_count": 505,
+      "description_sha256": "62437fcba365a9f14bc0d3f283271f5ca47e29a510081d33ade154ad62edcde9",
+      "chapter_count": 0,
+      "outbound_link_count": 0,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "WJyHaPFwFSQ",
+      "title": "Evolution of Eyes and Brains [The Life Engine]",
+      "published_at": "2020-08-28T15:04:14Z",
+      "description_present": true,
+      "description_character_count": 1961,
+      "description_sha256": "3e0a8f3598341dd744dce61653325be69cffaf6bd02b1375fc827db84a7bb360",
+      "chapter_count": 0,
+      "outbound_link_count": 5,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    },
+    {
+      "video_id": "4XEklaH9k6k",
+      "title": "Evolution Simulator [The Life Engine]",
+      "published_at": "2020-08-07T22:21:22Z",
+      "description_present": true,
+      "description_character_count": 1739,
+      "description_sha256": "6fac22f3b2744fcc0bee83e4d3b00c9f1e95532261bc591c2c86e55a2d85213c",
+      "chapter_count": 0,
+      "outbound_link_count": 6,
+      "caption_available": false,
+      "transcript_state": "UNACQUIRED",
+      "allowed_transcript_routes": [
+        "creator_supplied",
+        "first_party_licensed",
+        "permissioned_export",
+        "manual_youtube_ui",
+        "operator_notes",
+        "local_asr_supplied_media"
+      ],
+      "prohibited_routes": [
+        "unattended_youtube_scrape",
+        "undocumented_transcript_endpoint",
+        "browser_cookie_extraction",
+        "video_or_audio_download"
+      ]
+    }
+  ],
+  "refresh_or_delete_by": "2026-10-05T05:55:01Z",
+  "collector_version": "2.0.0"
+}

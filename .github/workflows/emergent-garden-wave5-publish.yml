@@ -1,0 +1,173 @@
+name: Emergent Garden Wave 5 Verified Publication
+
+on:
+  push:
+    branches:
+      - docs/emergent-garden-nested-corpus-20260904
+    paths:
+      - .github/workflows/emergent-garden-wave5-publish.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: emergent-garden-wave5-publication
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact reviewed source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Download fixed public evidence artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: KooshaPari/ResearchLedger
+          run-id: 33955202084
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: emergent-garden-wave5-evidence-33955202084
+          path: ${{ runner.temp }}/wave5-intake
+
+      - name: Verify captured bytes and retain metadata only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP']) / 'wave5-intake'
+          for row in json.loads((root / 'SHA256-MANIFEST.json').read_text()):
+              p = (root / row['path']).resolve()
+              assert p.is_relative_to(root.resolve()) and p.is_file() and not p.is_symlink()
+              assert hashlib.sha256(p.read_bytes()).hexdigest() == row['sha256']
+          receipt = json.loads((root / 'wave5-intake-receipts.json').read_text())
+          assert receipt['source_commit'] == '35380061e75763edeb84139e33e8ee369ac5b976'
+          assert receipt['paper']['sha256'] == 'ae55917c5173a03c64418e819d70dfad0dce33da52f9f0fa828fd8d0fd90306e'
+          target = Path('docs/corpora/emergent-garden/data/wave-5-intake-receipts.json')
+          target.write_text(json.dumps(receipt, indent=2) + '\n')
+          print('Capture payload hashes verified; only public metadata retained for Git.')
+          PY
+
+      - name: Run tests and synthetic negative controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/wave5-validation"
+          python3 -m unittest discover -s scripts/research -p 'test_*.py' -v 2>&1 | tee "$RUNNER_TEMP/wave5-validation/wave-5-tests.txt"
+          python3 scripts/research/build_evidence_cases.py > docs/corpora/emergent-garden/data/wave-5-admission-fixtures.json
+          python3 scripts/research/assess_research_evidence.py \
+            docs/corpora/emergent-garden/data/wave-5-admission-fixtures.json \
+            --output docs/corpora/emergent-garden/data/wave-5-admission-results.json
+
+      - name: Format and scan new derived artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix "$RUNNER_TEMP/eg-format" prettier@3.6.2
+          "$RUNNER_TEMP/eg-format/node_modules/.bin/prettier" --write \
+            docs/corpora/emergent-garden/data/wave-5-*.json \
+            docs/corpora/emergent-garden/data/primary-paper-coverage-v5.json \
+            docs/corpora/emergent-garden/research/WAVE-5-*.md \
+            docs/corpora/emergent-garden/research/README.md
+          python3 - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+          for p in Path('docs/corpora/emergent-garden/data').glob('wave-5-*.json'):
+              text = p.read_text()
+              json.loads(text)
+              assert not re.search(r'AIza[0-9A-Za-z_-]{30,}|gh[pousr]_[0-9A-Za-z]{20,}|BEGIN (?:RSA )?PRIVATE KEY', text)
+          result = json.loads(Path('docs/corpora/emergent-garden/data/wave-5-admission-results.json').read_text())
+          assert result['passed'] and result['cases'] == 32
+          print('JSON, publication scan and synthetic result assertions passed.')
+          PY
+          git diff --check
+
+      - name: Commit only derived outputs without moving other branches
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch=docs/emergent-garden-nested-corpus-20260904
+          remote=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
+          test "$remote" = "$GITHUB_SHA" || { echo 'Branch changed; refusing stale push.'; exit 1; }
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/corpora/emergent-garden/data/wave-5-*.json \
+            docs/corpora/emergent-garden/data/primary-paper-coverage-v5.json \
+            docs/corpora/emergent-garden/research/WAVE-5-*.md \
+            docs/corpora/emergent-garden/research/README.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'data(research): preserve verified Wave 5 receipts and negative controls'
+            git push origin "HEAD:$branch"
+          fi
+
+      - name: Build and verify complete derived handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+          import sys
+          root = Path(os.environ['RUNNER_TEMP']) / 'wave5-bundle'
+          root.mkdir()
+          shutil.copytree('docs/corpora/emergent-garden', root / 'docs/corpora/emergent-garden')
+          shutil.copytree('scripts/research', root / 'scripts/research', ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+          shutil.copy('AGENTS.md', root / 'RESEARCHLEDGER-AGENTS.md')
+          # Existing corpus notes use this historical plan as a relative target.
+          plans = Path('docs/superpowers/plans')
+          if plans.exists():
+              for p in plans.glob('*emergent-garden*'):
+                  dst = root / p
+                  dst.parent.mkdir(parents=True, exist_ok=True)
+                  shutil.copy(p, dst)
+          (root / 'validation').mkdir()
+          shutil.copy(Path(os.environ['RUNNER_TEMP']) / 'wave5-validation/wave-5-tests.txt', root / 'validation/wave-5-tests.txt')
+          (root / 'README.md').write_text('# Emergent Garden Wave 5 verified handoff\n\nStart at docs/corpora/emergent-garden/research/README.md.\n\nThis contains the actual derived corpus and tools, not raw transcripts, raw comments or the paper PDF.\n\nRun `python3 -m unittest discover -s scripts/research -p "test_*.py" -v` to replay offline checks.\nRun `python3 scripts/research/verify_research_bundle.py .` for inherited required-file validation; the Wave 5 verifier result records its additional required payloads.\n\nNo independent live agent benchmark or completed full-transcript corpus is claimed.\n')
+          # Preserve the legacy verifier's required test filename, explicitly scoped.
+          (root / 'validation/wave-4-tests.txt').write_text('Historical Wave 4: 58 tests passed in run 33954778827.\nCurrent replay including Wave 5 is in wave-5-tests.txt; this file is a provenance pointer, not the old raw log.\n')
+          source = {'repository': 'KooshaPari/ResearchLedger', 'workflow_source': os.environ['GITHUB_SHA'],
+              'content_commit': subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
+              'workflow_run_id': os.environ['GITHUB_RUN_ID'], 'capture_run_id': 33955202084,
+              'kind': 'derived-only Wave 5 handoff'}
+          (root / 'SOURCE.json').write_text(json.dumps(source, indent=2) + '\n')
+          files = [{'path': str(p.relative_to(root)), 'bytes': p.stat().st_size,
+                    'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(root.rglob('*')) if p.is_file()]
+          (root / 'BUNDLE-MANIFEST.json').write_text(json.dumps({'schema_version':'1.0','files':files}, indent=2)+'\n')
+          sys.path.insert(0, 'scripts/research')
+          from verify_research_bundle import verify, REQUIRED
+          required = REQUIRED | frozenset({
+              'docs/corpora/emergent-garden/research/WAVE-5-SOURCE-REVIEW.md',
+              'docs/corpora/emergent-garden/research/WAVE-5-LINEAGE-AND-TRANSFER.md',
+              'docs/corpora/emergent-garden/data/wave-5-intake-receipts.json',
+              'docs/corpora/emergent-garden/data/wave-5-admission-results.json',
+              'scripts/research/assess_research_evidence.py', 'validation/wave-5-tests.txt'})
+          report = verify(root, required)
+          print(json.dumps(report, indent=2))
+          assert report['passed']
+          out = Path(os.environ['RUNNER_TEMP']) / 'wave5-validation/bundle-verification.json'
+          out.write_text(json.dumps(report, indent=2)+'\n')
+          PY
+
+      - name: Export actual derived corpus
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: emergent-garden-wave5-derived-${{ github.run_id }}
+          path: ${{ runner.temp }}/wave5-bundle/
+          retention-days: 7
+          if-no-files-found: error

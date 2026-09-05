@@ -1,0 +1,428 @@
+{
+  "experiment": "EG-W5-RECORD-ADMISSION",
+  "scope": "synthetic negative-control fixtures only",
+  "cases": 32,
+  "passed": true,
+  "results": [
+    {
+      "case_id": "reported-learning",
+      "expected": true,
+      "actual": true,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": true,
+        "reasons": [],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "generated-is-admissible-as-generation",
+      "expected": true,
+      "actual": true,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "artifact_generated",
+        "admitted": true,
+        "reasons": [],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "missing-source_locator",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["MISSING_SOURCE_LOCATOR"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "missing-source_revision",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["MISSING_SOURCE_REVISION"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "missing-task_revision",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["MISSING_TASK_REVISION"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "missing-training_receipt",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["MISSING_TRAINING_RECEIPT"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "missing-execution_receipt",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["MISSING_EXECUTION_RECEIPT"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "missing-success_receipt",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["MISSING_SUCCESS_RECEIPT"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "missing-evaluator_revision",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["MISSING_EVALUATOR_REVISION"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "simulated-learning",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["ASSUMPTION_IS_NOT_LEARNING"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "not-trained",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["TRAINING_NOT_RECORDED"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "claimed-success",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["SUCCESS_NOT_RECORDED"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "invalid-claim",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "AGI",
+        "admitted": false,
+        "reasons": ["CLAIM_INVALID"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "string-boolean",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "admitted": false,
+        "reasons": ["TRAINING_NOT_RECORDED"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "fixed-policy-multiple-tasks",
+      "expected": true,
+      "actual": true,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "shared_policy_generalization",
+        "admitted": true,
+        "reasons": [],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "specialist-population",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "shared_policy_generalization",
+        "admitted": false,
+        "reasons": ["ONE_FIXED_POLICY_NOT_RECORDED"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "adaptation-during-evaluation",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "shared_policy_generalization",
+        "admitted": false,
+        "reasons": ["FIXED_POLICY_EVALUATION_NOT_ESTABLISHED"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "same-task-duplicated",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "shared_policy_generalization",
+        "admitted": false,
+        "reasons": ["MULTIPLE_TASKS_NOT_RECORDED"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "independent-record",
+      "expected": true,
+      "actual": true,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "independent_reproduction",
+        "admitted": true,
+        "reasons": [],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "paper-not-reproduction",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "independent_reproduction",
+        "admitted": false,
+        "reasons": ["NOT_AN_INDEPENDENT_RUN"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "coupled-evaluator",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "id": "synthetic",
+        "claim": "independent_reproduction",
+        "admitted": false,
+        "reasons": ["EVALUATOR_INDEPENDENCE_NOT_RECORDED"],
+        "limit": "Checks record sufficiency only; a plausible or hashed receipt may still be false."
+      }
+    },
+    {
+      "case_id": "matched-controls",
+      "expected": true,
+      "actual": true,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": true,
+        "missing": [],
+        "changed": [],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    },
+    {
+      "case_id": "changed-task_revision",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": false,
+        "missing": [],
+        "changed": ["task_revision"],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    },
+    {
+      "case_id": "changed-environment_revision",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": false,
+        "missing": [],
+        "changed": ["environment_revision"],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    },
+    {
+      "case_id": "changed-actuator_revision",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": false,
+        "missing": [],
+        "changed": ["actuator_revision"],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    },
+    {
+      "case_id": "changed-observer_revision",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": false,
+        "missing": [],
+        "changed": ["observer_revision"],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    },
+    {
+      "case_id": "changed-evaluator_revision",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": false,
+        "missing": [],
+        "changed": ["evaluator_revision"],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    },
+    {
+      "case_id": "changed-budget_policy",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": false,
+        "missing": [],
+        "changed": ["budget_policy"],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    },
+    {
+      "case_id": "changed-selection_policy",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": false,
+        "missing": [],
+        "changed": ["selection_policy"],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    },
+    {
+      "case_id": "changed-timestep",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": false,
+        "missing": [],
+        "changed": ["timestep"],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    },
+    {
+      "case_id": "changed-precision",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": false,
+        "missing": [],
+        "changed": ["precision"],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    },
+    {
+      "case_id": "missing-controls",
+      "expected": false,
+      "actual": false,
+      "matched_expectation": true,
+      "detail": {
+        "controlled": false,
+        "missing": [
+          "task_revision",
+          "environment_revision",
+          "actuator_revision",
+          "observer_revision",
+          "evaluator_revision",
+          "budget_policy",
+          "selection_policy",
+          "timestep",
+          "precision"
+        ],
+        "changed": [],
+        "limit": "Different controls can be legitimate treatments, but not an unqualified topology-only comparison."
+      }
+    }
+  ],
+  "not_claimed": [
+    "live agent benchmark",
+    "independent paper reproduction",
+    "automated source truth validation"
+  ]
+}

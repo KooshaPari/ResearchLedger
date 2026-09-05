@@ -1,0 +1,18 @@
+{
+  "scope": "Aggregate revalidation from recovered coverage and ID/hash audit; no raw comment text reread",
+  "capture_run": 33949179655,
+  "capture_unique_records": 30572,
+  "top_level": 22429,
+  "replies": 8143,
+  "creator_records": 203,
+  "coverage_classes": {"CLEAN_RECONCILED":59,"RECONCILED_AFTER_DEDUP":14,"UNRESOLVED":1},
+  "gap_audit_run": 33949558539,
+  "reported_counts": ["781","781","781","781"],
+  "returned_counts": [780,647,780],
+  "time_order_sets_equal": true,
+  "relevance_subset": true,
+  "relevance_missing_from_time": 133,
+  "raw_text_recoverable_in_current_export": false,
+  "cause_of_one_record_discrepancy": "UNKNOWN",
+  "note": "Encrypted raw text remains present, but its original decryption key is not available in this runtime. Earlier semantic readings are inherited research, not rerun here."
+}

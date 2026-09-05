@@ -1,0 +1,20 @@
+{
+  "campaign_id": "eg-nested-corpus-2026-09",
+  "work_unit": "EG-W3",
+  "tracking_issue": "KooshaPari/AgilePlus#1073",
+  "capture_run": 33949179655,
+  "capture_source_revision": "f885c549603d6b347e16ddde17c17b23f359cc03",
+  "encrypted_artifact_zip_sha256": "d3aafe3a5a63c4479fb7549f4bb26e38b18797502c33d5b081d309157fd61969",
+  "capture_requests": 597,
+  "gap_audit_run": 33949558539,
+  "gap_audit_requests": 39,
+  "public_uploads": 74,
+  "comments": {"unique": 30572, "top_level": 22429, "replies": 8143, "creator": 203, "clean_count_reconciled_videos": 59, "count_reconciled_after_deduplication": 14, "unresolved_count_videos": 1, "gap_video": "Y5OUS-pM9Mc", "gap_reported": 781, "gap_returned": 780, "relevance_returned": 647, "gap_cause": "unknown"},
+  "description_markers": {"markers": 325, "videos": 49, "sequence_candidates": 47, "parse_issue_videos": 0, "player_chapters_confirmed": false},
+  "derived_graph": {"nodes": 555, "edges": 840, "comment_link_edges": 112, "normalized_comment_targets": 102, "github_url_targets": 22, "observed_repository_identities": 20, "full_graph_location": "companion derived-only execution package; not raw comment text"},
+  "review": {"creator_comments_read": 203, "all_audience_comments_individually_reviewed": false, "correction_records": 24, "selected_primary_sources": 14, "primary_source_depth_is_per_record": true, "complete_transcripts": 0},
+  "checks": {"comment_tests_passed": 9, "offline_analysis_tests_passed": 16, "activation_identity_points": 8001, "activation_identity_max_error": 2.220446049250313e-16, "parameterization_steps": 200, "parameterization_samples": 33, "matched_prediction_max_difference": 0.0, "equal_rate_negative_control_difference": 0.136395047283144},
+  "not_executed": ["live coordination benchmark", "paid model evaluation", "hardware trial", "complete transcript corpus", "exhaustive linked-source review"],
+  "publication": {"raw_comment_text_in_git": false, "private_key_in_git": false, "audience_profile_data_retained": false, "source_text_is_untrusted_data": true},
+  "authority": {"research": "ResearchLedger", "fleet_projection": "RepoLedger", "benchmark_protocol": "Benchora", "proposed_agent_contract": "Agentora", "trace_evidence_contract": "Tracera"}
+}

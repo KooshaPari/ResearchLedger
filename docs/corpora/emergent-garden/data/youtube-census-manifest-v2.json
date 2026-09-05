@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "eg-nested-corpus-2026-09",
+  "acquisition_commit": "7a48a604a4ff66d65b595b0e1eb1d9cd1f00ecce",
+  "workflow_run_id": "33948427726",
+  "workflow_run_attempt": "1",
+  "offline_reconciliation_tests_passed": true,
+  "original_output_commit": "6b41757eb9bb85eb1842a41920770758557b3def",
+  "narrative_correction_commit": "58170720506f82f69c51205794edf059bb047046",
+  "narrative_correction": "Corrected obsolete Atom framing and URL-versus-repository counting language. Source data unchanged. Original manifest remains available at original_output_commit.",
+  "files": [
+    {
+      "path": "docs/corpora/emergent-garden/data/youtube-census-status-v1.json",
+      "sha256": "75791a1bdf56591484a120dcff9bff00d774dd04059e80425fca624c94783f90"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/data/youtube-channel-inventory-v1.json",
+      "sha256": "47640c3e16cb189a10695314717086cb5bba3288300e1cfc792d0ae8f0f0d67d"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/data/youtube-description-edges-v1.json",
+      "sha256": "181bda36d25c1a325b89032761fa26a9680097ec29431d0d85ecf0bfece20c0f"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/data/youtube-text-coverage-v1.json",
+      "sha256": "d9b8b86e723dc1cd5ab88f3ab38422a15a17e8a2c8431954c57ec0528c92b3de"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/data/direct-link-frontier-v1.json",
+      "sha256": "91dd9919209814ebef7a740235d61f441c3f40a86e6a0f363dc7032da67687c4"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/research/YOUTUBE-CENSUS-WAVE-2.md",
+      "sha256": "661fe1df9dbf4fa8a10f69d6c8856574c0748c63ee0ddea4a57b3c72099caa07"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/research/DIRECT-LINK-EXPANSION-WAVE-2.md",
+      "sha256": "dcf81a761c40590b51b79082a758be1b259a3eceeb3571c655c6ccd37f1a41cc"
+    }
+  ]
+}

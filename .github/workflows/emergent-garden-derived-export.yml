@@ -1,0 +1,90 @@
+name: Emergent Garden Derived Export
+
+on:
+  push:
+    branches:
+      - docs/emergent-garden-nested-corpus-20260904
+    paths:
+      - .github/workflows/emergent-garden-derived-export.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Run all offline research tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/eg-derived/validation"
+          python3 -m unittest discover -s scripts/research -p 'test_*.py' -v 2>&1 | tee "$RUNNER_TEMP/eg-derived/validation/wave-4-tests.txt"
+          python3 scripts/research/check_activation_parameterization.py > "$RUNNER_TEMP/eg-derived/validation/parameterization.json"
+
+      - name: Export checked-in research and verify the handoff
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, shutil, sys
+          from pathlib import Path
+          out = Path(os.environ['RUNNER_TEMP']) / 'eg-derived'
+          for rel in ('docs/corpora/emergent-garden', 'scripts/research'):
+              for src in Path(rel).rglob('*'):
+                  if src.is_file() and '__pycache__' not in src.parts and src.suffix in {'.md', '.json', '.yaml', '.yml', '.py', '.sha256'}:
+                      target = out / src
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      shutil.copyfile(src, target)
+          plan = Path('docs/superpowers/plans/2026-09-04-emergent-garden-nested-corpus.md')
+          if plan.is_file():
+              (out / plan).parent.mkdir(parents=True, exist_ok=True)
+              shutil.copyfile(plan, out / plan)
+          shutil.copyfile('AGENTS.md', out / 'RESEARCHLEDGER-AGENTS.md')
+          (out / 'SOURCE.json').write_text(json.dumps({'repository':'KooshaPari/ResearchLedger', 'commit':os.environ['SOURCE_SHA'], 'workflow_run':os.environ['GITHUB_RUN_ID'], 'scope':'checked-in derived corpus and research scripts; excludes raw comments, full transcripts, credentials and media'}, indent=2)+'\n')
+          (out / 'README.md').write_text('''# Emergent Garden: Wave 4 research handoff
+
+          This archive contains the actual revision-pinned research payload, not the earlier status-only stub.
+
+          Start with [the research index](docs/corpora/emergent-garden/research/README.md), [the Wave 4 execution checkpoint](docs/corpora/emergent-garden/research/WAVE-4-EXECUTION-CHECKPOINT.md), and [method reviews](docs/corpora/emergent-garden/research/WAVE-4-METHODS-REVIEW.md).
+
+          From the extracted directory:
+
+          ```bash
+          python3 scripts/research/verify_research_bundle.py .
+          python3 -m unittest discover -s scripts/research -p 'test_*.py' -v
+          ```
+
+          Python 3.10 or later is required. The tests use synthetic/offline fixtures and do not require API credentials.
+
+          `SOURCE.json` pins the GitHub revision and export run. `BUNDLE-MANIFEST.json` lists hashes and sizes. `validation/wave-4-tests.txt` contains the actual test output. Package integrity is not scientific truth or campaign completion.
+
+          Full video transcripts, the original private raw-comment input/decryption key, and the previously claimed full comment-derived graph are not in this archive. The checked-in description graph, comment aggregate receipts, earlier semantic notes and current source reviews are included. Prior dated reports can contain superseded findings; use the current index/checkpoint to interpret them. No live coordination benchmark or paper reproduction is claimed.
+          '''.replace('\n          ', '\n'))
+          rows = [{'path':str(p.relative_to(out)), 'bytes':p.stat().st_size, 'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(out.rglob('*')) if p.is_file()]
+          (out / 'BUNDLE-MANIFEST.json').write_text(json.dumps({'schema_version':'1.0', 'files':rows},indent=2)+'\n')
+          sys.path.insert(0, 'scripts/research')
+          from verify_research_bundle import verify
+          result = verify(out)
+          print(json.dumps(result, indent=2))
+          if not result['passed']:
+              raise SystemExit('Handoff integrity validation failed')
+          PY
+
+      - name: Attach verified derived handoff
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: emergent-garden-wave4-${{ github.run_id }}
+          path: ${{ runner.temp }}/eg-derived/
+          retention-days: 7
+          if-no-files-found: error

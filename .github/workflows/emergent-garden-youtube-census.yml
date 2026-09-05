@@ -1,0 +1,191 @@
+name: Emergent Garden YouTube Census
+
+on:
+  push:
+    branches:
+      - docs/emergent-garden-nested-corpus-20260904
+    paths:
+      - scripts/research/collect_emergent_garden_youtube.py
+      - scripts/research/collect_emergent_garden_youtube_v2.py
+      - scripts/research/test_emergent_garden_youtube_v2.py
+      - scripts/research/build_emergent_garden_link_frontier.py
+      - .github/workflows/emergent-garden-youtube-census.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: emergent-garden-youtube-census
+  cancel-in-progress: false
+
+jobs:
+  census:
+    if: github.actor != 'github-actions[bot]' && github.ref == 'refs/heads/docs/emergent-garden-nested-corpus-20260904'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact acquisition revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Test reconciliation and redaction before acquisition
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s scripts/research -p 'test_emergent_garden_youtube_v2.py' -v
+          python3 -m py_compile scripts/research/collect_emergent_garden_youtube_v2.py
+
+      - name: Collect official API census with isolated credential
+        shell: bash
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          set -euo pipefail
+          python3 scripts/research/collect_emergent_garden_youtube_v2.py
+
+      - name: Format canonical inputs before hashing downstream references
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global prettier@3.6.2
+          prettier --write \
+            docs/corpora/emergent-garden/data/youtube-channel-inventory-v1.json \
+            docs/corpora/emergent-garden/data/youtube-text-coverage-v1.json \
+            docs/corpora/emergent-garden/data/youtube-description-edges-v1.json \
+            docs/corpora/emergent-garden/data/youtube-census-status-v1.json
+
+      - name: Expand bounded public direct-link frontier
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, 'scripts/research')
+          from build_emergent_garden_link_frontier import grouped_targets
+
+          source = json.loads(Path('docs/corpora/emergent-garden/data/youtube-description-edges-v1.json').read_text())
+          count = len(grouped_targets(source['edges']))
+          if count > 100:
+              raise SystemExit('Direct-link budget exceeded; review frontier before expansion.')
+          print(f'Bounded expansion targets: {count}')
+          PY
+          python3 scripts/research/build_emergent_garden_link_frontier.py --delay-ms 250
+
+      - name: Reconcile scope labels and validate publication outputs
+        shell: bash
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path('docs/corpora/emergent-garden')
+          status = json.loads((root / 'data/youtube-census-status-v1.json').read_text())
+          path = root / 'data/direct-link-frontier-v1.json'
+          frontier = json.loads(path.read_text())
+          source = root / 'data/youtube-description-edges-v1.json'
+          assert frontier['input']['sha256'] == hashlib.sha256(source.read_bytes()).hexdigest()
+          assert frontier['input']['inventory_complete'] == status['inventory_complete']
+          complete = status['inventory_complete']
+          scope = 'Reconciled public uploads API snapshot' if complete else 'Unreconciled official API snapshot'
+          frontier['limits'] = [
+              scope + '; not private/deleted history or a transcript corpus.',
+              'Expansion is metadata retrieval, not full-text review or experiment reproduction.',
+              'Only the configured direct-link classes are expanded; other targets remain pending.',
+              'Reachability does not establish authorship, endorsement, or implementation lineage.',
+          ]
+          frontier['refresh_or_delete_by'] = status['refresh_or_delete_by']
+          path.write_text(json.dumps(frontier, indent=2, ensure_ascii=False) + '\n')
+          report_path = root / 'research/DIRECT-LINK-EXPANSION-WAVE-2.md'
+          report = report_path.read_text()
+          report = report.replace(
+              'The campaign-level gate remains partial because `G1_INVENTORY` is blocked and older descriptions have not been enumerated.',
+              'The inventory status is recorded separately in the official census; source-content review and recursive coverage remain partial.')
+          report = report.replace('recent-window portion', 'current-snapshot portion')
+          report += '\n## Current acquisition scope\n\n' + scope + '.\n\n'
+          report += 'The G1 result is ' + status['state'] + '. This report is a direct metadata expansion, not evidence that every linked source was read.\n'
+          report_path.write_text(report)
+          reports = [report_path, root / 'research/YOUTUBE-CENSUS-WAVE-2.md']
+          for report_file in reports:
+              lines = report_file.read_text().splitlines()
+              # Replace inherited Markdown two-space breaks with blank paragraphs.
+              normalized = '\n'.join(line.rstrip() + ('\n' if line.endswith('  ') else '') for line in lines) + '\n'
+              report_file.write_text(normalized)
+          key = os.environ.get('YOUTUBE_API_KEY', '')
+          for candidate in [*(root / 'data').glob('youtube-*-v1.json'), path, *reports]:
+              text = candidate.read_text()
+              if candidate.suffix == '.json':
+                  json.loads(text)
+              assert not key or key not in text, 'Credential detected in output; publication refused.'
+          print(json.dumps({'census_state': status['state'], 'frontier_summary': frontier['summary']}, indent=2))
+          PY
+          prettier --write \
+            docs/corpora/emergent-garden/data/direct-link-frontier-v1.json \
+            docs/corpora/emergent-garden/research/YOUTUBE-CENSUS-WAVE-2.md \
+            docs/corpora/emergent-garden/research/DIRECT-LINK-EXPANSION-WAVE-2.md
+
+      - name: Freeze exact output hashes
+        shell: bash
+        env:
+          ACQUISITION_COMMIT: ${{ github.sha }}
+          ACQUISITION_RUN_ID: ${{ github.run_id }}
+          ACQUISITION_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path('docs/corpora/emergent-garden')
+          paths = [*sorted((root / 'data').glob('youtube-*-v1.json')),
+                   root / 'data/direct-link-frontier-v1.json',
+                   root / 'research/YOUTUBE-CENSUS-WAVE-2.md',
+                   root / 'research/DIRECT-LINK-EXPANSION-WAVE-2.md']
+          manifest = {
+              'schema_version': '1.0', 'campaign_id': 'eg-nested-corpus-2026-09',
+              'acquisition_commit': os.environ['ACQUISITION_COMMIT'],
+              'workflow_run_id': os.environ['ACQUISITION_RUN_ID'],
+              'workflow_run_attempt': os.environ['ACQUISITION_RUN_ATTEMPT'],
+              'offline_reconciliation_tests_passed': True,
+              'files': [{'path': str(p), 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in paths],
+          }
+          (root / 'data/youtube-census-manifest-v2.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          PY
+          prettier --write docs/corpora/emergent-garden/data/youtube-census-manifest-v2.json
+          git diff --check
+
+      - name: Commit verified census to research branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            docs/corpora/emergent-garden/data/youtube-channel-inventory-v1.json \
+            docs/corpora/emergent-garden/data/youtube-text-coverage-v1.json \
+            docs/corpora/emergent-garden/data/youtube-description-edges-v1.json \
+            docs/corpora/emergent-garden/data/youtube-census-status-v1.json \
+            docs/corpora/emergent-garden/data/direct-link-frontier-v1.json \
+            docs/corpora/emergent-garden/data/youtube-census-manifest-v2.json \
+            docs/corpora/emergent-garden/research/YOUTUBE-CENSUS-WAVE-2.md \
+            docs/corpora/emergent-garden/research/DIRECT-LINK-EXPANSION-WAVE-2.md
+          if git diff --cached --quiet; then
+            echo 'No census changes to commit.'
+            exit 0
+          fi
+          git commit -m 'docs(content): record reconciled official YouTube census'
+          git push origin HEAD:docs/emergent-garden-nested-corpus-20260904

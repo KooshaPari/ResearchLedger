@@ -1,0 +1,19 @@
+{
+  "boundary": "19 direct arXiv works selected from the reconciled 74-upload description census; not all nested sources",
+  "total_direct_papers": 19,
+  "selected_method_reviews_across_waves": 18,
+  "newly_method_reviewed_from_metadata": 9,
+  "deepened_project_overview": 1,
+  "limited_depth_exceptions": 1,
+  "wave_4_versions": ["1412.0233v3","1809.11096v2","2006.11239v2","2103.05247v2","2105.05233v4","2105.13290v3","2301.12050v2","2303.17580v4","2012.03016v2","2201.05989v2"],
+  "inherited_wave_3_methods_not_reread_here": ["1901.01753v3","2006.10739v1","2304.03442v2","2406.04268v1","2411.00114v1","2412.17799v2","2505.22954v3","2504.17950v1"],
+  "exception": {
+    "version": "2405.15568v3",
+    "title": "OMNI-EPIC",
+    "depth": "abstract and repository overview only",
+    "primary_proceedings": "https://proceedings.iclr.cc/paper_files/paper/2025/hash/d40d7cbe7210f8a13ea0149eeae9c6de-Abstract-Conference.html",
+    "attempts": ["arXiv HTML/PDF fetch failed", "OpenReview returned browser verification", "ICLR PDF exceeded web fetch size limit: 25906840 bytes"],
+    "missing_methods_inferred_from_secondary_summary": false
+  },
+  "independent_reproduction": false
+}
