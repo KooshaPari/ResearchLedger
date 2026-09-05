@@ -55,8 +55,7 @@ jobs:
             docs/corpora/emergent-garden/data/youtube-channel-inventory-v1.json \
             docs/corpora/emergent-garden/data/youtube-text-coverage-v1.json \
             docs/corpora/emergent-garden/data/youtube-description-edges-v1.json \
-            docs/corpora/emergent-garden/data/youtube-census-status-v1.json \
-            docs/corpora/emergent-garden/research/YOUTUBE-CENSUS-WAVE-2.md
+            docs/corpora/emergent-garden/data/youtube-census-status-v1.json
 
       - name: Expand bounded public direct-link frontier
         shell: bash
@@ -75,7 +74,7 @@ jobs:
           source = json.loads(Path('docs/corpora/emergent-garden/data/youtube-description-edges-v1.json').read_text())
           count = len(grouped_targets(source['edges']))
           if count > 100:
-              raise SystemExit('Direct-link budget exceeded; preserve census and review frontier before expansion.')
+              raise SystemExit('Direct-link budget exceeded; review frontier before expansion.')
           print(f'Bounded expansion targets: {count}')
           PY
           python3 scripts/research/build_emergent_garden_link_frontier.py --delay-ms 250
@@ -118,16 +117,23 @@ jobs:
           report += '\n## Current acquisition scope\n\n' + scope + '.\n\n'
           report += 'The G1 result is ' + status['state'] + '. This report is a direct metadata expansion, not evidence that every linked source was read.\n'
           report_path.write_text(report)
+          reports = [report_path, root / 'research/YOUTUBE-CENSUS-WAVE-2.md']
+          for report_file in reports:
+              lines = report_file.read_text().splitlines()
+              # Replace inherited Markdown two-space breaks with blank paragraphs.
+              normalized = '\n'.join(line.rstrip() + ('\n' if line.endswith('  ') else '') for line in lines) + '\n'
+              report_file.write_text(normalized)
           key = os.environ.get('YOUTUBE_API_KEY', '')
-          for candidate in (root / 'data').glob('youtube-*-v1.json'):
+          for candidate in [*(root / 'data').glob('youtube-*-v1.json'), path, *reports]:
               text = candidate.read_text()
-              json.loads(text)
+              if candidate.suffix == '.json':
+                  json.loads(text)
               assert not key or key not in text, 'Credential detected in output; publication refused.'
-          assert not key or key not in path.read_text(), 'Credential detected in frontier; publication refused.'
           print(json.dumps({'census_state': status['state'], 'frontier_summary': frontier['summary']}, indent=2))
           PY
           prettier --write \
             docs/corpora/emergent-garden/data/direct-link-frontier-v1.json \
+            docs/corpora/emergent-garden/research/YOUTUBE-CENSUS-WAVE-2.md \
             docs/corpora/emergent-garden/research/DIRECT-LINK-EXPANSION-WAVE-2.md
 
       - name: Freeze exact output hashes
