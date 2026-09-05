@@ -1,122 +1,68 @@
-# Emergent Garden Direct-Link Expansion — Wave 2
+# Emergent Garden Direct-Link Expansion — Reconciled API Snapshot
 
 **Campaign:** `eg-nested-corpus-2026-09`
 
-**Generated:** 2026-09-05T05:55:31Z
+**Acquired:** 2026-09-05T05:55:02Z; direct expansion completed at 05:55:31Z.
 
-**Input ledger SHA-256:** `181bda36d25c1a325b89032761fa26a9680097ec29431d0d85ecf0bfece20c0f`
+**Acquisition commit:** `7a48a604a4ff66d65b595b0e1eb1d9cd1f00ecce`
 
-**Input inventory complete:** **yes**
+**Original output commit:** `6b41757eb9bb85eb1842a41920770758557b3def`
 
-**G3 direct-graph scope:** recent-window high-value links only
+**Input description-edge SHA-256:** `181bda36d25c1a325b89032761fa26a9680097ec29431d0d85ecf0bfece20c0f`
 
 ## Verdict
 
-The official Atom-feed window exposes a useful direct graph even though the complete channel inventory is blocked. This pass resolves unique implementation candidates through the GitHub REST API, primary papers through arXiv, and creator-controlled pages through bounded HTTP captures. It does not upgrade the recent-window sample into a complete channel graph.
+The input is now a reconciled official YouTube Data API snapshot of 74 public uploads, not the earlier 15-record Atom window. Two ordered playlist enumerations matched, both channel counts were 74, every public video detail resolved, and all 13 reconciliation checks passed. This closes the credential-dependent inventory gap, not the transcript or research-completeness gaps.
 
-## Coverage
+The extractor found 528 video-to-URL edges and 300 distinct normalized URL targets across 93 domains. It selected 54 priority target URLs under the existing classifier and retrieved metadata for 53; one fetch failed. Retrieval success does not mean full source review, endorsement, or experiment reproduction.
 
-| Measure                            | Count |
-| ---------------------------------- | ----: |
-| Description edges in input ledger  |   528 |
-| Unique targets in input ledger     |   300 |
-| Unique high-value targets          |    54 |
-| Unique implementation repositories |    22 |
-| Unique primary papers              |    19 |
-| Unique creator-controlled pages    |    13 |
-| Expanded successfully              |    53 |
-| Expansion failures                 |     1 |
+## Exact coverage and counting units
 
-## Direct implementation repositories
+- Public uploads reconciled: 74.
+- Non-empty descriptions observed: 62; empty descriptions observed: 12.
+- Videos containing extracted links: 58.
+- Description edges: 528. Repeated links within a single description are deduplicated by the current extractor.
+- Distinct normalized target URLs: 300. Different URLs can still identify the same work.
+- Priority target URLs attempted: 54.
+- GitHub target URLs attempted: 22, all with successful repository metadata retrieval.
+- arXiv target URLs attempted: 19, all with successful metadata retrieval.
+- Creator-page target URLs attempted: 13; 12 successful and one failed.
+- Transcript texts acquired: 0.
 
-| Repository                                                                                            | Source video(s)                                                                                                                                                                                                                                                                                                                                                             | Head           | README evidence        | State    |
-| ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ---------------------- | -------- |
-| [MaxRobinsonTheGreat/AgentsOfEmpires](https://github.com/MaxRobinsonTheGreat/AgentsOfEmpires)         | AI plays Age of Empires II                                                                                                                                                                                                                                                                                                                                                  | `b21286bd39a7` | `6020eb6fa21366b9b608` | EXPANDED |
-| [MaxRobinsonTheGreat/CodeEvolver](https://github.com/MaxRobinsonTheGreat/CodeEvolver)                 | Evolving AI Code                                                                                                                                                                                                                                                                                                                                                            | `591acd495f5b` | `356e546d208cb73c14b6` | EXPANDED |
-| [MaxRobinsonTheGreat/EvolutionSimulator](https://github.com/MaxRobinsonTheGreat/EvolutionSimulator)   | Natural Selection Simulation for 1 hour; Life Engine Update (now with graphs! 📈); Bugs are Features in Evolution [The Life Engine]; Evolution Simulator [The Life Engine]                                                                                                                                                                                                  | `207ae06d5eef` | `7034ef41130f146ae2fa` | EXPANDED |
-| [MaxRobinsonTheGreat/LifeEngine](https://github.com/MaxRobinsonTheGreat/LifeEngine)                   | How the Life Engine works                                                                                                                                                                                                                                                                                                                                                   | `15bb2fe444d3` | `d0aae2e4c9eac187be84` | EXPANDED |
-| [MaxRobinsonTheGreat/LifeEngine](https://github.com/MaxRobinsonTheGreat/LifeEngine)                   | Life Engine Update and Open Source Discussion                                                                                                                                                                                                                                                                                                                               | `15bb2fe444d3` | `d0aae2e4c9eac187be84` | EXPANDED |
-| [MaxRobinsonTheGreat/ManimApproximations](https://github.com/MaxRobinsonTheGreat/ManimApproximations) | Gradient Descent vs Evolution \| How Neural Networks Learn; Watching Neural Networks Learn                                                                                                                                                                                                                                                                                  | `c3351d2be438` | `—`                    | EXPANDED |
-| [MaxRobinsonTheGreat/StableDiffEvolution](https://github.com/MaxRobinsonTheGreat/StableDiffEvolution) | The Museum of AI Art; The Creativity of AI Art                                                                                                                                                                                                                                                                                                                              | `72e6cb80fc7d` | `82a46097711df48e03f9` | EXPANDED |
-| [MaxRobinsonTheGreat/agent_prompts](https://github.com/MaxRobinsonTheGreat/agent_prompts)             | The Chaos of AI Agents                                                                                                                                                                                                                                                                                                                                                      | `f4896e0d5ead` | `—`                    | EXPANDED |
-| [MaxRobinsonTheGreat/fractalsearch](https://github.com/MaxRobinsonTheGreat/fractalsearch)             | Recursive Self-Improvement                                                                                                                                                                                                                                                                                                                                                  | `68bf34365aab` | `7e7a0dca401eb4b98b67` | EXPANDED |
-| [MaxRobinsonTheGreat/hillclimbers](https://github.com/MaxRobinsonTheGreat/hillclimbers)               | Gradient Descent vs Evolution \| How Neural Networks Learn                                                                                                                                                                                                                                                                                                                  | `1a576176c143` | `3ebd811d9339f0755edd` | EXPANDED |
-| [MaxRobinsonTheGreat/hyperdimensions](https://github.com/MaxRobinsonTheGreat/hyperdimensions)         | Evolution in Higher Dimensions; Creatures in Higher Dimensions                                                                                                                                                                                                                                                                                                              | `f65a12c5d023` | `—`                    | EXPANDED |
-| [MaxRobinsonTheGreat/mandelbrotnn](https://github.com/MaxRobinsonTheGreat/mandelbrotnn)               | Recursive Self-Improvement; Gradient Descent vs Evolution \| How Neural Networks Learn; Watching Neural Networks Learn; Neural network learns the Mandelbrot [Part 2]; Neural Network learns the Mandelbrot set [Part 1]                                                                                                                                                    | `b03a9fc50d27` | `15203163a3dca30f2f86` | EXPANDED |
-| [MaxRobinsonTheGreat/slopcity](https://github.com/MaxRobinsonTheGreat/slopcity)                       | Unleashing AI Slop Swarms                                                                                                                                                                                                                                                                                                                                                   | `965c8a42956c` | `d0f74c4d293fc121a453` | EXPANDED |
-| [MaxRobinsonTheGreat/turmites](https://github.com/MaxRobinsonTheGreat/turmites)                       | Ants that are Computers                                                                                                                                                                                                                                                                                                                                                     | `fd3cfb116a8f` | `—`                    | EXPANDED |
-| [MaxRobinsonTheGreat/NeuralPatterns](https://github.com/MaxRobinsonTheGreat/NeuralPatterns)           | Simple neural cellular automata                                                                                                                                                                                                                                                                                                                                             | `b039bdd434e2` | `60bbd9b87ca43c0d0e8c` | EXPANDED |
-| [PrismarineJS/mineflayer](https://github.com/PrismarineJS/mineflayer)                                 | Playing Minecraft with ChatGPT \| Mindcraft                                                                                                                                                                                                                                                                                                                                 | `c07e457f79fd` | `19ffbba5e5252b788553` | EXPANDED |
-| [cabaletta/baritone](https://github.com/cabaletta/baritone)                                           | Can AI (actually) beat Minecraft?                                                                                                                                                                                                                                                                                                                                           | `64333af99a07` | `dd44d26257187588c5dc` | EXPANDED |
-| [karpathy/autoresearch](https://github.com/karpathy/autoresearch)                                     | Recursive Self-Improvement                                                                                                                                                                                                                                                                                                                                                  | `228791fb499a` | `3958fd4195ac2f98ed35` | EXPANDED |
-| [mindcraft-bots/mindcraft](https://github.com/mindcraft-bots/mindcraft)                               | Vision and Vibe Coding \| Mindcraft Update; AI talks to AI in Minecraft; How to Play Minecraft with AI (mindcraft tutorial); 4 AIs Survive 10 Days in Minecraft; AI Plays Minecraft Forever (and dies); AI Builds with Cheats \| Mindcraft; AI Builds in Creative Mode \| Mindcraft; AI Builds Stuff in Minecraft \| Mindcraft; Playing Minecraft with ChatGPT \| Mindcraft | `5f3acc87b479` | `cc58f52ba9c1ffa0a20c` | EXPANDED |
-| [mboop127/AutoDE](https://github.com/mboop127/AutoDE)                                                 | AI plays Age of Empires II                                                                                                                                                                                                                                                                                                                                                  | `10a7d75b2aba` | `f31f0604c8e249f2d5c2` | EXPANDED |
-| [mindcraft-bots/mindcraft](https://github.com/mindcraft-bots/mindcraft)                               | AI for War (in minecraft); Can AI (actually) beat Minecraft?                                                                                                                                                                                                                                                                                                                | `5f3acc87b479` | `cc58f52ba9c1ffa0a20c` | EXPANDED |
-| [mindcraft-ce/mindcraft-ce](https://github.com/mindcraft-ce/mindcraft-ce)                             | Can AI (actually) beat Minecraft?                                                                                                                                                                                                                                                                                                                                           | `cc9b6a3bc149` | `41c60975583b8ce2f1cc` | EXPANDED |
+The 22 GitHub targets must not be described as 22 distinct repositories. The resolved rows include repeated LifeEngine and Mindcraft identities from different source URLs. Preserve every discovery edge, but reconcile stable repository IDs before counting unique implementations. A successful repository lookup also does not imply that its README was available.
 
-## Primary papers
+## Evidence and machine-readable records
 
-| Paper                                                                                                                                                                     | Source video(s)                                                               | Version        | Primary category | State    |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------- | ---------------- | -------- |
-| [The Loss Surfaces of Multilayer Networks](https://arxiv.org/abs/1412.0233)                                                                                               | Gradient Descent vs Evolution \| How Neural Networks Learn                    | `1412.0233v3`  | cs.LG            | EXPANDED |
-| [Large Scale GAN Training for High Fidelity Natural Image Synthesis](https://arxiv.org/abs/1809.11096)                                                                    | Ai that makes thumbnails (or any image)                                       | `1809.11096v2` | cs.LG            | EXPANDED |
-| [Paired Open-Ended Trailblazer (POET): Endlessly Generating Increasingly Complex and Diverse Learning Environments and Their Solutions](https://arxiv.org/abs/1901.01753) | AI Plays Minecraft Forever (and dies)                                         | `1901.01753v3` | cs.NE            | EXPANDED |
-| [Fourier Features Let Networks Learn High Frequency Functions in Low Dimensional Domains](https://arxiv.org/abs/2006.10739)                                               | Watching Neural Networks Learn; Neural network learns the Mandelbrot [Part 2] | `2006.10739v1` | cs.CV            | EXPANDED |
-| [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)                                                                                              | Ai that makes thumbnails (or any image)                                       | `2006.11239v2` | cs.LG            | EXPANDED |
-| [Pretrained Transformers as Universal Computation Engines](https://arxiv.org/abs/2103.05247)                                                                              | Why Neural Networks can learn (almost) anything                               | `2103.05247v2` | cs.LG            | EXPANDED |
-| [Diffusion Models Beat GANs on Image Synthesis](https://arxiv.org/abs/2105.05233?curius=520)                                                                              | Ai that makes thumbnails (or any image)                                       | `2105.05233v4` | cs.LG            | EXPANDED |
-| [CogView: Mastering Text-to-Image Generation via Transformers](https://arxiv.org/abs/2105.13290)                                                                          | Ai that makes thumbnails (or any image)                                       | `2105.13290v3` | cs.CV            | EXPANDED |
-| [Instant Neural Graphics Primitives with a Multiresolution Hash Encoding](https://arxiv.org/abs/2201.05989)                                                               | Recursive Self-Improvement                                                    | `2201.05989v2` | cs.CV            | EXPANDED |
-| [Do Embodied Agents Dream of Pixelated Sheep: Embodied Decision Making using Language Guided World Modelling](https://arxiv.org/abs/2301.12050)                           | Playing Minecraft with ChatGPT \| Mindcraft                                   | `2301.12050v2` | cs.LG            | EXPANDED |
-| [HuggingGPT: Solving AI Tasks with ChatGPT and its Friends in Hugging Face](https://arxiv.org/abs/2303.17580)                                                             | Code that Writes Code and ChatGPT                                             | `2303.17580v4` | cs.CL            | EXPANDED |
-| [Generative Agents: Interactive Simulacra of Human Behavior](https://arxiv.org/abs/2304.03442)                                                                            | AI talks to AI in Minecraft                                                   | `2304.03442v2` | cs.HC            | EXPANDED |
-| [OMNI-EPIC: Open-endedness via Models of human Notions of Interestingness with Environments Programmed in Code](https://arxiv.org/abs/2405.15568)                         | AI Plays Minecraft Forever (and dies)                                         | `2405.15568v3` | cs.AI            | EXPANDED |
-| [Open-Endedness is Essential for Artificial Superhuman Intelligence](https://arxiv.org/abs/2406.04268)                                                                    | AI Plays Minecraft Forever (and dies)                                         | `2406.04268v1` | cs.LG            | EXPANDED |
-| [Project Sid: Many-agent simulations toward AI civilization](https://arxiv.org/abs/2411.00114)                                                                            | AI talks to AI in Minecraft                                                   | `2411.00114v1` | cs.AI            | EXPANDED |
-| [Automating the Search for Artificial Life with Foundation Models](https://arxiv.org/abs/2412.17799)                                                                      | Artificial Life                                                               | `2412.17799v2` | cs.AI            | EXPANDED |
-| [Darwin Godel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954)                                                                   | Recursive Self-Improvement                                                    | `2505.22954v3` | cs.AI            | EXPANDED |
-| [A three layer neural network can represent any multivariate function](https://arxiv.org/pdf/2012.03016.pdf)                                                              | Why Neural Networks can learn (almost) anything                               | `2012.03016v2` | cs.LG            | EXPANDED |
-| [Collaborating Action by Action: A Multi-agent LLM Framework for Embodied Reasoning](https://arxiv.org/pdf/2504.17950)                                                    | Mindcraft Research Paper!                                                     | `2504.17950v1` | cs.MA            | EXPANDED |
+[The census status](../data/youtube-census-status-v1.json) contains the two-pass reconciliation and failure lists. [The description-edge ledger](../data/youtube-description-edges-v1.json) preserves source videos, original URLs, canonical URLs, domains, and provisional edge classes. [The direct frontier](../data/direct-link-frontier-v1.json) contains all attempted targets, source-video relationships, fetched revisions or response hashes, and per-target outcomes.
 
-## Creator-controlled surfaces
+[The manifest](../data/youtube-census-manifest-v2.json) records exact output hashes. [The completed acquisition run](https://github.com/KooshaPari/ResearchLedger/actions/runs/33948427726) ran the 21 offline tests, official acquisition, bounded expansion, formatting, credential-output check, and branch-only commit.
 
-| Surface                                                                   | Source video(s)                                                                                                            | HTTP | Response hash          | State    |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---: | ---------------------- | -------- |
-| [Emergent Garden](https://emergentgarden.io/)                             | "Vibe Coding"                                                                                                              |  200 | `f72c46b0ee5b01b5cb66` | EXPANDED |
-| [https://evolvecode.io/](https://evolvecode.io/)                          | Evolving AI Code                                                                                                           |    — | `—`                    | FAILED   |
-| [Aquarium GA](https://evolvecode.io/alife/aquarium.html)                  | Artificial Life                                                                                                            |  200 | `f805934e686c8fb88bdf` | EXPANDED |
-| [Strange Loops](https://evolvecode.io/alife/evoloop.html)                 | Artificial Life                                                                                                            |  200 | `2cbcabf4667ae16b3f36` | EXPANDED |
-| [Game of Life](https://evolvecode.io/alife/gol.html)                      | Artificial Life                                                                                                            |  200 | `bb19b16195f729b7132c` | EXPANDED |
-| [Lenia](https://evolvecode.io/alife/lenia.html)                           | Artificial Life                                                                                                            |  200 | `e7c6a16c7d31561fa655` | EXPANDED |
-| [Biomorphs](https://evolvecode.io/hyperspace/biomorphs.html)              | Evolution in Higher Dimensions                                                                                             |  200 | `0a269f101e3d032f4f17` | EXPANDED |
-| [Hyperdimensional Functions](https://evolvecode.io/hyperspace/index.html) | Evolution in Higher Dimensions; Creatures in Higher Dimensions                                                             |  200 | `4a92e34ee47ac414abf1` | EXPANDED |
-| [Picbreeder](https://evolvecode.io/hyperspace/picbreeder.html)            | Evolution in Higher Dimensions                                                                                             |  200 | `703a75bea0d634af9dce` | EXPANDED |
-| [Langton's Ant](https://evolvecode.io/turmites/index.html)                | Emergent Complexity; Ants that are Computers; "Vibe Coding"                                                                |  200 | `a638c470465a663f1041` | EXPANDED |
-| [neuralpatterns](https://neuralpatterns.io/)                              | Artificial Life; I Quit my Job to make Weird Programs; What are neural cellular automata?; Simple neural cellular automata |  200 | `1e0c6d176de94929bdfa` | EXPANDED |
-| [Neural Mountaineer](https://neuralpatterns.io/hill_climber.html)         | Gradient Descent vs Evolution \| How Neural Networks Learn                                                                 |  200 | `b187ada940382a18ec80` | EXPANDED |
-| [Neural Network Approximation](https://neuralpatterns.io/nn_tuner.html)   | Gradient Descent vs Evolution \| How Neural Networks Learn                                                                 |  200 | `4f79752cb44fced985af` | EXPANDED |
+## Recorded failure
 
-## Mechanism-level implications
+The root URL `https://evolvecode.io/` failed during this acquisition. Several deeper pages on the same site succeeded. This is a target-specific retrieval failure, not evidence that the project or all its pages are unavailable. Preserve the failed root record and examine its exact error before selecting a recovery route; do not silently substitute a working child page as though the root succeeded.
 
-1. **Foreground execution is a distinct system constraint.** The Age of Empires chain contains both the strategy-generating repository and a screen-capture game runner. A benchmark that tests only strategy text misses resolution, focus, timing, UI-state, and destructive file-write hazards.
-2. **Shared-artifact swarms need ownership and merge controls.** The Slopcity surface explicitly gives multiple agents responsibility for a shared hub while also asking them to render, inspect, critique, and revise their own work. That is a useful adversarial case for same-file contention and orphan prevention, not evidence that unbounded parallelism wins.
-3. **Embodied planning depends on a separate actuator substrate.** Baritone is a Minecraft pathfinder, while Mindcraft supplies language-agent planning and task structure. Conflating the planner with the actuator hides stale-state, path-execution, and recovery failures.
-4. **Open-ended search still requires an evaluator.** The directly linked ASAL and Darwin Gödel Machine papers use learned or benchmark-grounded evaluation rather than treating novelty alone as success.
-5. **Fast representations can change the feasible search regime.** The instant neural graphics primitive paper is implementation context for accelerating repeated evaluation; it does not by itself validate recursive self-improvement.
+## Newly exposed research frontier
 
-## Competing interpretations
+The full inventory adds older implementation and reference links that the recent Atom window did not cover. Examples include CodeEvolver, EvolutionSimulator, LifeEngine, StableDiffEvolution, hillclimbers, turmites, NeuralPatterns, and Mineflayer. The metadata frontier also includes POET, OMNI-EPIC, Generative Agents, Project Sid, and the MineCollab paper.
 
-- A linked repository may be historical context, an external dependency, a runner, or the creator's implementation; the graph preserves those possibilities instead of collapsing every GitHub edge into authorship.
-- A reachable creator page can identify an artifact while still failing to establish its source repository or revision history.
-- README claims and paper abstracts describe intended systems and reported results; they are not independent reproductions.
-- Failure to capture a page can reflect anti-bot controls, TLS, redirects, or transient network errors rather than absence.
+These are research leads established by description edges and retrieved metadata. Their technical mechanisms and applicability require full-text or code review at the retained versions. No new claim is accepted merely because a title resembles the campaign's preferred interpretation.
 
-## Gate transition
+## Remaining uncertainty
 
-This bounded pass advances the current-snapshot portion of `G3_DIRECT_GRAPH` to a reproducible expanded state. The inventory status is recorded separately in the official census; source-content review and recursive coverage remain partial. No additional product-repository fanout is authorized by this report alone.
+The current parser produced zero chapter records, and the API returned a false caption flag for every video. Neither result demonstrates that the public player has no chapters or automatic captions. Validate parser behavior and provider semantics against supported source evidence; keep chapter extraction and transcript availability separate from G1.
 
-## Current acquisition scope
+The priority classifier is incomplete. For example, the description ledger contains Life Engine site links and research-publisher domains outside the small automatic expansion allowlist. The 54 selected targets are not all intellectually important targets. The remaining 246 normalized URLs are not necessarily irrelevant; they need explicit relevance, identity, acquisition, and stopping decisions.
 
-Reconciled public uploads API snapshot.
+The preserved Wave 1 synthesis remains provisional. This acquisition does not reproduce its claims, run the Benchora experiment, or establish a single philosophy across every video.
 
-The G1 result is PASS. This report is a direct metadata expansion, not evidence that every linked source was read.
+## Gates and next research work
+
+`G1_INVENTORY` passes for public uploads visible to the API at capture. `G2_TEXT_COVERAGE` remains partial because no transcript text has been acquired. `G3_DIRECT_GRAPH` remains partial because metadata retrieval, full source review, entity reconciliation, and recursive expansion are different completion criteria.
+
+Next, reconcile aliases without discarding provenance; review the failed root and omitted high-value domains; verify the chapter and caption signals; then read the highest-value papers and implementation paths. Keep creator statements, implementation observations, reported experimental results, and analyst hypotheses distinct.
+
+API-derived metadata has a recorded refresh-or-delete deadline of `2026-10-05T05:55:01Z`. This timestamp is a recorded obligation, not a claim that an unattended refresh or deletion job exists.
+
+## Narrative correction
+
+This curated report replaces inherited template language that still called the input an Atom window and called 22 GitHub URLs unique repositories. The original acquisition outputs remain recoverable at the original output commit above. The revised manifest records this report's new hash; no acquisition counts or underlying source records were changed. The current generator still needs this narrative correction incorporated before its next refresh.
