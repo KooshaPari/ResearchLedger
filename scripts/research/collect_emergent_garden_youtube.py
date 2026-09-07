@@ -314,8 +314,8 @@ def atom_inventory() -> dict[str, Any]:
     root = ET.fromstring(request_text(ATOM_URL))
     namespaces = {
         "atom": "http://www.w3.org/2005/Atom",
-        "yt": "http://www.youtube.com/xml/schemas/2015",
-        "media": "http://search.yahoo.com/mrss/",
+        "yt": "http://www.youtube.com/xml/schemas/2015",  # NOSONAR (S5332): XML namespace identifier.
+        "media": "http://search.yahoo.com/mrss/",  # NOSONAR (S5332): XML namespace identifier.
     }
     videos: list[dict[str, Any]] = []
     for position, entry in enumerate(root.findall("atom:entry", namespaces)):

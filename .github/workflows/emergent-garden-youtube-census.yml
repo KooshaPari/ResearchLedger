@@ -50,7 +50,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm install --global prettier@3.6.2
+          npm install --global --ignore-scripts prettier@3.6.2
           prettier --write \
             docs/corpora/emergent-garden/data/youtube-channel-inventory-v1.json \
             docs/corpora/emergent-garden/data/youtube-text-coverage-v1.json \

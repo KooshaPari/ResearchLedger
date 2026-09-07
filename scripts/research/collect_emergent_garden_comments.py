@@ -266,7 +266,7 @@ def main():
     summary = {
         "campaign_id": "eg-nested-corpus-2026-09", "started_at": started, "finished_at": now(),
         "scope": "API-visible published comments on the 74-video public-upload census; not an atomic snapshot or moderated/deleted history",
-        "source_inventory_sha256": hashlib.sha256(Path(args.inventory).read_bytes()).hexdigest(),
+        "source_inventory_sha256": hashlib.sha256(inventory_path.read_bytes()).hexdigest(),
         "api_requests": len(api.audit), "videos_attempted": len(ids),
         "videos_enumerated_without_faults": sum(x["enumeration_complete"] for x in summaries),
         "top_level_comments": sum(x.get("top_level_comments", 0) for x in summaries),

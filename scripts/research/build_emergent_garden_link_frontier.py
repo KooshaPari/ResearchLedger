@@ -227,7 +227,7 @@ def parse_arxiv_entries(body: bytes) -> dict[str, dict[str, Any]]:
     root = ET.fromstring(body)
     namespaces = {
         "atom": "http://www.w3.org/2005/Atom",
-        "arxiv": "http://arxiv.org/schemas/atom",
+        "arxiv": "http://arxiv.org/schemas/atom",  # NOSONAR (S5332): XML namespace identifier.
     }
     results: dict[str, dict[str, Any]] = {}
     for entry in root.findall("atom:entry", namespaces):

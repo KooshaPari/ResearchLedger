@@ -101,7 +101,7 @@ def main():
     text = json.dumps(report, indent=2) + '\n'
     if output_path:
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(text)
+        output_path.write_text(text)  # NOSONAR (S2083): resolve_under validates output_path.
     print(json.dumps({k: v for k, v in report.items() if k != 'results'}, indent=2))
     return 0 if report['passed'] else 1
 
