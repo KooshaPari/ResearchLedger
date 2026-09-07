@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0",
   "campaign_id": "eg-nested-corpus-2026-09",
-  "generated_at": "2026-09-05T05:55:31Z",
+  "generated_at": "2026-09-07T07:10:05Z",
   "input": {
     "path": "docs/corpora/emergent-garden/data/youtube-description-edges-v1.json",
-    "sha256": "181bda36d25c1a325b89032761fa26a9680097ec29431d0d85ecf0bfece20c0f",
-    "generated_at": "2026-09-05T05:55:02Z",
+    "sha256": "d90f085543caf914fcad71b501bdf5fab7b7d07fb9ddeeb90f82e17ef559fd98",
+    "generated_at": "2026-09-07T07:09:31Z",
     "provider": "youtube_data_api_v3",
     "inventory_complete": true
   },
@@ -230,7 +230,7 @@
           "open_issues_count": 17,
           "parent_full_name": null,
           "source_full_name": null,
-          "repository_response_sha256": "da13a01ced1169e4ac9c60faf153b5e3906150dbbf32cf2bcd647f49dd11b1db",
+          "repository_response_sha256": "29e10e8050737117d68b5ec3ba8c5786b3ddb5fd79026fe29eac22263929e7e2",
           "branch_response_sha256": "46add2c788f0c115c7daedf1d2631c4eda7f3ee4d4501831102fb721a9c5bbdd",
           "readme": {
             "path": "README.md",
@@ -293,7 +293,7 @@
           "open_issues_count": 17,
           "parent_full_name": null,
           "source_full_name": null,
-          "repository_response_sha256": "da13a01ced1169e4ac9c60faf153b5e3906150dbbf32cf2bcd647f49dd11b1db",
+          "repository_response_sha256": "29e10e8050737117d68b5ec3ba8c5786b3ddb5fd79026fe29eac22263929e7e2",
           "branch_response_sha256": "46add2c788f0c115c7daedf1d2631c4eda7f3ee4d4501831102fb721a9c5bbdd",
           "readme": {
             "path": "README.md",
@@ -851,12 +851,12 @@
           "disabled": false,
           "visibility": "public",
           "default_branch": "master",
-          "head_sha": "c07e457f79fd6faef17b195a47b798f27031e867",
-          "head_commit_url": "https://github.com/PrismarineJS/mineflayer/commit/c07e457f79fd6faef17b195a47b798f27031e867",
+          "head_sha": "7f188fb3c0987c95f5c504694fddb472ce33f592",
+          "head_commit_url": "https://github.com/PrismarineJS/mineflayer/commit/7f188fb3c0987c95f5c504694fddb472ce33f592",
           "created_at": "2011-01-23T09:41:55Z",
-          "updated_at": "2026-09-04T21:33:32Z",
-          "pushed_at": "2026-09-05T00:58:13Z",
-          "size_kib": 13182,
+          "updated_at": "2026-09-07T06:56:34Z",
+          "pushed_at": "2026-09-07T05:15:32Z",
+          "size_kib": 13285,
           "primary_language": "JavaScript",
           "topics": [
             "bot",
@@ -867,11 +867,11 @@
             "nodejs"
           ],
           "license_spdx": "MIT",
-          "open_issues_count": 508,
+          "open_issues_count": 506,
           "parent_full_name": null,
           "source_full_name": null,
-          "repository_response_sha256": "aeb8b5e7d1e07cee585960501be19119b3a5937daa31c01fc2236a46fc1593b8",
-          "branch_response_sha256": "831af08af59731617a7cf6d14335bdad89e8c856c508c61b823a15f51de06c34",
+          "repository_response_sha256": "f5ea5a830f8d2e8918d2c37b84c5179fb64a6b5e6bb25efc85711d30fdb9a108",
+          "branch_response_sha256": "fb7414b006647589e7e557a596b63a96f174f6a16b9943e3233cff99010ea1af",
           "readme": {
             "path": "docs/README.md",
             "blob_sha": "851dd556a20106fb90b3dfb6af5063acc7f21a02",
@@ -931,7 +931,7 @@
           "head_sha": "64333af99a072caa3f4d6f17e4b223a5ae7da3f4",
           "head_commit_url": "https://github.com/cabaletta/baritone/commit/64333af99a072caa3f4d6f17e4b223a5ae7da3f4",
           "created_at": "2018-08-01T15:34:21Z",
-          "updated_at": "2026-09-05T05:09:44Z",
+          "updated_at": "2026-09-07T03:55:19Z",
           "pushed_at": "2026-09-01T22:45:33Z",
           "size_kib": 17139,
           "primary_language": "Java",
@@ -947,10 +947,10 @@
             "pathfinding"
           ],
           "license_spdx": "LGPL-3.0",
-          "open_issues_count": 928,
+          "open_issues_count": 929,
           "parent_full_name": null,
           "source_full_name": null,
-          "repository_response_sha256": "f6ee78b66a854a99f557057522d0630cf631538a57a505297de7f538a070d2b3",
+          "repository_response_sha256": "cab43e0c0d3d7cf0bfd3a32338cb699284664ce3a986573b77b4c368fd3e4af5",
           "branch_response_sha256": "af205da3773f9d89aa4a78031f2b8a6e6f2545e4937932c9609be10515cd20a8",
           "readme": {
             "path": "README.md",
@@ -1000,7 +1000,7 @@
           "head_sha": "228791fb499afffb54b46200aca536f79142f117",
           "head_commit_url": "https://github.com/karpathy/autoresearch/commit/228791fb499afffb54b46200aca536f79142f117",
           "created_at": "2026-03-06T22:00:43Z",
-          "updated_at": "2026-09-05T05:22:06Z",
+          "updated_at": "2026-09-07T06:54:23Z",
           "pushed_at": "2026-03-26T00:07:37Z",
           "size_kib": 530,
           "primary_language": "Python",
@@ -1009,7 +1009,7 @@
           "open_issues_count": 194,
           "parent_full_name": null,
           "source_full_name": null,
-          "repository_response_sha256": "cab61da3763eb695549c6a4a79e0cfb5ba51d2bbedb5ce5a5bb8c0229915020d",
+          "repository_response_sha256": "4c9c338099fea04bc80f2152b234eb1eebf8c789749e5ffc2d2812a727f62890",
           "branch_response_sha256": "dd081587bbe05161a3875113a7c6b486dfcb72c43d4d8302ab68fc6f00956d1a",
           "readme": {
             "path": "README.md",
@@ -1103,7 +1103,7 @@
           "head_sha": "5f3acc87b479864124173de444f31fa5538f94a6",
           "head_commit_url": "https://github.com/mindcraft-bots/mindcraft/commit/5f3acc87b479864124173de444f31fa5538f94a6",
           "created_at": "2023-08-16T06:39:59Z",
-          "updated_at": "2026-09-05T05:24:38Z",
+          "updated_at": "2026-09-07T06:56:47Z",
           "pushed_at": "2026-06-10T14:58:17Z",
           "size_kib": 50982,
           "primary_language": "JavaScript",
@@ -1112,7 +1112,7 @@
           "open_issues_count": 54,
           "parent_full_name": null,
           "source_full_name": null,
-          "repository_response_sha256": "612f95d96420f3bb203e5452a5305129f0079a3cb92b306fda08a897ab467292",
+          "repository_response_sha256": "be0673b82d4c35fc26f329990372283cb5a40804629060c47783a768bc2420b4",
           "branch_response_sha256": "c94d80cf829f6e96b0a80889dc508d33333d95e0387b3e97fe9be5ca21b7eaf6",
           "readme": {
             "path": "README.md",
@@ -1225,7 +1225,7 @@
           "head_sha": "5f3acc87b479864124173de444f31fa5538f94a6",
           "head_commit_url": "https://github.com/mindcraft-bots/mindcraft/commit/5f3acc87b479864124173de444f31fa5538f94a6",
           "created_at": "2023-08-16T06:39:59Z",
-          "updated_at": "2026-09-05T05:24:38Z",
+          "updated_at": "2026-09-07T06:56:47Z",
           "pushed_at": "2026-06-10T14:58:17Z",
           "size_kib": 50982,
           "primary_language": "JavaScript",
@@ -1234,7 +1234,7 @@
           "open_issues_count": 54,
           "parent_full_name": null,
           "source_full_name": null,
-          "repository_response_sha256": "612f95d96420f3bb203e5452a5305129f0079a3cb92b306fda08a897ab467292",
+          "repository_response_sha256": "be0673b82d4c35fc26f329990372283cb5a40804629060c47783a768bc2420b4",
           "branch_response_sha256": "c94d80cf829f6e96b0a80889dc508d33333d95e0387b3e97fe9be5ca21b7eaf6",
           "readme": {
             "path": "README.md",
@@ -1293,7 +1293,7 @@
           "head_sha": "cc9b6a3bc149359d8cabf104e377acf58a7c6a03",
           "head_commit_url": "https://github.com/mindcraft-ce/mindcraft-ce/commit/cc9b6a3bc149359d8cabf104e377acf58a7c6a03",
           "created_at": "2025-06-08T06:28:52Z",
-          "updated_at": "2026-09-03T11:17:35Z",
+          "updated_at": "2026-09-06T22:04:19Z",
           "pushed_at": "2026-08-18T00:20:23Z",
           "size_kib": 54027,
           "primary_language": "JavaScript",
@@ -1302,7 +1302,7 @@
           "open_issues_count": 33,
           "parent_full_name": "mindcraft-bots/mindcraft",
           "source_full_name": "mindcraft-bots/mindcraft",
-          "repository_response_sha256": "d29fd48c5544c3cfe0bfde0db0c9149684240e7e30430e90c36ef17f080c1fe4",
+          "repository_response_sha256": "e5a868e18f47058e6cc2aba42c90627ae73b092ede19091eae89f5b88161002b",
           "branch_response_sha256": "5cbc2317889c879efe41118758ee3cd37fbe4d458d50abdbcd5af9a613b8568c",
           "readme": {
             "path": "README.md",
@@ -1387,7 +1387,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1432,7 +1432,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1482,7 +1482,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1542,7 +1542,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1587,7 +1587,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1637,7 +1637,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1682,7 +1682,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1739,7 +1739,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1790,7 +1790,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1843,7 +1843,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1895,7 +1895,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1947,7 +1947,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -1997,7 +1997,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -2051,7 +2051,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -2111,7 +2111,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -2164,7 +2164,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -2215,7 +2215,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -2260,7 +2260,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       },
       {
@@ -2314,7 +2314,7 @@
           "capture_truncated": false,
           "etag": null,
           "last_modified": null,
-          "response_sha256": "18d7e46aaa782e7b941116b94e24929d34e1d4266cbf072422733aff417c823e"
+          "response_sha256": "e191cc8851de9aae169c6bb5a725226f051fea15ec49f2b86d4b7515ca910f8e"
         }
       }
     ],
@@ -2728,5 +2728,5 @@
     "Only the configured direct-link classes are expanded; other targets remain pending.",
     "Reachability does not establish authorship, endorsement, or implementation lineage."
   ],
-  "refresh_or_delete_by": "2026-10-05T05:55:01Z"
+  "refresh_or_delete_by": "2026-10-07T07:09:29Z"
 }

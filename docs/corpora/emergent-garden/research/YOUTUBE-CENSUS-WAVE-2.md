@@ -2,7 +2,7 @@
 
 **Campaign:** `eg-nested-corpus-2026-09`
 
-**Captured:** 2026-09-05T05:55:02Z
+**Captured:** 2026-09-07T07:09:31Z
 
 **Provider:** `youtube_data_api_v3`
 
@@ -194,6 +194,6 @@ Descriptions are represented by SHA-256, length, a short excerpt, parsed chapter
 - `all_details_public`: PASS
 - `details_count_matches_inventory`: PASS
 
-API requests: 8. Refresh or delete API-derived metadata by 2026-10-05T05:55:01Z.
+API requests: 8. Refresh or delete API-derived metadata by 2026-10-07T07:09:29Z.
 
 Scope is public uploads visible at capture. Transcripts, private/deleted history, and experiment reproduction remain unverified. Caption flags are not transcript text.

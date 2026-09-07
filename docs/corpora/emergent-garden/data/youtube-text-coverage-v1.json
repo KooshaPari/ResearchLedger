@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "campaign_id": "eg-nested-corpus-2026-09",
-  "generated_at": "2026-09-05T05:55:02Z",
+  "generated_at": "2026-09-07T07:09:31Z",
   "provider": "youtube_data_api_v3",
   "inventory_complete": true,
   "summary": {
@@ -1940,6 +1940,6 @@
       ]
     }
   ],
-  "refresh_or_delete_by": "2026-10-05T05:55:01Z",
+  "refresh_or_delete_by": "2026-10-07T07:09:29Z",
   "collector_version": "2.0.0"
 }

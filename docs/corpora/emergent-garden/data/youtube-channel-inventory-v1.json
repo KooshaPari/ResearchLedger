@@ -1,9 +1,9 @@
 {
   "schema_version": "1.1",
   "campaign_id": "eg-nested-corpus-2026-09",
-  "generated_at": "2026-09-05T05:55:02Z",
-  "capture_started_at": "2026-09-05T05:55:01+00:00",
-  "refresh_or_delete_by": "2026-10-05T05:55:01Z",
+  "generated_at": "2026-09-07T07:09:31Z",
+  "capture_started_at": "2026-09-07T07:09:29+00:00",
+  "refresh_or_delete_by": "2026-10-07T07:09:29Z",
   "collector_version": "2.0.0",
   "requested_handle": "@EmergentGarden",
   "channel_url": "https://www.youtube.com/@EmergentGarden/videos",
@@ -22,7 +22,7 @@
       },
       "attempt": 1,
       "http_status": 200,
-      "response_sha256": "29f7ac226504e690117a30c1d5e9fda5c1f33e11e5f33c46fb5a85ec2c60d0d5"
+      "response_sha256": "3157656b59fa64469332378d888f4a4625640e31941c3a37f6d9edd3542c0196"
     },
     {
       "resource": "playlistItems",
@@ -41,7 +41,7 @@
         "part": "snippet,contentDetails,status",
         "playlistId": "UUwBhBDsqiQflTMLy2epbQVw",
         "maxResults": "50",
-        "pageTokenSha256": "43a1dbaaf49c2dc724c75907ea9bf63b30e9ba4a8aaef60b2bb0139388b48110"
+        "pageToken": "EAAaHlBUOkNESWlFRVU1UTBFMFEwWkRSVVl4UlRZME5FRQ"
       },
       "attempt": 1,
       "http_status": 200,
@@ -84,7 +84,7 @@
         "part": "snippet,contentDetails,status",
         "playlistId": "UUwBhBDsqiQflTMLy2epbQVw",
         "maxResults": "50",
-        "pageTokenSha256": "43a1dbaaf49c2dc724c75907ea9bf63b30e9ba4a8aaef60b2bb0139388b48110"
+        "pageToken": "EAAaHlBUOkNESWlFRVU1UTBFMFEwWkRSVVl4UlRZME5FRQ"
       },
       "attempt": 1,
       "http_status": 200,
@@ -99,7 +99,7 @@
       },
       "attempt": 1,
       "http_status": 200,
-      "response_sha256": "29f7ac226504e690117a30c1d5e9fda5c1f33e11e5f33c46fb5a85ec2c60d0d5"
+      "response_sha256": "3157656b59fa64469332378d888f4a4625640e31941c3a37f6d9edd3542c0196"
     }
   ],
   "provider": "youtube_data_api_v3",
