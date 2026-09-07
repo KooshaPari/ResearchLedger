@@ -19,7 +19,7 @@ Two bounded public-page inspection runs succeeded:
 - [33957536396](https://github.com/KooshaPari/ResearchLedger/actions/runs/33957536396), artifact `9966845218`, SHA-256 `4d172d1164be2c51c1f8a652752216088e143b1cde0b418aebb087957de5a616`;
 - [33957878043](https://github.com/KooshaPari/ResearchLedger/actions/runs/33957878043), artifact `9966954481`, SHA-256 `16406a658bdcf0edf37e57d1c2c89445724a3d7a3dd5e7ab22dda1750dab5b53`.
 
-The preceding analysis found three timestamped mirrors, including a narration-spanning mirror of *The Chaos of AI Agents*. The public page for that source is [here](https://lilys.ai/it/notes/ai-agent-20251128/the-chaos-of-ai-agents). These are unverified third-party text representations, not creator-certified caption tracks. A beginning-to-sign-off span does not certify every word, interval or speaker attribution. The source-page bytes, extraction method, timestamps, associated video identity and omitted spans must remain distinguishable.
+The preceding analysis found three timestamped mirrors, including a narration-spanning mirror of _The Chaos of AI Agents_. The public page for that source is [here](https://lilys.ai/it/notes/ai-agent-20251128/the-chaos-of-ai-agents). These are unverified third-party text representations, not creator-certified caption tracks. A beginning-to-sign-off span does not certify every word, interval or speaker attribution. The source-page bytes, extraction method, timestamps, associated video identity and omitted spans must remain distinguishable.
 
 A model-written summary, partial preview, metadata response and timestamped transcript mirror are separate evidence types. Do not count all four as acquired exact captions. This checkpoint does not close full-channel transcript coverage, and no raw transcript text is reproduced here.
 
@@ -31,11 +31,11 @@ The measured design is six dispatch policies, three arithmetic task classes, six
 
 The previous local execution recorded the following results:
 
-| Control | Correct final states | False completion claims |
-| --- | ---: | ---: |
-| Unchecked | 1,178 / 2,160 | 862 |
-| Versioned and idempotent | 2,040 / 2,160 | 0 |
-| Versioned with recovery | 2,160 / 2,160 | 0 |
+| Control                  | Correct final states | False completion claims |
+| ------------------------ | -------------------: | ----------------------: |
+| Unchecked                |        1,178 / 2,160 |                     862 |
+| Versioned and idempotent |        2,040 / 2,160 |                       0 |
+| Versioned with recovery  |        2,160 / 2,160 |                       0 |
 
 Sixteen deterministic tests passed in the local execution, and no calculation-budget violation was recorded. Hosted-job verification is a separate receipt and is not inferred from the PR description.
 

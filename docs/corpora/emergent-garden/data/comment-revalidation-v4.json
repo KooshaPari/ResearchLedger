@@ -5,10 +5,14 @@
   "top_level": 22429,
   "replies": 8143,
   "creator_records": 203,
-  "coverage_classes": {"CLEAN_RECONCILED":59,"RECONCILED_AFTER_DEDUP":14,"UNRESOLVED":1},
+  "coverage_classes": {
+    "CLEAN_RECONCILED": 59,
+    "RECONCILED_AFTER_DEDUP": 14,
+    "UNRESOLVED": 1
+  },
   "gap_audit_run": 33949558539,
-  "reported_counts": ["781","781","781","781"],
-  "returned_counts": [780,647,780],
+  "reported_counts": ["781", "781", "781", "781"],
+  "returned_counts": [780, 647, 780],
   "time_order_sets_equal": true,
   "relevance_subset": true,
   "relevance_missing_from_time": 133,
