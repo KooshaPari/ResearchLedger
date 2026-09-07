@@ -9,6 +9,7 @@ import argparse
 import json
 import math
 from pathlib import Path
+from path_safety import resolve_under
 
 CLAIMS = {'artifact_generated', 'task_learned', 'shared_policy_generalization', 'independent_reproduction'}
 MODES = {'assumed_success', 'paper_report', 'observed_run', 'independent_run'}
@@ -83,8 +84,11 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('fixtures', type=Path)
     p.add_argument('--output', type=Path)
+    p.add_argument('--allowed-root', type=Path, default=Path.cwd())
     args = p.parse_args()
-    fixtures = json.loads(args.fixtures.read_text())
+    fixtures_path = resolve_under(args.fixtures, args.allowed_root)
+    output_path = resolve_under(args.output, args.allowed_root) if args.output else None
+    fixtures = json.loads(fixtures_path.read_text())
     results = []
     for case in fixtures['cases']:
         result = assess(case['record']) if case['kind'] == 'admission' else comparison(case['a'], case['b'])
@@ -95,9 +99,9 @@ def main():
               'cases': len(results), 'passed': all(r['matched_expectation'] for r in results), 'results': results,
               'not_claimed': ['live agent benchmark', 'independent paper reproduction', 'automated source truth validation']}
     text = json.dumps(report, indent=2) + '\n'
-    if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(text)
+    if output_path:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(text)
     print(json.dumps({k: v for k, v in report.items() if k != 'results'}, indent=2))
     return 0 if report['passed'] else 1
 

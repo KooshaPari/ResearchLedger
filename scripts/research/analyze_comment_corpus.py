@@ -12,6 +12,7 @@ import html
 import json
 import math
 from pathlib import Path
+from path_safety import resolve_under
 import platform
 import re
 from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
@@ -112,8 +113,11 @@ def main() -> None:
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--gap-audit', type=Path)
     parser.add_argument('--source-archive-sha256')
+    parser.add_argument('--allowed-root', type=Path, default=Path.cwd())
     args = parser.parse_args()
-    root, output = args.private_input, args.output
+    root = resolve_under(args.private_input, args.allowed_root)
+    output = resolve_under(args.output, args.allowed_root)
+    gap_audit = resolve_under(args.gap_audit, args.allowed_root) if args.gap_audit else None
     captures = [json.loads(p.read_text()) for p in sorted((root / 'comments').glob('*.json'))]
     details_payload = json.loads((root / 'video-text-input.json').read_text())
     details = {v['video_id']: v for v in details_payload['videos']}
@@ -136,8 +140,8 @@ def main() -> None:
                               'COUNT_DISCREPANCY_UNRESOLVED')
         rows.append(r)
     gap = None
-    if args.gap_audit:
-        g = json.loads(args.gap_audit.read_text())
+    if gap_audit:
+        g = json.loads(gap_audit.read_text())
         sets = [set(r['id'] for r in c['records']) for c in g['captures']]
         if len(sets) != 3:
             raise ValueError('EXPECTED_THREE_AUDIT_PASSES')
