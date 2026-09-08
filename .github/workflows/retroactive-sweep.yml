@@ -81,6 +81,9 @@ jobs:
       REVIEW_SURFACE_URL: ${{ vars.REVIEW_SURFACE_URL || 'https://review.phenotype.internal' }}
       REVIEW_SURFACE_TOKEN: ${{ secrets.REVIEW_SURFACE_TOKEN }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - name: Resolve scan parameters
         id: params
         run: |
@@ -101,10 +104,15 @@ jobs:
         run: |
           python3 - <<'PY'
           import os, sys, json, urllib.request, urllib.error, subprocess, datetime
+          from scripts.retroactive_sweep import parse_repositories
 
           lookback = int(os.environ.get("LOOKBACK_OVERRIDE") or "30")
           max_prs = int(os.environ.get("MAX_PRS_OVERRIDE") or "20")
-          repo = os.environ.get("REPO_OVERRIDE") or os.environ["GITHUB_REPOSITORY"]
+          try:
+              repos = parse_repositories(os.environ.get("REPO_OVERRIDE", ""), os.environ["GITHUB_REPOSITORY"])
+          except ValueError as error:
+              print(f"SCAN_FAIL: {error}", file=sys.stderr)
+              sys.exit(1)
           dry_run = (os.environ.get("DRY_RUN_OVERRIDE") or "true").lower() == "true"
           review_url = os.environ.get("REVIEW_SURFACE_URL", "")
           review_token = os.environ.get("REVIEW_SURFACE_TOKEN", "")
@@ -113,62 +121,32 @@ jobs:
               print("No REVIEW_SURFACE_TOKEN; running scanner locally with gh CLI.")
               # Local fallback: walk PRs via gh api
               cutoff = (datetime.datetime.utcnow() - datetime.timedelta(days=lookback)).isoformat() + "Z"
-              list_payload = subprocess.check_output([
-                  "gh", "api",
-                  f"repos/{repo}/pulls?state=closed&per_page={max_prs}&sort=updated&direction=desc",
-              ])
-              prs = json.loads(list_payload)
-              prs = [p for p in prs if p["updated_at"] >= cutoff]
-              print(f"Found {len(prs)} PRs to scan.")
-
               findings = []
-              for p in prs:
-                  number = p["number"]
-                  comments = json.loads(subprocess.check_output([
-                      "gh", "api", f"repos/{repo}/pulls/{number}/comments?per_page=50",
-                  ]))
-                  reviews = json.loads(subprocess.check_output([
-                      "gh", "api", f"repos/{repo}/pulls/{number}/reviews?per_page=50",
-                  ]))
-                  review_comments = [c for c in reviews if c.get("body")]
-                  combined = comments + review_comments
-                  ignored = [
-                      c for c in combined
-                      if c.get("body") and ("nit:" in c["body"].lower() or "style:" in c["body"].lower())
-                  ]
-                  if ignored:
-                      findings.append({
-                          "pr": number,
-                          "title": p["title"],
-                          "url": p["html_url"],
-                          "ignored_count": len(ignored),
-                      })
-              print(json.dumps({"findings": findings[:10], "scanned": len(prs), "dry_run": dry_run}, indent=2))
+              scanned = 0
+              for repo in repos:
+                  list_payload = subprocess.check_output([
+                      "gh", "api", f"repos/{repo}/pulls?state=closed&per_page={max_prs}&sort=updated&direction=desc",
+                  ])
+                  prs = [p for p in json.loads(list_payload) if p["updated_at"] >= cutoff]
+                  scanned += len(prs)
+                  for p in prs:
+                      number = p["number"]
+                      comments = json.loads(subprocess.check_output(["gh", "api", f"repos/{repo}/pulls/{number}/comments?per_page=50"]))
+                      reviews = json.loads(subprocess.check_output(["gh", "api", f"repos/{repo}/pulls/{number}/reviews?per_page=50"]))
+                      ignored = [c for c in comments + [r for r in reviews if r.get("body")]
+                                 if c.get("body") and ("nit:" in c["body"].lower() or "style:" in c["body"].lower())]
+                      if ignored:
+                          findings.append({"repo": repo, "pr": number, "title": p["title"], "url": p["html_url"], "ignored_count": len(ignored)})
+              print(json.dumps({"findings": findings[:10], "scanned": scanned, "dry_run": dry_run}, indent=2))
           else:
               endpoint = f"{review_url.rstrip('/')}/api/scan"
-              if "/" not in repo:
-                  print(f"SCAN_FAIL: malformed repo \"{repo}\" (expected owner/name)")
-                  sys.exit(1)
-              owner, name = repo.split("/", 1)
-              payload = {
-                  "owner": owner,
-                  "repo": name,
-                  "max_prs": max_prs,
-                  "dry_run": dry_run,
-              }
-              req = urllib.request.Request(
-                  endpoint,
-                  data=json.dumps(payload).encode(),
-                  headers={
-                      "Content-Type": "application/json",
-                      "Authorization": f"Bearer {review_token}",
-                  },
-                  method="POST",
-              )
               try:
-                  with urllib.request.urlopen(req, timeout=120) as r:
-                      result = json.loads(r.read())
-                      print(json.dumps(result, indent=2))
+                  for repo in repos:
+                      owner, name = repo.split("/", 1)
+                      payload = {"owner": owner, "repo": name, "max_prs": max_prs, "dry_run": dry_run}
+                      req = urllib.request.Request(endpoint, data=json.dumps(payload).encode(), headers={"Content-Type": "application/json", "Authorization": f"Bearer {review_token}"}, method="POST")
+                      with urllib.request.urlopen(req, timeout=120) as r:
+                          print(json.dumps(json.loads(r.read()), indent=2))
               except urllib.error.HTTPError as e:
                   body = e.read().decode("utf-8", errors="replace")
                   print(f"Scan HTTP error: {e.code} {e.reason}\n{body}", file=sys.stderr)
