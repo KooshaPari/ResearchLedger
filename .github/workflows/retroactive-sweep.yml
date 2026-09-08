@@ -31,7 +31,7 @@ on:
         type: boolean
         default: false
       repos:
-        description: "JSON list of owner/repo pairs (default: ${{ github.repository }})"
+        description: "JSON list of owner/repo pairs (default: current repository)"
         required: false
         type: string
         default: ""
@@ -84,15 +84,17 @@ jobs:
       - name: Resolve scan parameters
         id: params
         run: |
-          echo "lookback=${LOOKBACK:-30}" >> "$GITHUB_OUTPUT"
-          echo "max_prs=${MAX_PRS:-20}" >> "$GITHUB_OUTPUT"
-          echo "repo=${REPO_OVERRIDE:-${{ github.repository }}}" >> "$GITHUB_OUTPUT"
-          echo "dry_run=${DRY_RUN:-true}" >> "$GITHUB_OUTPUT"
+          {
+            echo "lookback=${LOOKBACK:-30}"
+            echo "max_prs=${MAX_PRS:-20}"
+            echo "repo=${REPO_OVERRIDE:-${{ github.repository }}}"
+            echo "dry_run=${DRY_RUN:-true}"
+          } >> "$GITHUB_OUTPUT"
         env:
-          LOOKBACK: ${{ github.event.inputs.lookback_days }}
-          MAX_PRS: ${{ github.event.inputs.max_prs }}
-          REPO_OVERRIDE: ${{ github.event.inputs.repository }}
-          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          LOOKBACK: ${{ inputs.since_days }}
+          MAX_PRS: ${{ inputs.max_prs }}
+          REPO_OVERRIDE: ${{ inputs.repos }}
+          DRY_RUN: ${{ inputs.dry_run }}
 
       - name: Run scanner
         id: scan
@@ -185,9 +187,11 @@ jobs:
       - name: Summarize
         if: always()
         run: |
-          echo "## Retroactive sweep summary" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Repo: ${{ steps.params.outputs.repo }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Lookback: ${{ steps.params.outputs.lookback }} days" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Max PRs: ${{ steps.params.outputs.max_prs }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Dry run: ${{ steps.params.outputs.dry_run }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Output: ${{ steps.scan.outputs }}" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Retroactive sweep summary"
+            echo "- Repo: ${{ steps.params.outputs.repo }}"
+            echo "- Lookback: ${{ steps.params.outputs.lookback }} days"
+            echo "- Max PRs: ${{ steps.params.outputs.max_prs }}"
+            echo "- Dry run: ${{ steps.params.outputs.dry_run }}"
+            echo "- Scan outcome: ${{ steps.scan.outcome }}"
+          } >> "$GITHUB_STEP_SUMMARY"
