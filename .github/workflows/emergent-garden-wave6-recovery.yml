@@ -20,7 +20,9 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
       - name: Validate before acquisition
-        run: python3 -m unittest discover -s scripts/research -p test_emergent_garden_comments.py -v
+        run: |
+          python3 -m unittest discover -s scripts/research -p test_emergent_garden_comments.py -v
+          python3 -m unittest discover -s scripts/research -p test_path_safety.py -v
       - name: Read public comments through isolated API credential
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
@@ -28,7 +30,11 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 scripts/research/collect_emergent_garden_comments.py --private "$RUNNER_TEMP/private" --public "$RUNNER_TEMP/public" --max-requests 1800
+          python3 scripts/research/collect_emergent_garden_comments.py \
+            --private "$RUNNER_TEMP/private" --private-root "$RUNNER_TEMP" \
+            --public "$RUNNER_TEMP/public" --public-root "$RUNNER_TEMP" \
+            --inventory "$GITHUB_WORKSPACE/docs/corpora/emergent-garden/data/youtube-channel-inventory-v1.json" --inventory-root "$GITHUB_WORKSPACE" \
+            --max-requests 1800
       - name: Seal minimized input; do not publish plaintext
         shell: bash
         run: |

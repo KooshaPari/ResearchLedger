@@ -3,7 +3,8 @@ from pathlib import Path
 
 def resolve_under(value: Path, root: Path) -> Path:
     base = root.expanduser().resolve()
-    candidate = value.expanduser().resolve()
+    expanded = value.expanduser()
+    candidate = (expanded if expanded.is_absolute() else base / expanded).resolve()
     try:
         candidate.relative_to(base)
     except ValueError as exc:

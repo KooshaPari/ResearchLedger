@@ -218,11 +218,13 @@ def main():
     parser.add_argument("--private", required=True)
     parser.add_argument("--public", required=True)
     parser.add_argument("--max-requests", type=int, default=6000)
-    parser.add_argument("--allowed-root", type=Path, default=Path.cwd())
+    parser.add_argument("--private-root", type=Path, default=Path.cwd())
+    parser.add_argument("--public-root", type=Path, default=Path.cwd())
+    parser.add_argument("--inventory-root", type=Path, default=Path.cwd())
     args = parser.parse_args()
-    private = resolve_under(Path(args.private), args.allowed_root)
-    public = resolve_under(Path(args.public), args.allowed_root)
-    inventory_path = resolve_under(Path(args.inventory), args.allowed_root)
+    private = resolve_under(Path(args.private), args.private_root)
+    public = resolve_under(Path(args.public), args.public_root)
+    inventory_path = resolve_under(Path(args.inventory), args.inventory_root)
     inventory = json.loads(inventory_path.read_text())
     ids = [r["video_id"] for r in inventory["videos"]]
     if len(ids) != len(set(ids)) or any(not re.fullmatch(r"[A-Za-z0-9_-]{11}", x) for x in ids):

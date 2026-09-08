@@ -113,11 +113,13 @@ def main() -> None:
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--gap-audit', type=Path)
     parser.add_argument('--source-archive-sha256')
-    parser.add_argument('--allowed-root', type=Path, default=Path.cwd())
+    parser.add_argument('--private-root', type=Path, default=Path.cwd())
+    parser.add_argument('--output-root', type=Path, default=Path.cwd())
+    parser.add_argument('--gap-audit-root', type=Path, default=Path.cwd())
     args = parser.parse_args()
-    root = resolve_under(args.private_input, args.allowed_root)
-    output = resolve_under(args.output, args.allowed_root)
-    gap_audit = resolve_under(args.gap_audit, args.allowed_root) if args.gap_audit else None
+    root = resolve_under(args.private_input, args.private_root)
+    output = resolve_under(args.output, args.output_root)
+    gap_audit = resolve_under(args.gap_audit, args.gap_audit_root) if args.gap_audit else None
     captures = [json.loads(p.read_text()) for p in sorted((root / 'comments').glob('*.json'))]
     details_payload = json.loads((root / 'video-text-input.json').read_text())
     details = {v['video_id']: v for v in details_payload['videos']}
