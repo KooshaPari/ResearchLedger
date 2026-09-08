@@ -2,12 +2,12 @@
 
 Local-only integration candidate. No branch was pushed and no hosted pull request was merged.
 
-| Role | Full SHA |
-| --- | --- |
-| Frozen main base | `ddc2aa85930facbeb058242559bdbee5a5248161` |
-| Hosted census child | `cfb0e7e1a91adba38a44b0c5d3487a31e9737c79` |
-| Local repair tip | `122f603b69da59309a44be98a9651e902549240b` |
-| Local repair parent | `e5361d9dfdb6d0a63737c3e243734d24a1f8afa2` |
+| Role                         | Full SHA                                   |
+| ---------------------------- | ------------------------------------------ |
+| Frozen main base             | `ddc2aa85930facbeb058242559bdbee5a5248161` |
+| Hosted census child          | `cfb0e7e1a91adba38a44b0c5d3487a31e9737c79` |
+| Local repair tip             | `122f603b69da59309a44be98a9651e902549240b` |
+| Local repair parent          | `e5361d9dfdb6d0a63737c3e243734d24a1f8afa2` |
 | Hosted/local common ancestor | `2cc1046727b968cb4d38367f445d288a8866ceae` |
 | Main/feature common ancestor | `67a7cccc8ed5292a2cfbe341d626d0c3bb2cc3dc` |
 
