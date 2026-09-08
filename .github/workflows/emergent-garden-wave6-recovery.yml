@@ -20,7 +20,9 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
       - name: Validate before acquisition
-        run: python3 -m unittest discover -s scripts/research -p test_emergent_garden_comments.py -v
+        run: |
+          python3 -m unittest discover -s scripts/research -p test_emergent_garden_comments.py -v
+          python3 -m unittest discover -s scripts/research -p test_path_safety.py -v
       - name: Read public comments through isolated API credential
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
