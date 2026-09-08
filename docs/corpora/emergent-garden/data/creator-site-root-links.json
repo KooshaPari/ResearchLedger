@@ -1,0 +1,171 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "eg-nested-corpus-2026-09",
+  "source_uri": "https://emergentgarden.io/",
+  "final_uri": "https://emergentgarden.io/",
+  "captured_at": "2026-09-04T11:27:34.725320+00:00",
+  "http_status": 200,
+  "content_type": "text/html",
+  "byte_count": 4997,
+  "source_sha256": "f72c46b0ee5b01b5cb66006e7fc262e563aefcfa5dbe279289e9beee19eb48e1",
+  "page_title": "Emergent Garden",
+  "anchor_count": 14,
+  "anchors": [
+    {
+      "original_href": "https://bsky.app/profile/emergentgarden.bsky.social",
+      "canonical_uri": "https://bsky.app/profile/emergentgarden.bsky.social",
+      "label": "Bluesky",
+      "title": ""
+    },
+    {
+      "original_href": "https://discord.gg/GZWd2qySce",
+      "canonical_uri": "https://discord.gg/GZWd2qySce",
+      "label": "Community Discord",
+      "title": ""
+    },
+    {
+      "original_href": "https://discord.gg/mp73p35dzC",
+      "canonical_uri": "https://discord.gg/mp73p35dzC",
+      "label": "Mindcraft Discord",
+      "title": ""
+    },
+    {
+      "original_href": "#about",
+      "canonical_uri": "https://emergentgarden.io/",
+      "label": "About",
+      "title": ""
+    },
+    {
+      "original_href": "#community",
+      "canonical_uri": "https://emergentgarden.io/",
+      "label": "Community",
+      "title": ""
+    },
+    {
+      "original_href": "#contact",
+      "canonical_uri": "https://emergentgarden.io/",
+      "label": "Contact",
+      "title": ""
+    },
+    {
+      "original_href": "#gallery",
+      "canonical_uri": "https://emergentgarden.io/",
+      "label": "Gallery",
+      "title": ""
+    },
+    {
+      "original_href": "#support",
+      "canonical_uri": "https://emergentgarden.io/",
+      "label": "Support",
+      "title": ""
+    },
+    {
+      "original_href": "#",
+      "canonical_uri": "https://emergentgarden.io/",
+      "label": "contact@emergentgarden.io Copied!",
+      "title": ""
+    },
+    {
+      "original_href": "https://ko-fi.com/emergentgarden",
+      "canonical_uri": "https://ko-fi.com/emergentgarden",
+      "label": "Ko-fi",
+      "title": ""
+    },
+    {
+      "original_href": "https://scrimba.com/",
+      "canonical_uri": "https://scrimba.com/",
+      "label": "Scrimba",
+      "title": ""
+    },
+    {
+      "original_href": "https://scrimba.com/?via=EmergentGarden",
+      "canonical_uri": "https://scrimba.com/?via=EmergentGarden",
+      "label": "Scrimba",
+      "title": ""
+    },
+    {
+      "original_href": "https://twitter.com/max_romana",
+      "canonical_uri": "https://twitter.com/max_romana",
+      "label": "Twitter/X",
+      "title": ""
+    },
+    {
+      "original_href": "https://www.patreon.com/emergentgarden",
+      "canonical_uri": "https://www.patreon.com/emergentgarden",
+      "label": "Patreon",
+      "title": ""
+    }
+  ],
+  "project_edges": [
+    {
+      "project": "Life Engine",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Lenia",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Neural Patterns",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Evoloop",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Functions in Hyperspace",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Mindcraft",
+      "status": "matched",
+      "targets": ["https://discord.gg/mp73p35dzC"]
+    },
+    {
+      "project": "Langton's Ant Colony",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Neural Hill Climber",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Biomorphs 3D",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Picbreeder",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Game of Life",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Germs Genetic Algorithm",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    },
+    {
+      "project": "Elementary CA",
+      "status": "unmatched_in_static_html",
+      "targets": []
+    }
+  ],
+  "limitations": [
+    "Static HTML capture only; client-rendered links may be absent.",
+    "A text match is a candidate creator-side edge, not proof of repository lineage.",
+    "The raw HTML response is hashed but not committed."
+  ]
+}

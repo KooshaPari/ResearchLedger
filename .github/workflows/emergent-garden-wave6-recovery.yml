@@ -1,0 +1,71 @@
+name: Emergent Garden Wave 6 Comment Recovery
+on:
+  push:
+    branches: [docs/emergent-garden-nested-corpus-20260904]
+    paths: [.github/workflows/emergent-garden-wave6-recovery.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: emergent-garden-comment-intake
+  cancel-in-progress: false
+jobs:
+  recover:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Validate before acquisition
+        run: python3 -m unittest discover -s scripts/research -p test_emergent_garden_comments.py -v
+      - name: Read public comments through isolated API credential
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 scripts/research/collect_emergent_garden_comments.py --private "$RUNNER_TEMP/private" --public "$RUNNER_TEMP/public" --max-requests 1800
+      - name: Seal minimized input; do not publish plaintext
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/private/repository-inputs" "$RUNNER_TEMP/sealed"
+          cp -R docs/corpora/emergent-garden "$RUNNER_TEMP/private/repository-inputs/"
+          git rev-parse HEAD > "$RUNNER_TEMP/private/SOURCE-COMMIT"
+          cat > "$RUNNER_TEMP/recipient.pem" <<'CERT'
+          -----BEGIN CERTIFICATE-----
+          MIIDHzCCAgegAwIBAgIURY4ehFb7StZ+8ck2KcXK1k/imeIwDQYJKoZIhvcNAQEL
+          BQAwHzEdMBsGA1UEAwwUUmVzZWFyY2hMZWRnZXItV2F2ZTYwHhcNMjYwOTA1MDkw
+          MDQ3WhcNMjYwOTEyMDkwMDQ3WjAfMR0wGwYDVQQDDBRSZXNlYXJjaExlZGdlci1X
+          YXZlNjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALyUu4bn8bwp9r1r
+          eFg5M3D8vh0h4K4256rTteKfu2Qcihua7hoTR3fZ2B+GRlc+WJV7kMdL3JaL3z9c
+          M1UBQWWgRhXd2Cxrx8UaX4VhyhtNwwG3J/03D3vRRHdRE3WCX3D2o3ROD6WM31kt
+          CI92XO1VOyWb5Z8/SFzPt3Jdl4sMxlTMGaDfxjiuWwMoNr5E3UGBCKe4kj+jmhTw
+          5ZR2zZyf0mkRX3DZs3dMMTPxlF/a+uW2Nme7iWtEbGF8cEik7LAj1D8jR0zR1PQc
+          Gz+FVNVsAWfYn1y0JCDqH6cnPmVXxT+9cop0TX49IOZhljtTD5sQZ5qhatnB2MYP
+          j8RRv/cCAwEAAaNTMFEwHQYDVR0OBBYEFB3UF4m4pJ476ciZ5ORlIPnUILLrMB8G
+          A1UdIwQYMBaAFB3UF4m4pJ476ciZ5ORlIPnUILLrMA8GA1UdEwEB/wQFMAMBAf8w
+          DQYJKoZIhvcNAQELBQADggEBALIOe4oup7GEYaLJjihnbCVVAOiBx2ojgCE3Jskt
+          gG9LxsXO0sRbRROpPztn6LEsUzgVSCqw9kaBqXDXnrIW0237Jhp0gu8CqbXUWete
+          JIO0xEpb28+ejg32AwIwdqjexrgmZjYEmwyF+6DD/rU+XLJX//hVjQXCSVI8SQW4
+          1whX16X+hsm/2LB21BSlFiz5yW+24VSfulq1YDrk6hm8JQqaRqvctOKXO0I24/a8
+          JKhH0pjmKmZ9ldBIVUFZJtl8cpU4nk77ZteUJiUrLnixm/BNQbQ1WtQMkbxPJgD1
+          WisM7j/yF4LWhbdDSM6CQVY+Nhh6ZZqPYQcc8VIH4mC6hHc=
+          -----END CERTIFICATE-----
+          CERT
+          tar -czf "$RUNNER_TEMP/input.tgz" -C "$RUNNER_TEMP/private" .
+          openssl cms -encrypt -binary -aes-256-gcm -in "$RUNNER_TEMP/input.tgz" -outform DER -out "$RUNNER_TEMP/sealed/input.cms" "$RUNNER_TEMP/recipient.pem"
+          cp "$RUNNER_TEMP/public/comment-coverage-v1.json" "$RUNNER_TEMP/sealed/"
+          (cd "$RUNNER_TEMP/sealed" && sha256sum input.cms comment-coverage-v1.json > SHA256SUMS)
+          rm "$RUNNER_TEMP/input.tgz"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: emergent-garden-wave6-sealed-${{ github.run_id }}
+          path: ${{ runner.temp }}/sealed/
+          retention-days: 1
+          if-no-files-found: error

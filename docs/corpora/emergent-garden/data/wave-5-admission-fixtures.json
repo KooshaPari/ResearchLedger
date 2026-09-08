@@ -1,0 +1,716 @@
+{
+  "scope": "synthetic negative controls; no paper trajectories reproduced",
+  "cases": [
+    {
+      "id": "reported-learning",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": true
+    },
+    {
+      "id": "generated-is-admissible-as-generation",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "artifact_generated",
+        "mode": "assumed_success",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": false,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": true
+    },
+    {
+      "id": "missing-source_locator",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "missing-source_revision",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "missing-task_revision",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "missing-training_receipt",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "missing-execution_receipt",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "missing-success_receipt",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "missing-evaluator_revision",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "simulated-learning",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "assumed_success",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "not-trained",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": false,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "claimed-success",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "unknown"
+      },
+      "expected": false
+    },
+    {
+      "id": "invalid-claim",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "AGI",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "string-boolean",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "task_learned",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": "true",
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success"
+      },
+      "expected": false
+    },
+    {
+      "id": "fixed-policy-multiple-tasks",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "shared_policy_generalization",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success",
+        "evaluated_tasks": ["a", "b"],
+        "evaluated_policies": ["p"],
+        "adapted_during_evaluation": false
+      },
+      "expected": true
+    },
+    {
+      "id": "specialist-population",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "shared_policy_generalization",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success",
+        "evaluated_tasks": ["a", "b"],
+        "evaluated_policies": ["pa", "pb"],
+        "adapted_during_evaluation": false
+      },
+      "expected": false
+    },
+    {
+      "id": "adaptation-during-evaluation",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "shared_policy_generalization",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success",
+        "evaluated_tasks": ["a", "b"],
+        "evaluated_policies": ["p"],
+        "adapted_during_evaluation": true
+      },
+      "expected": false
+    },
+    {
+      "id": "same-task-duplicated",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "shared_policy_generalization",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success",
+        "evaluated_tasks": ["a", "a"],
+        "evaluated_policies": ["p"],
+        "adapted_during_evaluation": false
+      },
+      "expected": false
+    },
+    {
+      "id": "independent-record",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "independent_reproduction",
+        "mode": "independent_run",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success",
+        "evaluator_independent_of_candidate": true,
+        "reproduction_receipt": "synthetic:repro",
+        "protocol_revision": "p1"
+      },
+      "expected": true
+    },
+    {
+      "id": "paper-not-reproduction",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "independent_reproduction",
+        "mode": "paper_report",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success",
+        "evaluator_independent_of_candidate": true,
+        "reproduction_receipt": "synthetic:repro",
+        "protocol_revision": "p1"
+      },
+      "expected": false
+    },
+    {
+      "id": "coupled-evaluator",
+      "kind": "admission",
+      "record": {
+        "id": "synthetic",
+        "claim": "independent_reproduction",
+        "mode": "independent_run",
+        "source_locator": "synthetic:section5",
+        "source_revision": "v3",
+        "task_revision": "task1",
+        "generated": true,
+        "trained": true,
+        "training_receipt": "synthetic:training",
+        "execution_receipt": "synthetic:execution",
+        "success_receipt": "synthetic:success",
+        "evaluator_revision": "eval1",
+        "outcome": "success",
+        "evaluator_independent_of_candidate": false,
+        "reproduction_receipt": "synthetic:repro",
+        "protocol_revision": "p1"
+      },
+      "expected": false
+    },
+    {
+      "id": "matched-controls",
+      "kind": "comparison",
+      "a": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "b": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "expected": true
+    },
+    {
+      "id": "changed-task_revision",
+      "kind": "comparison",
+      "a": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "b": {
+        "task_revision": "different",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "expected": false
+    },
+    {
+      "id": "changed-environment_revision",
+      "kind": "comparison",
+      "a": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "b": {
+        "task_revision": "same",
+        "environment_revision": "different",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "expected": false
+    },
+    {
+      "id": "changed-actuator_revision",
+      "kind": "comparison",
+      "a": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "b": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "different",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "expected": false
+    },
+    {
+      "id": "changed-observer_revision",
+      "kind": "comparison",
+      "a": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "b": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "different",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "expected": false
+    },
+    {
+      "id": "changed-evaluator_revision",
+      "kind": "comparison",
+      "a": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "b": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "different",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "expected": false
+    },
+    {
+      "id": "changed-budget_policy",
+      "kind": "comparison",
+      "a": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "b": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "different",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "expected": false
+    },
+    {
+      "id": "changed-selection_policy",
+      "kind": "comparison",
+      "a": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "b": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "different",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "expected": false
+    },
+    {
+      "id": "changed-timestep",
+      "kind": "comparison",
+      "a": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "b": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.01,
+        "precision": "same"
+      },
+      "expected": false
+    },
+    {
+      "id": "changed-precision",
+      "kind": "comparison",
+      "a": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "same"
+      },
+      "b": {
+        "task_revision": "same",
+        "environment_revision": "same",
+        "actuator_revision": "same",
+        "observer_revision": "same",
+        "evaluator_revision": "same",
+        "budget_policy": "same",
+        "selection_policy": "same",
+        "timestep": 0.1,
+        "precision": "different"
+      },
+      "expected": false
+    },
+    {
+      "id": "missing-controls",
+      "kind": "comparison",
+      "a": {},
+      "b": {},
+      "expected": false
+    }
+  ]
+}

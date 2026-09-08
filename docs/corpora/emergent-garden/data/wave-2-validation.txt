@@ -1,0 +1,9 @@
+Campaign: eg-nested-corpus-2026-09
+Checkpoint: wave-2-recent-window-census-and-direct-graph
+Formatted parent: ffa0b3376f9d88e71d460b9c1649f1235b9d4076
+Recent-window records: 15
+Description edges: 186
+Unique high-value expansions: 23
+Expansion failures: 0
+G1 inventory: BLOCKED (ResearchLedger issue #82)
+Purpose: trigger normal repository validation on the formatted Wave 2 head.

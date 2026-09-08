@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "eg-nested-corpus-2026-09",
+  "acquisition_commit": "2cc1046727b968cb4d38367f445d288a8866ceae",
+  "workflow_run_id": "34094065367",
+  "workflow_run_attempt": "1",
+  "offline_reconciliation_tests_passed": true,
+  "files": [
+    {
+      "path": "docs/corpora/emergent-garden/data/youtube-census-status-v1.json",
+      "sha256": "5b7b7b40ba055fc45b7a2f280b315dd19bb31f84d82f7ed71d032be25aee3c4f"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/data/youtube-channel-inventory-v1.json",
+      "sha256": "ec650ea172cedfe26c3e95c319de59e0cfd77c4e3a369d4a73007fa37ceaec26"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/data/youtube-description-edges-v1.json",
+      "sha256": "d90f085543caf914fcad71b501bdf5fab7b7d07fb9ddeeb90f82e17ef559fd98"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/data/youtube-text-coverage-v1.json",
+      "sha256": "83b0500a9aef225b45a32c145c8b24a33a86d0559d76a380896cb83cffbb3e0a"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/data/direct-link-frontier-v1.json",
+      "sha256": "d3855bc3902881dd165e6178e80a7a6080c6dacffa98a519f7d0f912ed903fcc"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/research/YOUTUBE-CENSUS-WAVE-2.md",
+      "sha256": "a4070deac63ac0e7513dec3759e3c32f0bab1b6e98f670f0a94f17aa4f37a0b3"
+    },
+    {
+      "path": "docs/corpora/emergent-garden/research/DIRECT-LINK-EXPANSION-WAVE-2.md",
+      "sha256": "d3a21754c1faf3555b8e1cdf3da6d57179aa80e42b1f57956ecbfb74bbcc12e8"
+    }
+  ]
+}

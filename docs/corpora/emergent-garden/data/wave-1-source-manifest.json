@@ -1,0 +1,298 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "eg-nested-corpus-2026-09",
+  "manifest_id": "eg-source-manifest-wave-1",
+  "status": "partial_frozen_wave",
+  "observed_at": "2026-09-04T00:00:00-07:00",
+  "canonicalization_version": "eg-source-v1",
+  "scope_statement": "Revision-pinned sources used for Wave 1 synthesis. This is not the complete official channel inventory or transcript corpus.",
+  "sources": [
+    {
+      "source_id": "eg-video-neural-cellular-automata",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=3H79ZcBuw4M",
+      "version_locator": "video_id:3H79ZcBuw4M",
+      "evidence_scope": "public_video_locator_and_creator_project_crosslink",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-gradient-descent-vs-evolution",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=Anc2_mnb3V8",
+      "version_locator": "video_id:Anc2_mnb3V8",
+      "evidence_scope": "public_video_locator_and_indexed_description_metadata",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-vision-and-vibe-coding",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=iDJ6GrHNoDs",
+      "version_locator": "video_id:iDJ6GrHNoDs",
+      "evidence_scope": "public_video_locator_and_project_evidence",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-langtons-ants-turing-machines",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=7x9J7rsLC50",
+      "version_locator": "video_id:7x9J7rsLC50",
+      "evidence_scope": "public_video_locator_and_creator_repository",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-chaos-of-ai-agents",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=2YYjPs8t8MI",
+      "version_locator": "video_id:2YYjPs8t8MI",
+      "evidence_scope": "public_video_locator_indexed_description_and_prompt_artifacts",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-evolving-brains-life-engine",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=DksO3mqh0kg",
+      "version_locator": "video_id:DksO3mqh0kg",
+      "evidence_scope": "public_video_locator_and_life-engine_repository",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-minecraft-reliability",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=Wh4abvcUj8Q",
+      "version_locator": "video_id:Wh4abvcUj8Q",
+      "evidence_scope": "public_video_locator_and_mindcraft_task_contracts",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-emergent-complexity",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=0HqUYpGQIfs",
+      "version_locator": "video_id:0HqUYpGQIfs",
+      "evidence_scope": "public_video_locator_indexed_description_and_chapters",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-creatures-higher-dimensions",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=349r0xJFGNw",
+      "version_locator": "video_id:349r0xJFGNw",
+      "evidence_scope": "public_video_locator_and_hyperdimensions_source",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-nature-sanctuary-stardew",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=LxVQra1Z_jA",
+      "version_locator": "video_id:LxVQra1Z_jA",
+      "evidence_scope": "public_video_locator",
+      "analysis_status": "analyzed_limited",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-evolution-higher-dimensions",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=DB-TD3s3MZ0",
+      "version_locator": "video_id:DB-TD3s3MZ0",
+      "evidence_scope": "public_video_locator_and_hyperdimensions_source",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-ai-war-minecraft",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=Ipcr5heLOJ8",
+      "version_locator": "video_id:Ipcr5heLOJ8",
+      "evidence_scope": "public_video_locator",
+      "analysis_status": "frontier",
+      "publication_class": "link_only"
+    },
+    {
+      "source_id": "eg-video-brain-eating-machines",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=kVjhV-In25c",
+      "version_locator": "video_id:kVjhV-In25c",
+      "evidence_scope": "public_video_locator",
+      "analysis_status": "frontier",
+      "publication_class": "link_only"
+    },
+    {
+      "source_id": "eg-video-recursive-self-improvement",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=t7_ZXgfJVG8",
+      "version_locator": "video_id:t7_ZXgfJVG8",
+      "evidence_scope": "public_video_locator_and_fractalsearch_repository",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-video-artificial-life-2026",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=2g-CrQfYNtE",
+      "version_locator": "video_id:2g-CrQfYNtE",
+      "evidence_scope": "public_video_locator_and_creator_post_metadata",
+      "analysis_status": "frontier",
+      "publication_class": "link_only"
+    },
+    {
+      "source_id": "eg-video-agents-of-empires",
+      "kind": "youtube_video",
+      "canonical_uri": "https://www.youtube.com/watch?v=ZBdAe3ZwKds",
+      "version_locator": "video_id:ZBdAe3ZwKds",
+      "evidence_scope": "public_video_locator_and_creator_repository",
+      "analysis_status": "analyzed",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-site-project-gallery",
+      "kind": "creator_site",
+      "canonical_uri": "https://emergentgarden.io/",
+      "version_locator": "captured:2026-09-04",
+      "evidence_scope": "creator_identity_and_project_names",
+      "analysis_status": "analyzed_partial_edges",
+      "publication_class": "link_and_derived_notes_only"
+    },
+    {
+      "source_id": "eg-repo-life-engine-readme",
+      "kind": "github_file",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/LifeEngine/blob/master/README.md",
+      "version_locator": "git_blob:cc10a4621330254677fba63fc3b0a81f47305c12",
+      "evidence_scope": "implementation_and_creator_explanation",
+      "analysis_status": "analyzed",
+      "publication_class": "short_excerpts_and_links"
+    },
+    {
+      "source_id": "eg-repo-neural-patterns-readme",
+      "kind": "github_file",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/NeuralPatterns/blob/main/README.md",
+      "version_locator": "git_blob:059ab840c437c52ab4a2afa525828f96f0831586",
+      "evidence_scope": "implementation_and_creator_explanation",
+      "analysis_status": "analyzed",
+      "publication_class": "short_excerpts_and_links"
+    },
+    {
+      "source_id": "eg-repo-fractalsearch-readme",
+      "kind": "github_file",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/fractalsearch/blob/main/README.md",
+      "version_locator": "git_blob:8087a145288c459cb8f259c52bfed7dc74b8438c",
+      "evidence_scope": "recursive_research_loop_and_limitations",
+      "analysis_status": "analyzed",
+      "publication_class": "short_excerpts_and_links"
+    },
+    {
+      "source_id": "eg-repo-agents-of-empires-readme",
+      "kind": "github_file",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/AgentsOfEmpires/blob/main/README.md",
+      "version_locator": "git_blob:a6b80f4d3b9115d3a33b06a871775b0004d385c6",
+      "evidence_scope": "real_environment_runner_artifacts_and_limits",
+      "analysis_status": "analyzed",
+      "publication_class": "short_excerpts_and_links"
+    },
+    {
+      "source_id": "eg-repo-agent-prompts-city",
+      "kind": "github_file",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/agent_prompts/blob/main/city_instructions.txt",
+      "version_locator": "git_blob:d018763f526de78496fa3f4271e1616aa46a18a5",
+      "evidence_scope": "shared_artifact_multi_agent_prompt",
+      "analysis_status": "analyzed",
+      "publication_class": "short_excerpts_and_links"
+    },
+    {
+      "source_id": "eg-repo-agent-prompts-open-ended",
+      "kind": "github_file",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/agent_prompts/blob/main/open_ended_instructions.txt",
+      "version_locator": "git_blob:1a0fd7c89bfe7094c7244d92aa1d8712dcaadbc2",
+      "evidence_scope": "open_ended_agent_prompt_and_coordination_surface",
+      "analysis_status": "analyzed",
+      "publication_class": "short_excerpts_and_links"
+    },
+    {
+      "source_id": "eg-repo-hyperdimensions-index",
+      "kind": "github_file",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/hyperdimensions/blob/main/index.html",
+      "version_locator": "git_blob:ae465b9f9047ce1fe18dd4d352b8c597b1486814",
+      "evidence_scope": "representation_editor_project_links_and_video_edge",
+      "analysis_status": "analyzed",
+      "publication_class": "short_excerpts_and_links"
+    },
+    {
+      "source_id": "eg-repo-mandelbrotnn-readme",
+      "kind": "github_file",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/mandelbrotnn/blob/main/README.md",
+      "version_locator": "git_blob:b460964d2b153fe30df4f4ff3a5d9983ef83b8ee",
+      "evidence_scope": "gradient_based_mandelbrot_approximation",
+      "analysis_status": "analyzed",
+      "publication_class": "short_excerpts_and_links"
+    },
+    {
+      "source_id": "eg-repo-code-evolver-readme",
+      "kind": "github_file",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/CodeEvolver/blob/main/README.md",
+      "version_locator": "git_blob:4f3734b37748fe1046a8ec94ed27aaaf4487bbf1",
+      "evidence_scope": "creator_project_pointer",
+      "analysis_status": "frontier",
+      "publication_class": "link_only"
+    },
+    {
+      "source_id": "eg-repo-hillclimbers-readme",
+      "kind": "github_file",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/hillclimbers/blob/main/README.md",
+      "version_locator": "git_blob:f8f8db9b03843b6cc4c41056d34a0561799c48bb",
+      "evidence_scope": "repository_identity_only",
+      "analysis_status": "insufficient_evidence",
+      "publication_class": "link_only"
+    },
+    {
+      "source_id": "eg-repo-turmites-tree",
+      "kind": "github_tree",
+      "canonical_uri": "https://github.com/MaxRobinsonTheGreat/turmites/tree/main",
+      "version_locator": "git_tree:fd3cfb116a8f964e92eb46ce63ec0f92df3e86d7",
+      "evidence_scope": "implementation_tree_and_presets",
+      "analysis_status": "analyzed_partial",
+      "publication_class": "links_and_derived_notes"
+    },
+    {
+      "source_id": "eg-repo-mindcraft-current",
+      "kind": "github_repository",
+      "canonical_uri": "https://github.com/mindcraft-bots/mindcraft",
+      "version_locator": "default_branch:develop;captured:2026-09-04",
+      "evidence_scope": "current_implementation_task_contracts_safety_and_paper_link",
+      "analysis_status": "analyzed_partial_lineage",
+      "publication_class": "short_excerpts_and_links"
+    },
+    {
+      "source_id": "eg-paper-minecollab",
+      "kind": "research_paper",
+      "canonical_uri": "https://arxiv.org/abs/2504.17950",
+      "version_locator": "arxiv:2504.17950;captured:2026-09-04",
+      "evidence_scope": "primary_multi_agent_embodied_reasoning_evidence",
+      "analysis_status": "analyzed",
+      "publication_class": "short_excerpts_citation_and_links"
+    },
+    {
+      "source_id": "eg-context-autoresearch",
+      "kind": "github_repository",
+      "canonical_uri": "https://github.com/karpathy/autoresearch",
+      "version_locator": "captured:2026-09-04",
+      "evidence_scope": "explicit_upstream_influence_for_fractalsearch",
+      "analysis_status": "context_only",
+      "publication_class": "links_and_derived_notes"
+    }
+  ],
+  "known_gaps": [
+    "Official YouTube uploads-playlist census not yet acquired.",
+    "Descriptions and chapters are not frozen for every video.",
+    "Permitted transcript or script coverage is incomplete.",
+    "Several creator-gallery outbound URLs remain unresolved.",
+    "Mindcraft historical-to-current Git lineage remains incomplete.",
+    "Creator experiments have not been independently reproduced."
+  ]
+}
