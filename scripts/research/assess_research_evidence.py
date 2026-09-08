@@ -84,10 +84,11 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('fixtures', type=Path)
     p.add_argument('--output', type=Path)
-    p.add_argument('--allowed-root', type=Path, default=Path.cwd())
+    p.add_argument('--fixtures-root', type=Path, default=Path.cwd())
+    p.add_argument('--output-root', type=Path, default=Path.cwd())
     args = p.parse_args()
-    fixtures_path = resolve_under(args.fixtures, args.allowed_root)
-    output_path = resolve_under(args.output, args.allowed_root) if args.output else None
+    fixtures_path = resolve_under(args.fixtures, args.fixtures_root)
+    output_path = resolve_under(args.output, args.output_root) if args.output else None
     fixtures = json.loads(fixtures_path.read_text())
     results = []
     for case in fixtures['cases']:

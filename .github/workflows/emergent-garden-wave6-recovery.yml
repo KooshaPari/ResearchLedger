@@ -28,7 +28,11 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 scripts/research/collect_emergent_garden_comments.py --private "$RUNNER_TEMP/private" --public "$RUNNER_TEMP/public" --max-requests 1800
+          python3 scripts/research/collect_emergent_garden_comments.py \
+            --private "$RUNNER_TEMP/private" --private-root "$RUNNER_TEMP" \
+            --public "$RUNNER_TEMP/public" --public-root "$RUNNER_TEMP" \
+            --inventory "$GITHUB_WORKSPACE/docs/corpora/emergent-garden/data/youtube-channel-inventory-v1.json" --inventory-root "$GITHUB_WORKSPACE" \
+            --max-requests 1800
       - name: Seal minimized input; do not publish plaintext
         shell: bash
         run: |
