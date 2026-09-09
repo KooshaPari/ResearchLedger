@@ -1,3 +1,6 @@
+import os
+import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -24,7 +27,32 @@ class RepositoryInputTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 parse_repositories(value, self.CURRENT)
 
-    def test_workflow_defaults_preserve_zero_and_false(self):
+    def test_workflow_contracts_match_for_dispatch_and_call(self):
+        workflow = Path(".github/workflows/retroactive-sweep.yml").read_text()
+        dispatch = re.search(r"  workflow_dispatch:\n    inputs:\n(.*?)(?=  workflow_call:)", workflow, re.S)
+        call = re.search(r"  workflow_call:\n    inputs:\n(.*?)(?=permissions:)", workflow, re.S)
+        self.assertIsNotNone(dispatch)
+        self.assertIsNotNone(call)
+        for block in (dispatch.group(1), call.group(1)):
+            for name, kind, default in (
+                ("since_days", "number", "7"),
+                ("max_prs", "number", "50"),
+                ("dry_run", "boolean", "false"),
+                ("repos", "string", '""'),
+            ):
+                self.assertRegex(
+                    block,
+                    rf"{name}:\n(?:.*\n)*?        type: {kind}\n        default: {default}",
+                )
+
+    def test_resolver_preserves_zero_and_false_input_values(self):
         workflow = Path(".github/workflows/retroactive-sweep.yml").read_text()
         self.assertIn('echo "lookback=${LOOKBACK:-30}"', workflow)
+        self.assertIn('echo "max_prs=${MAX_PRS:-20}"', workflow)
         self.assertIn('echo "dry_run=${DRY_RUN:-true}"', workflow)
+        result = subprocess.check_output(
+            ["bash", "-c", 'printf "%s,%s,%s" "${LOOKBACK:-30}" "${MAX_PRS:-20}" "${DRY_RUN:-true}"'],
+            env={**os.environ, "LOOKBACK": "0", "MAX_PRS": "0", "DRY_RUN": "false"},
+            text=True,
+        )
+        self.assertEqual(result, "0,0,false")
