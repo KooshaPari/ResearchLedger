@@ -28,4 +28,3 @@ class RepositoryInputTests(unittest.TestCase):
         workflow = Path(".github/workflows/retroactive-sweep.yml").read_text()
         self.assertIn('echo "lookback=${LOOKBACK:-30}"', workflow)
         self.assertIn('echo "dry_run=${DRY_RUN:-true}"', workflow)
-
